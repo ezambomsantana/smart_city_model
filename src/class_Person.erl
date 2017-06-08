@@ -1,5 +1,5 @@
 %Class that represents a person that can moves around the city graph on foot or by car
--module(class_PersonMultiTrip).
+-module(class_Person).
 
 % Determines what are the mother classes of this class (if any):
 -define( wooper_superclasses, [ class_Actor ] ).

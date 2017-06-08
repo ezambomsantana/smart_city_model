@@ -63,7 +63,7 @@ create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID 
 
 			ListTripsFinal = [ { Mode , Origin , LinkOrigin , Destination , NewPath } ],
 
-			class_Actor:create_initial_actor( class_PersonMultiTrip,
+			class_Actor:create_initial_actor( class_Person,
 				[ CarName , ListVertexPath , ListTripsFinal , element( 1 , string:to_integer( StartTime )) , LogPID , Type , MetroActor ] ),
 
 			create_person( ListCount , CarCount - 1 , ListVertex ,  Car , Graph , NewPath , LogPID , Name , MetroActor );
@@ -74,7 +74,7 @@ create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID 
 
 			ListTripsFinal = [ { Mode , Origin , LinkOrigin , Destination , Path } ],
 
-			class_Actor:create_initial_actor( class_PersonMultiTrip,
+			class_Actor:create_initial_actor( class_Person,
 				[ CarName , ListVertexPath , ListTripsFinal , element( 1 , string:to_integer( StartTime )) , LogPID , Type , MetroActor ] ),
 
 			create_person( ListCount , CarCount - 1 , ListVertex ,  Car , Graph , Path , LogPID , Name , MetroActor  )
@@ -97,7 +97,7 @@ create_person_multi_trip( ListCount , CarCount , ListVertex ,  Car , Graph , Log
 	
 	{ ListTripsFinal , ListVertexPath } = create_single_trip( ListTrips , [] , Graph , [] , ListVertex ),
 
-	class_Actor:create_initial_actor( class_PersonMultiTrip,
+	class_Actor:create_initial_actor( class_Person,
 		[ CarName , ListVertexPath , ListTripsFinal , element( 1 , string:to_integer( StartTime )) , LogPID , Type , MetroActor ] ).
 
 create_single_trip( [] , ListTripsFinal , _Graph , ListVertexPath , _ListVertex ) ->
