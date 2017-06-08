@@ -28,15 +28,8 @@
 -include("wooper.hrl").
 
 
-% Must be included before class_TraceEmitter header:
--define(TraceEmitterCategorization,"Smart-City.City").
 
-
-% Allows to use macros for trace sending:
--include("class_TraceEmitter.hrl").
-
-% Creates a new city graph
-%
+% Creates a new metro graph actor
 -spec construct( wooper:state(), class_Actor:actor_settings(),
 				class_Actor:name() , sensor_type() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
@@ -45,37 +38,23 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	MetroGraph = metro_parser:show( MetroFile , false ),
 
-	print_graph( MetroGraph ),
-
 	setAttributes( ActorState, [
 		{ city_name, CityName },
-		{ graph, MetroGraph },
-		{ probe_pid, non_wanted_probe },	
-		{ trace_categorization,
-		 text_utils:string_to_binary( ?TraceEmitterCategorization ) }
-							] ).
-% Overridden destructor.
-%
+		{ graph, MetroGraph } ] ).
+
 -spec destruct( wooper:state() ) -> wooper:state().
 destruct( State ) ->
 
-	% Destructor don't do nothing in this class.
 	State.
 
 % The City is a passive actor. Never start spontanely an action
-%
-% (oneway)
-%
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
 actSpontaneous( State ) ->
 
 	?wooper_return_state_only( State ).
 
 
-% Called by a car wanting to know his next position.
-%
-% (actor oneway)
-%
+% Called by an agent wanting to know how much time it will spend at the metro
 -spec getTravelTime( wooper:state(), car_index(), pid() ) ->
 					   class_Actor:actor_oneway_return().
 getTravelTime( State, Path , PersonPID ) ->
@@ -85,11 +64,6 @@ getTravelTime( State, Path , PersonPID ) ->
 	Graph = getAttribute( State , graph ),
 
 	PathMetro = digraph:get_short_path( Graph , list_to_atom( InitialVertice ) , list_to_atom( FinalVertice ) ),
-
-
-	io:format("vInicio: ~w~n", [ list_to_atom( InitialVertice ) ]),
-	io:format("vInicio: ~w~n", [ list_to_atom( FinalVertice ) ]),
-	io:format("vInicio: ~w~n", [ PathMetro ]),
 
 	NumberStations = length( PathMetro ),
 
@@ -104,51 +78,5 @@ getTravelTime( State, Path , PersonPID ) ->
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
 
-	SimulationInitialTick = ?getAttr(initial_tick),
+	?wooper_return_state_only( State ).
 
-	% Checking:
-	true = ( SimulationInitialTick =/= undefined ),
-
-	case ?getAttr(probe_pid) of
-
-		non_wanted_probe ->
-			ok;
-
-		ProbePid ->
-			ProbePid ! { setTickOffset, SimulationInitialTick }
-
-	end,
-
-	ScheduledState = executeOneway( State, scheduleNextSpontaneousTick ),
-
-	?wooper_return_state_only( ScheduledState ).
-
-
-
-print_graph( Graph ) ->
-	
-	Vertices = digraph:vertices( Graph ),
-	Edges = digraph:edges( Graph ),
-	print_vertices( Vertices  ),
-	print_edges( Graph , Edges ).
-
-
-
-print_vertices([]) ->
-	ok;
-
-print_vertices([Element | MoreElements]) ->
-	io:format("vertice: ~s~n", [ Element ]),
-	print_vertices(MoreElements).
-
-
-
-print_edges(_Graph , []) ->
-	ok;
-
-print_edges(Graph, [Element | MoreElements]) ->
-	Edge = digraph:edge(Graph, Element),
-	io:format("vInicio: ~s~n", [ element( 2 , Edge ) ]),
-	io:format("vFim: ~s~n", [ element( 3 , Edge) ]),
-	io:format("id: ~s~n", [ element( 4 , Edge) ]),
-	print_edges( Graph , MoreElements ).

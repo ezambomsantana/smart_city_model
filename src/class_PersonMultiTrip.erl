@@ -27,16 +27,7 @@
 % Allows to define WOOPER base variables and methods for that class:
 -include("wooper.hrl").
 
-
-% Must be included before class_TraceEmitter header:
--define(TraceEmitterCategorization,"Smart-City.Car").
-
-
-% Allows to use macros for trace sending:
--include("class_TraceEmitter.hrl").
-
-% Creates a new car
-%
+% Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
 				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
@@ -45,7 +36,6 @@ construct( State, ?wooper_construct_parameters ) ->
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
 
         DictVertices = dict:from_list( ListVertex ),
-
 
 	setAttributes( ActorState, [
 		{ car_name, CarName },
@@ -401,11 +391,6 @@ move( State, PositionTime ) ->
 %
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
-
-	SimulationInitialTick = ?getAttr(initial_tick),
-
-	% Checking:
-	true = ( SimulationInitialTick =/= undefined ),
 
 	Time = getAttribute( State, start_time ),
 

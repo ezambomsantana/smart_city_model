@@ -28,13 +28,6 @@
 -include("wooper.hrl").
 
 
-% Must be included before class_TraceEmitter header:
--define(TraceEmitterCategorization,"Smart-City.City").
-
-
-% Allows to use macros for trace sending:
--include("class_TraceEmitter.hrl").
-
 % Creates a new city graph
 %
 -spec construct( wooper:state(), class_Actor:actor_settings(),
@@ -56,7 +49,6 @@ construct( State, ?wooper_construct_parameters ) ->
 -spec destruct( wooper:state() ) -> wooper:state().
 destruct( State ) ->
 
-	% Destructor don't do nothing in this class.
 	State.
 
 % The City is a passive actor. Never start spontanely an action
@@ -156,11 +148,4 @@ getSpeedWalk( State , LinkId , CarPID ) ->
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
 
-	SimulationInitialTick = ?getAttr(initial_tick),
-
-	% Checking:
-	true = ( SimulationInitialTick =/= undefined ),
-
-	ScheduledState = executeOneway( State, scheduleNextSpontaneousTick ),
-
-	?wooper_return_state_only( ScheduledState ).
+	?wooper_return_state_only( State ).

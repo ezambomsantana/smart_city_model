@@ -1,4 +1,3 @@
-%Class that represents a simple Sensor
 -module(class_Log).
 
 % Determines what are the mother classes of this class (if any):
@@ -28,17 +27,7 @@
 -include("wooper.hrl").
 
 
-% Must be included before class_TraceEmitter header:
--define(TraceEmitterCategorization,"Log.Car").
-
-
-% Allows to use macros for trace sending:
--include("class_TraceEmitter.hrl").
-
-
-
-% Creates a new car
-%
+% Creates a new log actor
 -spec construct( wooper:state(), class_Actor:actor_settings(),
 				class_Actor:name() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
@@ -53,12 +42,10 @@ construct( State, ?wooper_construct_parameters ) ->
 	setAttributes( ActorState, [
 		{ file , InitFile } ] ).
 
-% Overridden destructor.
+% The destructor just close the log file.
 %
 -spec destruct( wooper:state() ) -> wooper:state().
 destruct( State ) ->
-
-	% Destructor don't do nothing in this class.
 
 	InitFile = ?getAttr(file),
 
@@ -68,15 +55,12 @@ destruct( State ) ->
 
 	State.
 
-% The core of the car behaviour.
-%
-% (oneway)
-%
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
 actSpontaneous( State ) ->
 
 	State.
 
+% Receive a message from an agent and saves it in the log file.
 -spec receive_action( wooper:state() , car_index() , pid() ) -> wooper:state().
 receive_action( State , Data , _Pid ) ->
 
@@ -86,21 +70,9 @@ receive_action( State , Data , _Pid ) ->
 
 	?wooper_return_state_only( State ).
 
-	
-% Simply schedules this just created actor at the next tick (diasca 0).
-%
-% (actor oneway)
-%
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
 
-	SimulationInitialTick = ?getAttr(initial_tick),
-
-	% Checking:
-	true = ( SimulationInitialTick =/= undefined ),
-
-	ScheduledState = executeOneway( State, scheduleNextSpontaneousTick ),
-
-	?wooper_return_state_only( ScheduledState ).
+	?wooper_return_state_only( State ).
 
 
