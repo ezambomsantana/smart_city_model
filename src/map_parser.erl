@@ -1,4 +1,4 @@
--module(matsim_to_digraph).
+-module(map_parser).
 -include_lib("xmerl/include/xmerl.hrl").
 
 % usage:

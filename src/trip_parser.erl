@@ -1,4 +1,4 @@
--module(matrix_parser).
+-module(trip_parser).
 -include_lib("xmerl/include/xmerl.hrl").
 
 % usage:

@@ -57,9 +57,9 @@ actSpontaneous( State ) ->
 % Called by an agent wanting to know how much time it will spend at the metro
 -spec getTravelTime( wooper:state(), car_index(), pid() ) ->
 					   class_Actor:actor_oneway_return().
-getTravelTime( State, Path , PersonPID ) ->
+getTravelTime( State, Data , PersonPID ) ->
 
-	{ InitialVertice , FinalVertice } = { element(1 , Path) , element(2 , Path) },
+	{ InitialVertice , FinalVertice } = { element(1 , Data) , element(2 , Data) },
 
 	Graph = getAttribute( State , graph ),
 
