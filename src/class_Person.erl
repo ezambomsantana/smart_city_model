@@ -48,7 +48,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ car_position, -1 },
 		{ start_time , StartTime },	
 		{ path , ok },
-		{ metro , MetroPID }
+		{ metro , MetroPID },
+		{ metro_status , start }
 						] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
@@ -134,9 +135,9 @@ actSpontaneous( State ) ->
 
 				"metro" ->
 			
-					CarPosition = getAttribute( State , car_position ), 
+					MetroStatus = getAttribute( State , metro_status ), 
 
-					case CarPosition of 
+					case MetroStatus of 
 	
 	
 						finish ->
@@ -145,9 +146,11 @@ actSpontaneous( State ) ->
 
 							NewState = setAttribute( State , trip_index , NextTrip ),
 
-							executeOneway( NewState, scheduleNextSpontaneousTick );
+							FinalState = setAttribute( NewState , metro_status , start ),
 
-						_ ->
+							executeOneway( FinalState , scheduleNextSpontaneousTick );
+
+						start ->
 	
 							NewState = request_position_metro( State , CurrentTrip ),
 
@@ -195,22 +198,24 @@ metro_go( State, PositionTime , _GraphPID ) ->
 	
 	Trip = list_utils:get_element_at( Trips , TripIndex ),
 
-	Origin = element( 3 , Trip ),
-
 	Destination = element( 5 , Trip ), 
 
-	LastPositionText = io_lib:format( "<event time=\"~w\" type=\"left link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" trip=\"metro\" />\n", [ CurrentTickOffset , CarId , Origin , CarId , Type ] ),
+	LastPosition = getAttribute( State , car_position ),	
+
+	PositionState = setAttribute( State, car_position, list_to_atom( Destination ) ),
+
+	LastPositionText = io_lib:format( "<event time=\"~w\" type=\"left link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" trip=\"metro\" />\n", [ CurrentTickOffset , CarId , LastPosition , CarId , Type ] ),
 	NextPositionText = io_lib:format( "<event time=\"~w\" type=\"entered link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" trip=\"metro\" />\n", [  CurrentTickOffset , CarId , Destination , CarId , Type ] ),
 
 
 	TextFile = lists:concat( [ LastPositionText , NextPositionText  ] ),
 
-	NewState = setAttribute( State, car_position, finish ),
-
 	LogPID = ?getAttr(log_pid),
 
+	StatusState = setAttribute( PositionState , metro_status , finish ),
+
 	FintalState = class_Actor:send_actor_message( LogPID,
-		{ receive_action, { TextFile } }, NewState ),
+		{ receive_action, { TextFile } }, StatusState ),
 
 	executeOneway( FintalState , addSpontaneousTick, CurrentTickOffset + Time ).
 
