@@ -39,7 +39,6 @@ construct( State, ?wooper_construct_parameters ) ->
 	MetroGraph = metro_parser:show( MetroFile , false ),
 
 	setAttributes( ActorState, [
-		{ city_name, CityName },
 		{ graph, MetroGraph } ] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
