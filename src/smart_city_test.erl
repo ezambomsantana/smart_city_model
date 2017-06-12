@@ -55,7 +55,6 @@ create_street_list([Element | MoreElements] , List , Graph) ->
 
 
 spaw_proccess([] , _ListVertex , _CityGraph , _LogList , _MetroActor  ) -> 
-
 	ok;
 
 spaw_proccess( [ List | MoreLists ] , ListVertex , CityGraph , LogPID , MetroActor ) ->
@@ -65,6 +64,16 @@ spaw_proccess( [ List | MoreLists ] , ListVertex , CityGraph , LogPID , MetroAct
 
 	spawn(create_cars, iterate_list , [ 1 , dict:from_list( ListVertex ) , ListTrips , CityGraph , LogPID , Name , MetroActor , self() ]),
 	spaw_proccess( MoreLists  , ListVertex , CityGraph , LogPID , MetroActor ).
+
+split_list( [] , _NumberLists , _ListSplit , ListReturn ) ->
+	ListReturn;
+
+split_list( [ Name | Names ] , NumberLists , ListSplit , ListReturn ) ->
+	{List , ListCars } = lists:split(round (length (ListSplit) / 6), ListSplit),
+
+	Element = [ { Name , List } ],
+
+	split_list( Names , NumberLists , ListCars , ListReturn ++ Element ).
   
 
 collectResults([]) -> ok;
@@ -147,17 +156,7 @@ run() ->
 
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
 
-	{List1, ListCars1 } = lists:split(round (length (ListCars) / 6), ListCars),
-
-	{List2, ListCars2 } = lists:split(round (length (ListCars) / 6), ListCars1),
-
-	{List3, ListCars3 } = lists:split(round (length (ListCars) / 6), ListCars2),
-
-	{List4, ListCars4 } = lists:split(round (length (ListCars) / 6), ListCars3),
-
-	{List5, List6 } = lists:split(round (length (ListCars) / 6), ListCars4),
-
-	List = [ { "car1" , List1 } , { "car2" , List2 } , { "car3" , List3 } , { "car4" , List4 } , { "car5" , List5 } , { "car6" , List6 } ],    
+	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
 	spaw_proccess( List , ListVertex , CityGraph , LogPID , MetroActor ),
   		

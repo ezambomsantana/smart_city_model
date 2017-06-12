@@ -38,7 +38,6 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	file_utils:write( InitFile, "<events version=\"1.0\">\n" ),
 
-
 	setAttributes( ActorState, [
 		{ file , InitFile } ] ).
 

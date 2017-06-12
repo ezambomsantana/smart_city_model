@@ -1,5 +1,5 @@
-%Class that represents a person that can moves around the city graph on foot or by car
--module(class_Person).
+%Class that represents a bus that can moves around the city graph
+-module(class_Bus).
 
 % Determines what are the mother classes of this class (if any):
 -define( wooper_superclasses, [ class_Actor ] ).
@@ -18,7 +18,7 @@
 		 construct/9, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , metro_go/3 ).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 ).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -116,112 +116,14 @@ actSpontaneous( State ) ->
 
 
 		_ ->
-
+	
 			CurrentTrip = list_utils:get_element_at( Trips , TripIndex ),
 
-			Mode = element( 1 , CurrentTrip ),			
-
-			case Mode of 
-
-				"car" ->
-	
-					NewState = request_position( State , CurrentTrip ),
-					?wooper_return_state_only( NewState );	
-
-				"walk" ->
-	
-					NewState = request_position( State , CurrentTrip  ),
-					?wooper_return_state_only( NewState );	
-
-				"metro" ->
-			
-					MetroStatus = getAttribute( State , metro_status ), 
-
-					case MetroStatus of 
-	
-	
-						finish ->
-					
-							NextTrip = getAttribute( State , trip_index ) + 1,
-
-							NewState = setAttribute( State , trip_index , NextTrip ),
-
-							FinalState = setAttribute( NewState , metro_status , start ),
-
-							executeOneway( FinalState , scheduleNextSpontaneousTick );
-
-						start ->
-	
-							NewState = request_position_metro( State , CurrentTrip ),
-
-							?wooper_return_state_only( NewState )
-
-					end
-
-					
-
-
-			end
-
+			NewState = request_position( State , CurrentTrip ),
+			?wooper_return_state_only( NewState )
 
 	end.
-			
--spec request_position_metro( wooper:state() , parameter() ) -> wooper:state().
-request_position_metro( State , Trip ) -> 
-
-	Origin = element( 2 , Trip ),
-
-	Destination = element( 4 , Trip ), 
-
-	MetroPID = ?getAttr( metro ),
-
-	class_Actor:send_actor_message( MetroPID ,
-		{ getTravelTime, { Origin , Destination } }, State ).
-
-
-
--spec metro_go( wooper:state(), value(), pid() ) -> class_Actor:actor_oneway_return().
-metro_go( State, PositionTime , _GraphPID ) ->
-
-	% get the current time of the simulation
-	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
-
-	% get the response from the city graph
-	Time = element( 1 , PositionTime ),
-
-  	CarId = getAttribute( State , car_name ),
-  	Type = getAttribute( State , type ),
-
-	Trips = getAttribute( State , trips ), 
-
-	TripIndex = getAttribute( State , trip_index ), 
 	
-	Trip = list_utils:get_element_at( Trips , TripIndex ),
-
-	Destination = element( 5 , Trip ), 
-
-	LastPosition = getAttribute( State , car_position ),	
-
-	PositionState = setAttribute( State, car_position, list_to_atom( Destination ) ),
-
-	LastPositionText = io_lib:format( "<event time=\"~w\" type=\"left link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" trip=\"metro\" />\n", [ CurrentTickOffset , CarId , LastPosition , CarId , Type ] ),
-	NextPositionText = io_lib:format( "<event time=\"~w\" type=\"entered link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" trip=\"metro\" />\n", [  CurrentTickOffset , CarId , Destination , CarId , Type ] ),
-
-
-	TextFile = lists:concat( [ LastPositionText , NextPositionText  ] ),
-
-	LogPID = ?getAttr(log_pid),
-
-	StatusState = setAttribute( PositionState , metro_status , finish ),
-
-	FintalState = class_Actor:send_actor_message( LogPID,
-		{ receive_action, { TextFile } }, StatusState ),
-
-	executeOneway( FintalState , addSpontaneousTick, CurrentTickOffset + Time ).
-
-
-
-
 remove_first( [ _First | List ] ) ->
 	
 	List.	

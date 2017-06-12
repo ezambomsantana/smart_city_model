@@ -39,7 +39,7 @@ construct( State, ?wooper_construct_parameters ) ->
 	ActorState = class_Actor:construct( State, ActorSettings, StreetName ),
 
 	setAttributes( ActorState, [
-		{ street_name , StreetName },
+	%	{ street_name , StreetName },
 		{ number_cars , 0 },
 		{ dict , DictVertices }
 							] ).
