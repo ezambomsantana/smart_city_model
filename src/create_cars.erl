@@ -8,7 +8,8 @@
 % osm_parser:show("map.osm").
 
 -export([
-         iterate_list/8
+         iterate_list/8,
+	 get_path_nodes/3
         ]).
 
 

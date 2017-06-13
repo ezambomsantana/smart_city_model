@@ -18,9 +18,7 @@ create_map_list([Element | MoreElements] , Graph , List) ->
 	Id = element( 1 , _Label),
 	Length = element( 1 , string:to_float(element( 2 , _Label))), % Link Length	
 	Capacity = element( 1 , string:to_float(element( 3 , _Label))),
-	Freespeed = element( 1 , string:to_float(element( 4 , _Label))), 	
-
-	
+	Freespeed = element( 1 , string:to_float(element( 4 , _Label))), 		
 	
 	Vertices = list_to_atom(lists:concat( [ _V1 , _V2 ] )),
 
@@ -54,7 +52,57 @@ create_street_list([Element | MoreElements] , List , Graph) ->
 	create_street_list( MoreElements , List ++ NewElement , Graph ).
 
 
-spaw_proccess([] , _ListVertex , _CityGraph , _LogList , _MetroActor  ) -> 
+create_buses( [] , _ListVertex , _CityGraph , _LogPID  ) -> 
+	ok;
+
+create_buses( [ Bus | Buses ] , ListVertex , CityGraph , LogPID  ) -> 
+
+	Id = element( 1 , Bus ),
+	Interval = element( 2 , Bus ),
+	Stops = element( 3 , Bus ),
+	StartTime = element( 4 , Bus ),
+
+	Path = calculate_bus_path( Stops , CityGraph , [] ),
+
+	ListVertexPath = get_path_nodes( Path , ListVertex , [] ),
+
+	class_Actor:create_initial_actor( class_Bus,
+		[ Id , ListVertexPath , Path , element( 1 , string:to_integer( StartTime )) , Interval , LogPID ] ),
+
+	create_buses( Buses , ListVertex , CityGraph , LogPID  ).
+
+get_path_nodes( [] , _ListVertex , List ) ->
+	
+	List;
+
+get_path_nodes( [ Node | MoreNodes] , ListVertex , List ) ->
+
+	Element = dict:find( Node , ListVertex ),
+
+	ElementList = [{ Node , element( 2 , Element) }],
+
+	get_path_nodes( MoreNodes , ListVertex , List ++ ElementList ).	
+
+calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
+
+	case length( List ) > 1 of 
+
+		true ->
+
+			NextStop = lists:nth( 1 , List ),
+
+			ParcialPath = digraph:get_short_path( CityGraph , list_to_atom(Stop) , list_to_atom( NextStop ) ),
+	
+			calculate_bus_path( List , CityGraph , Path ++ ParcialPath);
+
+		false ->
+
+			Path
+	end.
+	
+
+
+spaw_proccess( [] , _ListVertex , _CityGraph , _LogPID , _MetroActor  ) -> 
 	ok;
 
 spaw_proccess( [ List | MoreLists ] , ListVertex , CityGraph , LogPID , MetroActor ) ->
@@ -141,11 +189,9 @@ run() ->
 
 	MetroFile = element( 5 , Config ), % Read the metro graph from the city. TODO: verify if this configurition does not exist.
 
+	ListBuses = bus_parser:show( element( 6 , Config ) ), % Read the list of buses. TODO: verify if this configurition does not exist.
 
-	MetroActor = class_Actor:create_initial_actor( class_Metro, [ "City" , MetroFile ] ),
-
-	
- 
+	MetroActor = class_Actor:create_initial_actor( class_Metro, [ "City" , MetroFile ] ), 
 
 	% create the vertices actors
 	ListVertex  = create_street_list( CityGraph ),
@@ -162,6 +208,7 @@ run() ->
   		
 	ok = collectResults(Names),
 
+	create_buses( ListBuses , dict:from_list( ListVertex ) , CityGraph , LogPID  ),
 
 	% create the cars
 	% create the actors that represent the cars - Need to paralelize this function

@@ -296,10 +296,12 @@ move( State, PositionTime ) ->
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
 
-	Time = getAttribute( State, start_time ),
+	_Time = getAttribute( State, start_time ),
 
-    	CurrentTickOffset = class_Actor:get_current_tick_offset( State ),   	
+    	_CurrentTickOffset = class_Actor:get_current_tick_offset( State ),   	
 
-	ScheduledState = executeOneway( State , addSpontaneousTick, CurrentTickOffset + Time ),
+	State. % Don't do nothing yet. To be implemented.
 
-	?wooper_return_state_only( ScheduledState ).
+%	ScheduledState = executeOneway( State , addSpontaneousTick, CurrentTickOffset + Time ),
+
+%	?wooper_return_state_only( ScheduledState ).

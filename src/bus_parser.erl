@@ -8,7 +8,11 @@
 % Init the XML processing
 show(Infilename) ->
     {Doc, _Misc} = xmerl_scan:file(Infilename),
-    init(Doc).
+    Return = init(Doc),
+    case Return of
+	ok -> [ ];
+	_-> Return
+    end.
 
 % read the OSM tag and extract all children
 init(Node) ->
@@ -58,7 +62,7 @@ extract_node( Node ) ->
 			
 				Id = children( Attributes , id ),
 				Interval = children( Attributes , interval ),
-				Stops = children( Attributes , stops ),
+				Stops = string:tokens( children( Attributes , stops ) , "," ),
 				StartTime = children( Attributes , start_time ),
 				[ { Id , Interval , Stops , StartTime } ];
 		_ ->
