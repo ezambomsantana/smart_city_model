@@ -192,14 +192,9 @@ go( State, PositionTime , _GraphPID ) ->
 	Time = element( 2 , PositionTime),
   	BusId = element( 3 , PositionTime ),
 
-
-	io:format("bus id: ~s~n", [ BusId  ]),
-
 	Buses = getAttribute( State , buses ), 
 
 	Bus = element( 2 , dict:find( BusId , Buses ) ), % dict:find returns { ok , Object }
-
-	io:format("bus: ~w~n", [ Bus  ]),
 
 	LastPosition = list_utils:get_element_at( Bus , 4 ),
 		
@@ -207,15 +202,8 @@ go( State, PositionTime , _GraphPID ) ->
 
 		false ->
 
-			LastPositionText = io_lib:format( "<event time=\"~w\" type=\"left link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" />\n", [ CurrentTickOffset , BusId , atom_to_list(LastPosition) , BusId ] ),
-			NextPositionText = io_lib:format( "<event time=\"~w\" type=\"entered link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" />\n", [  CurrentTickOffset , BusId , atom_to_list(NewPosition) , BusId ] ),
-
-			TextFile = lists:concat( [ LastPositionText , NextPositionText  ] ),
-
-			LogPID = ?getAttr(log_pid),
-
-			class_Actor:send_actor_message( LogPID,
-				{ receive_action, { TextFile } }, State );
+			write_movement_message( State , CurrentTickOffset , BusId , LastPosition , NewPosition , BusId );
+			
 
 		true -> 
 
@@ -262,6 +250,7 @@ onFirstDiasca( State, _SendingActorPid ) ->
 
 
 
+
 % Functions to write the data to the log files.
 
 write_final_message( State , CurrentTickOffset , BusId , LastPosition ) ->
@@ -294,5 +283,16 @@ write_initial_message( State , CurrentTickOffset , BusId , LinkOrigin , NewPosit
 	LogPID = ?getAttr(log_pid),
 			
 	class_Actor:send_actor_message( LogPID,	{ receive_action, { TextFile } }, State ).
+
+write_movement_message( State , CurrentTickOffset , BusId , LastPosition , NewPosition , BusId ) ->
+
+	LastPositionText = io_lib:format( "<event time=\"~w\" type=\"left link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" />\n", [ CurrentTickOffset , BusId , atom_to_list(LastPosition) , BusId ] ),
+	NextPositionText = io_lib:format( "<event time=\"~w\" type=\"entered link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" />\n", [  CurrentTickOffset , BusId , atom_to_list(NewPosition) , BusId ] ),
+
+	TextFile = lists:concat( [ LastPositionText , NextPositionText  ] ),
+
+	LogPID = ?getAttr(log_pid),
+
+	class_Actor:send_actor_message( LogPID , { receive_action, { TextFile } }, State ).
 
 
