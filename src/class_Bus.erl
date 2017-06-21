@@ -159,7 +159,7 @@ request_position( State , Bus ) ->
 
 					DictVertices = getAttribute( State , dict ),
 
-					Vertices = list_to_atom(lists:concat( [ InitialVertice , FinalVertice ] )),
+					Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] ) ),
 
 					VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
 				
@@ -222,9 +222,24 @@ go( State, PositionTime , _GraphPID ) ->
 
 	ScheduledBuses = getAttribute( BusesState , buses_time ), 
 
-	NewScheduledBuses = dict:store( CurrentTickOffset + Time , [ NewBus ] , ScheduledBuses ),
+	FinalState = case dict:is_key( CurrentTickOffset + Time , ScheduledBuses ) of
 
-	FinalState = setAttribute( BusesState , buses_time , NewScheduledBuses ),
+		true ->
+
+			ListBuses = element( 2 , dict:find( CurrentTickOffset + Time , ScheduledBuses ) ),
+			
+			NewScheduledBuses = dict:store( CurrentTickOffset + Time , ListBuses ++ [ NewBus ] , ScheduledBuses ),
+			
+			setAttribute( BusesState , buses_time , NewScheduledBuses );
+
+
+		false ->
+
+			NewScheduledBuses = dict:store( CurrentTickOffset + Time , [ NewBus ] , ScheduledBuses ),
+			
+			setAttribute( BusesState , buses_time , NewScheduledBuses )
+
+	end,
 
 	executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + Time ).
 

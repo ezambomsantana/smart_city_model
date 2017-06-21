@@ -91,7 +91,7 @@ calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 
 			NextStop = lists:nth( 1 , List ),
 
-			ParcialPath = digraph:get_short_path( CityGraph , list_to_atom(Stop) , list_to_atom( NextStop ) ),
+			ParcialPath = lists:droplast( digraph:get_short_path( CityGraph , list_to_atom(Stop) , list_to_atom( NextStop ) ) ),		
 	
 			calculate_bus_path( List , CityGraph , Path ++ ParcialPath);
 
@@ -209,9 +209,6 @@ run() ->
 	ok = collectResults(Names),
 
 	create_buses( ListBuses , dict:from_list( ListVertex ) , CityGraph , LogPID  ),
-
-	% create the cars
-	% create the actors that represent the cars - Need to paralelize this function
 
 	% We want this test to end once a specified virtual duration elapsed, in
 	% seconds:
