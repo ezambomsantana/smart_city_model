@@ -66,8 +66,7 @@ actSpontaneous( State ) ->
 	
 	case TripIndex > length( Trips ) of
 
-		true ->
-		
+		true ->		
 			
 			Path = getAttribute( State , path ), 
 

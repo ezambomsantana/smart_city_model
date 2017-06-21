@@ -64,7 +64,7 @@ extract_node( Node ) ->
 				Interval = children( Attributes , interval ),
 				Stops = string:tokens( children( Attributes , stops ) , "," ),
 				StartTime = children( Attributes , start_time ),
-				[ { Id , Interval , Stops , StartTime } ];
+				[ { Id , element( 1 , string:to_integer( Interval ) ) , Stops , StartTime } ]; % method to_integer returns two elements.
 		_ ->
 			
 			ok

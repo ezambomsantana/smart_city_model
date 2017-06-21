@@ -76,12 +76,57 @@ getPosition( State, Path , CarPID ) ->
 
 			getSpeedWalk( State , LinkId , CarPID );
 
+		"bus" ->
+
+			BusId = element( 3 , Path ),
+
+			getSpeedBus( State , LinkId , BusId , CarPID );
+
 
 		_ ->
 
 			getSpeedCar( State , LinkId , CarPID )
 
 	end.
+
+getSpeedBus( State , LinkId , BusId , CarPID ) ->
+
+	Dict = getAttribute( State, dict ),
+
+	Element = element ( 2 , dict:find( LinkId , Dict )),
+	Id = element( 1 , Element ), % Link Id
+	Length = element( 2 , Element ), % Link Length	
+	Capacity = element( 3 , Element ),
+	Freespeed = element( 4 , Element ), 	
+	NumberCars = element( 5 , Element ), 
+
+	NewDict = dict:store(LinkId , { Id , Length , Capacity , Freespeed , NumberCars  + 1 } , Dict ),
+
+	% Calculate car speed
+	Density = (NumberCars + 1) / Length ,
+
+	MaximumDensity = Capacity / Length ,
+
+	MinimumDensity = (Capacity / 2) / Length ,
+
+	Speed = case Density > MinimumDensity of
+
+		true ->
+
+			Freespeed * (math:pow ( 1 - math:pow((Density) / MaximumDensity , 0.05), 1) + 1);
+
+		false ->
+		
+			Freespeed 
+
+	end,
+
+	Time = ( Length / Speed ) + 1,
+
+	NewState = setAttribute( State , dict , NewDict ),
+
+	class_Actor:send_actor_message( CarPID,
+	 	{ go, { Id , round( Time ) , BusId } }, NewState ).
 
 getSpeedCar( State , LinkId , CarPID ) ->
 
