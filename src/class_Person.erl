@@ -49,7 +49,7 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ start_time , StartTime },	
 		{ path , ok },
 		{ metro , MetroPID },
-		{ metro_status , start }
+		{ pt_status , start } %public transport -> bus or metro
 						] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
@@ -130,13 +130,13 @@ actSpontaneous( State ) ->
 				"walk" ->
 	
 					NewState = request_position( State , CurrentTrip  ),
-					?wooper_return_state_only( NewState );	
+					?wooper_return_state_only( NewState );
 
-				"metro" ->
-			
-					MetroStatus = getAttribute( State , metro_status ), 
+				"bus" ->
 
-					case MetroStatus of 
+					PtStatus = getAttribute( State , pt_status ), 
+
+					case PtStatus of 
 	
 	
 						finish ->
@@ -145,7 +145,33 @@ actSpontaneous( State ) ->
 
 							NewState = setAttribute( State , trip_index , NextTrip ),
 
-							FinalState = setAttribute( NewState , metro_status , start ),
+							FinalState = setAttribute( NewState , pt_status , start ),
+
+							executeOneway( FinalState , scheduleNextSpontaneousTick );
+
+						start ->
+	
+							NewState = request_position_bus( State , CurrentTrip ),
+
+							?wooper_return_state_only( NewState )
+
+					end;
+
+
+				"metro" ->
+			
+					PtStatus = getAttribute( State , pt_status ), 
+
+					case PtStatus of 
+	
+	
+						finish ->
+					
+							NextTrip = getAttribute( State , trip_index ) + 1,
+
+							NewState = setAttribute( State , trip_index , NextTrip ),
+
+							FinalState = setAttribute( NewState , pt_status , start ),
 
 							executeOneway( FinalState , scheduleNextSpontaneousTick );
 
@@ -164,6 +190,21 @@ actSpontaneous( State ) ->
 
 
 	end.
+
+-spec request_position_bus( wooper:state() , parameter() ) -> wooper:state().
+request_position_bus( State , Trip ) -> 
+
+	Origin = element( 2 , Trip ),
+
+	Destination = element( 4 , Trip ), 
+
+	DictVertices = getAttribute( State , dict ),
+
+	VertexPID = element( 2 , dict:find( Origin , DictVertices) ),	% get the pid of the bus stop vertex
+
+	class_Actor:send_actor_message( VertexPID ,
+		{ wait_bus , { Destination } }, State ).
+
 			
 -spec request_position_metro( wooper:state() , parameter() ) -> wooper:state().
 request_position_metro( State , Trip ) -> 
@@ -211,7 +252,7 @@ metro_go( State, PositionTime , _GraphPID ) ->
 
 	LogPID = ?getAttr(log_pid),
 
-	StatusState = setAttribute( PositionState , metro_status , finish ),
+	StatusState = setAttribute( PositionState , pt_status , finish ),
 
 	FintalState = class_Actor:send_actor_message( LogPID,
 		{ receive_action, { TextFile } }, StatusState ),

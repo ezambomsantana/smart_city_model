@@ -18,7 +18,7 @@
 		 construct/4, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, getPosition/3).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, getPosition/3, wait_bus/3, load_people/3 ).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -39,7 +39,8 @@ construct( State, ?wooper_construct_parameters ) ->
 	ActorState = class_Actor:construct( State, ActorSettings, StreetName ),
 
 	setAttributes( ActorState, [
-		{ dict , DictVertices }	] ).
+		{ dict , DictVertices },
+		{ people_waiting , dict:new() }	] ).
 
 % Overridden destructor.
 %
@@ -56,6 +57,67 @@ destruct( State ) ->
 actSpontaneous( State ) ->
 
 	State.
+
+-spec wait_bus( wooper:state(), parameter(), pid() ) ->
+					   class_Actor:actor_oneway_return().
+wait_bus( State , DestinationLine , PersonPID ) ->
+	
+	Destination = element( 1 , DestinationLine ),
+	Line = element( 2 , DestinationLine ),
+
+	PeopleWaiting = getAttribute( State, people_waiting ),
+
+	case dict:is_key( Line , PeopleWaiting ) of
+
+		true ->
+
+			CurrentPeople = element( 2 , dict:find( Line , PeopleWaiting ) ), % element 1 is just an ok
+			
+			NewPeopleWaiting = dict:store( Line , CurrentPeople ++ [ { Destination , PersonPID } ] , PeopleWaiting ),
+			
+			setAttribute( State , people_waiting , NewPeopleWaiting );
+
+
+		false ->
+
+			NewPeopleWaiting = dict:store( Line , [ { Destination , PersonPID } ]  , PeopleWaiting ),
+			
+			setAttribute( State , people_waiting , NewPeopleWaiting )
+	
+	end.
+
+-spec load_people( wooper:state(), parameter(), pid() ) ->
+					   class_Actor:actor_oneway_return().
+load_people( State , LineBus , BusPID ) ->
+
+	Line = element( 1 , LineBus ),
+
+	PeopleWaiting = getAttribute( State, people_waiting ),
+
+	case dict:is_key( Line , PeopleWaiting ) of
+
+		true ->
+
+			CurrentPeople = element( 2 , dict:find( Line , PeopleWaiting ) ), % element 1 is just an ok			
+			
+			NewPeopleWaiting = dict:erase( Line , PeopleWaiting ), % remove the current tick from the dick to save memory;
+
+			setAttribute( State , people_waiting , NewPeopleWaiting ),			
+
+			class_Actor:send_actor_message( BusPID,
+	 			{ go, { CurrentPeople } }, State );
+
+
+		false ->
+
+			class_Actor:send_actor_message( BusPID,
+	 			{ go, { nobody } }, State )
+	
+	end.
+
+	
+	
+
 
 
 
