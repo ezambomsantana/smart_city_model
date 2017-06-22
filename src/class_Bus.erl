@@ -138,41 +138,32 @@ request_position( State , Bus ) ->
 
 	Position = list_utils:get_element_at( Bus , 1 ),
 
-	case Path of 
-	
-		false ->
 
-			State;
+	IdBus = list_utils:get_element_at( Bus , 2 ),
 
-		_ ->
-			
-			IdBus = list_utils:get_element_at( Bus , 2 ),
+	case length( Path ) > Position of
 
-			case length( Path ) > Position of
+		true ->	
 
-				true ->	
+			% get the current and the next vertex in the path	
+			InitialVertice = list_utils:get_element_at( Path , Position ),
 
-					% get the current and the next vertex in the path	
-					InitialVertice = list_utils:get_element_at( Path , Position ),
+			FinalVertice = list_utils:get_element_at( Path , Position + 1 ),
 
-					FinalVertice = list_utils:get_element_at( Path , Position + 1 ),
+			DictVertices = getAttribute( State , dict ),
 
-					DictVertices = getAttribute( State , dict ),
+			Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] ) ),
 
-					Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] ) ),
-
-					VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
+			VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
 				
-					class_Actor:send_actor_message( VertexPID ,
-						{ getPosition, { Vertices , "bus" , IdBus } }, State );
+			class_Actor:send_actor_message( VertexPID ,
+				{ getPosition, { Vertices , "bus" , IdBus } }, State );
 
-				false ->							
+		false ->							
 					
-					LastPosition = list_utils:get_element_at( Bus , 4 ),
+			LastPosition = list_utils:get_element_at( Bus , 4 ),
 
-					write_final_message( State , CurrentTickOffset , IdBus , LastPosition ) 
-
-			end
+			write_final_message( State , CurrentTickOffset , IdBus , LastPosition ) 
 
 	end.
 
@@ -255,11 +246,21 @@ onFirstDiasca( State, _SendingActorPid ) ->
 
     	CurrentTickOffset = class_Actor:get_current_tick_offset( State ),   	
 
-	% State. % Don't do nothing yet. To be implemented.
+	Path = getAttribute( State , path ),
 
-	ScheduledState = executeOneway( State , addSpontaneousTick, CurrentTickOffset + Time ),
+	case Path of 
+	
+		false ->
 
-	?wooper_return_state_only( ScheduledState ).
+			executeOneway( State , declareTermination );
+
+		_ ->
+
+			ScheduledState = executeOneway( State , addSpontaneousTick, CurrentTickOffset + Time ),
+
+			?wooper_return_state_only( ScheduledState )
+	
+	end.
 
 
 
