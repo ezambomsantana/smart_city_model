@@ -18,7 +18,7 @@
 		 construct/8, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 ).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , move/3).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -138,34 +138,63 @@ request_position( State , Bus ) ->
 
 	Position = list_utils:get_element_at( Bus , 1 ),
 
+	InitialVertice = list_utils:get_element_at( Path , Position ),
 
-	IdBus = list_utils:get_element_at( Bus , 2 ),
+	case is_tuple( InitialVertice ) of
 
-	case length( Path ) > Position of
+		true ->
 
-		true ->	
+			unload_people( State ),
 
-			% get the current and the next vertex in the path	
-			InitialVertice = list_utils:get_element_at( Path , Position ),
-
-			FinalVertice = list_utils:get_element_at( Path , Position + 1 ),
-
+			BusLine = getAttribute( State , bus_name ), 
+					
 			DictVertices = getAttribute( State , dict ),
-
-			Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] ) ),
 
 			VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
 				
 			class_Actor:send_actor_message( VertexPID ,
-				{ getPosition, { Vertices , "bus" , IdBus } }, State );
+				{ load_people , { BusLine } }, State );
 
-		false ->							
+		false ->
+
+			IdBus = list_utils:get_element_at( Bus , 2 ),
+
+			case length( Path ) > Position of
+
+				true ->	
+
+					% get the current and the next vertex in the path	
+
+					FinalVertice = list_utils:get_element_at( Path , Position + 1 ),
+
+					DictVertices = getAttribute( State , dict ),
+
+					Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] ) ),
+
+					VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
+				
+					class_Actor:send_actor_message( VertexPID ,
+						{ getPosition, { Vertices , "bus" , IdBus } }, State );
+
+				false ->							
 					
-			LastPosition = list_utils:get_element_at( Bus , 4 ),
+					LastPosition = list_utils:get_element_at( Bus , 4 ),
 
-			write_final_message( State , CurrentTickOffset , IdBus , LastPosition ) 
+					write_final_message( State , CurrentTickOffset , IdBus , LastPosition )
+
+			end
 
 	end.
+
+unload_people( State  ) ->
+
+	State.
+
+-spec move( wooper:state(), parameter(), pid() ) ->
+					   class_Actor:actor_oneway_return().
+move( State , _ListPeople , _StreetPID ) ->
+
+	State.
 
 	
 

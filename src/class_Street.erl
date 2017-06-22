@@ -105,13 +105,13 @@ load_people( State , LineBus , BusPID ) ->
 			setAttribute( State , people_waiting , NewPeopleWaiting ),			
 
 			class_Actor:send_actor_message( BusPID,
-	 			{ go, { CurrentPeople } }, State );
+	 			{ move , { CurrentPeople } }, State );
 
 
 		false ->
 
 			class_Actor:send_actor_message( BusPID,
-	 			{ go, { nobody } }, State )
+	 			{ move , { nobody } }, State )
 	
 	end.
 
