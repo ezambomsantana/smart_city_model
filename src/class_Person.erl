@@ -196,7 +196,7 @@ request_position_bus( State , Trip ) ->
 
 	Origin = element( 2 , Trip ),
 
-	Destination = element( 4 , Trip ), 
+	Destination = element( 3 , Trip ), 
 
 	DictVertices = getAttribute( State , dict ),
 

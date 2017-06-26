@@ -121,6 +121,12 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexP
 			
 			create_single_trip( ListTrips , ListTripsFinal ++  TripCreated , Graph , ListVertexPath , ListVertex );
 
+		"bus" ->
+		
+			TripCreated = [ { Mode , Origin , Destination } ],
+			
+			create_single_trip( ListTrips , ListTripsFinal ++  TripCreated , Graph , ListVertexPath , ListVertex );
+
 		_ -> % car and walk have the same behavior.
 
 			Path = digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) ),
