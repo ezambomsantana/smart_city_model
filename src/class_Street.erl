@@ -91,6 +91,7 @@ wait_bus( State , DestinationLine , PersonPID ) ->
 load_people( State , LineBus , BusPID ) ->
 
 	Line = element( 1 , LineBus ),
+	IdBus = element( 2 , LineBus ),
 
 	PeopleWaiting = getAttribute( State, people_waiting ),
 
@@ -105,13 +106,13 @@ load_people( State , LineBus , BusPID ) ->
 			setAttribute( State , people_waiting , NewPeopleWaiting ),			
 
 			class_Actor:send_actor_message( BusPID,
-	 			{ move , { CurrentPeople } }, State );
+	 			{ continue , { CurrentPeople } }, State );
 
 
 		false ->
 
 			class_Actor:send_actor_message( BusPID,
-	 			{ move , { nobody } }, State )
+	 			{ continue , { nobody , IdBus } }, State )
 	
 	end.
 

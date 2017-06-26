@@ -18,7 +18,7 @@
 		 construct/8, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , move/3).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , continue/3).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -48,7 +48,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ interval , Interval },
 		{ next_bus , { StartTime , 1 } },
 		{ buses , dict:new( ) },
-		{ buses_time , dict:new() }
+		{ buses_time , dict:new() },
+		{ people_bus_stop , dict:new() }
 						] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
@@ -120,6 +121,7 @@ actSpontaneous( State ) ->
 
 
 request_position_buses( State , [] ) ->
+
 	State;
 
 request_position_buses( State ,  [ Bus | Buses ] ) ->
@@ -140,61 +142,150 @@ request_position( State , Bus ) ->
 
 	InitialVertice = list_utils:get_element_at( Path , Position ),
 
+	IdBus = list_utils:get_element_at( Bus , 2 ),
+
 	case is_tuple( InitialVertice ) of
 
 		true ->
 
-			unload_people( State ),
+			NewState = unload_people( State , IdBus , Position ),
 
-			BusLine = getAttribute( State , bus_name ), 
+			BusLine = getAttribute( NewState , bus_name ), 
 					
-			DictVertices = getAttribute( State , dict ),
+			DictVertices = getAttribute( NewState , dict ),
 
 			VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
 				
 			class_Actor:send_actor_message( VertexPID ,
-				{ load_people , { BusLine } }, State );
+				{ load_people , { BusLine , IdBus } }, NewState );
 
 		false ->
+			
+			move( State , Path , Position , IdBus , InitialVertice  , Bus , CurrentTickOffset )
 
-			IdBus = list_utils:get_element_at( Bus , 2 ),
-
-			case length( Path ) > Position of
-
-				true ->	
-
-					% get the current and the next vertex in the path	
-
-					FinalVertice = list_utils:get_element_at( Path , Position + 1 ),
-
-					DictVertices = getAttribute( State , dict ),
-
-					Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] ) ),
-
-					VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
-				
-					class_Actor:send_actor_message( VertexPID ,
-						{ getPosition, { Vertices , "bus" , IdBus } }, State );
-
-				false ->							
-					
-					LastPosition = list_utils:get_element_at( Bus , 4 ),
-
-					write_final_message( State , CurrentTickOffset , IdBus , LastPosition )
-
-			end
 
 	end.
 
-unload_people( State  ) ->
+move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset ) ->
 
-	State.
+	case length( Path ) > Position of
 
--spec move( wooper:state(), parameter(), pid() ) ->
+		true ->	
+
+			% get the current and the next vertex in the path	
+
+			FinalVertice = list_utils:get_element_at( Path , Position + 1 ),
+
+			DictVertices = getAttribute( State , dict ),
+
+			Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] ) ),
+
+			VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
+				
+			class_Actor:send_actor_message( VertexPID ,
+				{ getPosition, { Vertices , "bus" , IdBus } }, State );
+
+		false ->							
+					
+			LastPosition = list_utils:get_element_at( Bus , 4 ),
+
+			write_final_message( State , CurrentTickOffset , IdBus , LastPosition )
+
+	end.
+
+unload_people( State , IdBus , Position  ) ->
+
+	DictPeople = getAttribute( State , people_bus_stop ), 
+
+	Key = io_lib:format( "~s~s", [ IdBus , Position ] ), % The key is the id of the bus and the postion id of the bus stop
+
+	People = element( 2 , dict:find( Key , DictPeople ) ), % element 1 is just an ok
+
+	unload_person( State , People ).
+
+unload_person( State , [ Person | List ] ) ->
+
+	case length( List ) > 1 of 
+
+		true ->
+
+			NewState = class_Actor:send_actor_message( element( 1 , Person ) , 
+				{ bus_go, { ok } }, State ),
+
+			unload_person( NewState , List );			
+
+		false ->
+
+			State
+	end.
+
+-spec continue( wooper:state(), parameter(), pid() ) ->
 					   class_Actor:actor_oneway_return().
-move( State , _ListPeople , _StreetPID ) ->
+continue( State , ListPeople , _StreetPID ) ->
 
-	State.
+	DictPeople = getAttribute( State , people_bus_stop ), 
+
+	People = element( 1 , ListPeople ),
+	IdBus = element( 2 , ListPeople ),
+
+	Buses = getAttribute( State , buses ), 
+
+	Bus = element( 2 , dict:find( IdBus , Buses ) ), % dict:find returns { ok , Object }
+
+	NewState = case People of
+
+		nobody ->
+
+			State;
+
+		_ ->
+			
+			DictPeople = getAttribute( State , people_bus_stop ), 
+
+			
+			NewDictPeople = load_people( State , IdBus , People , DictPeople ),
+
+
+			setAttribute( State , people_waiting , NewDictPeople )
+	
+	end,
+
+	CurrentTickOffset = class_Actor:get_current_tick_offset( NewState ), 	
+		
+	Path = getAttribute( NewState , path ),
+
+	Position = list_utils:get_element_at( Bus , 1 ),
+
+	InitialVertice = list_utils:get_element_at( Path , Position ),
+
+	move( NewState , Path , Position , IdBus , InitialVertice  , Bus , CurrentTickOffset ).
+
+load_people( _State , _IdBus , [ ] , Dict ) ->
+
+	Dict;
+
+load_people( State , IdBus , [ Person | List ] , Dict ) ->
+
+	Position = element( 1 , Person ),
+	PersonPID = element( 2 , Person ),
+
+	Key = io_lib:format( "~s~s", [ IdBus , Position ] ), % The key is the id of the bus and the postion id of the bus stop
+
+	NewDict = case dict:is_key( Key , Dict ) of
+
+		true ->
+			
+			CurrentPeople = element( 2 , dict:find( Key , Dict ) ), % element 1 is just an ok
+
+			dict:store( Key , CurrentPeople ++ [ { PersonPID } ] , Dict );
+			
+		false ->
+
+			dict:store( Key , [ { PersonPID } ]  , Dict )		
+
+	end,
+
+	load_people( State , IdBus , List , NewDict ).
 
 	
 
