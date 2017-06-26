@@ -65,6 +65,7 @@ extract_node( Node , Multi ) ->
 
 				false ->
 			
+					NamePerson = children( Attributes , name ),
 					Origin = children( Attributes , origin ),
 					Destination = children( Attributes , destination ),
 					Count = children( Attributes , count ),
@@ -72,7 +73,7 @@ extract_node( Node , Multi ) ->
 					LinkOrigin = children( Attributes , link_origin ),
 					Type = children( Attributes , type ),
 					Mode = children( Attributes , mode ),
-					[ { Origin , Destination , Count , StartTime , LinkOrigin , Type , Mode } ];
+					[ { Origin , Destination , Count , StartTime , LinkOrigin , Type , Mode , NamePerson } ];
 
 				true ->
 
@@ -88,11 +89,12 @@ extract_node( Node , Multi ) ->
 			
 		multi_trip ->
 
+			NamePerson = children( Attributes , name ),
 			List = trips( Content , [] , true),
 			Count = children( Attributes , count ),
 			StartTime = children( Attributes , start ),
 			Type = children( Attributes , type ),
-			[ { StartTime , Type , Count , List } ];
+			[ { StartTime , Type , Count , List , NamePerson } ];
 			
 
 		_ ->

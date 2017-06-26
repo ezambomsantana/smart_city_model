@@ -22,13 +22,13 @@ iterate_list( ListCount, ListVertex , [ Car | MoreCars] , Graph , LogPID , Name 
 
 	Count = element ( 3 , Car ),
 
-	case size( Car ) == 7 of
+	case size( Car ) == 8 of
 
 		true ->
-			create_person( ListCount , element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , false , LogPID , Name , MetroActor );
+			create_person( ListCount , element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , false , LogPID , MetroActor );
 
 		false ->			
-			create_person_multi_trip( ListCount , element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , LogPID , MetroActor ,  Name )
+			create_person_multi_trip( ListCount , element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , LogPID , MetroActor )
 
 	end,
 			
@@ -37,15 +37,12 @@ iterate_list( ListCount, ListVertex , [ Car | MoreCars] , Graph , LogPID , Name 
 
 
 
-create_person( _ListCount , _CarCount = 0 , _ListVertex ,  _Car , _Graph , _Path , _LogPID , _Name , _MetroActor ) ->
+create_person( _ListCount , _CarCount = 0 , _ListVertex ,  _Car , _Graph , _Path , _LogPID , _MetroActor ) ->
 	
 	ok;
 
 
-create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID , Name , MetroActor ) ->
-
-	CarName = io_lib:format( "~B~B~s",
-		[ ListCount , CarCount, Name ] ),
+create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor ) ->
 
 	Origin = element ( 1 , Car ),
 	Destination = element ( 2 , Car ),
@@ -53,6 +50,10 @@ create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID 
 	LinkOrigin = element ( 5 , Car ),
 	Type = element ( 6 , Car ),
 	Mode = element ( 7 , Car ),
+	NameFile = element ( 8 , Car ),
+
+	CarName = io_lib:format( "~s_~B",
+		[ NameFile , CarCount ] ),
 
 	case Path of
 
@@ -67,7 +68,7 @@ create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID 
 			class_Actor:create_initial_actor( class_Person,
 				[ CarName , ListVertexPath , ListTripsFinal , element( 1 , string:to_integer( StartTime )) , LogPID , Type , MetroActor ] ),
 
-			create_person( ListCount , CarCount - 1 , ListVertex ,  Car , Graph , NewPath , LogPID , Name , MetroActor );
+			create_person( ListCount , CarCount - 1 , ListVertex ,  Car , Graph , NewPath , LogPID , MetroActor );
 
 		_ ->
 
@@ -78,23 +79,23 @@ create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID 
 			class_Actor:create_initial_actor( class_Person,
 				[ CarName , ListVertexPath , ListTripsFinal , element( 1 , string:to_integer( StartTime )) , LogPID , Type , MetroActor ] ),
 
-			create_person( ListCount , CarCount - 1 , ListVertex ,  Car , Graph , Path , LogPID , Name , MetroActor  )
+			create_person( ListCount , CarCount - 1 , ListVertex ,  Car , Graph , Path , LogPID , MetroActor  )
 
 	end.
 
-create_person_multi_trip( _ListCount , _CarCount = 0 , _ListVertex ,  _Car , _Graph , _LogPID , _MetroActor , _Name ) ->
+create_person_multi_trip( _ListCount , _CarCount = 0 , _ListVertex ,  _Car , _Graph , _LogPID , _MetroActor ) ->
 	
 	ok;
 
-create_person_multi_trip( ListCount , CarCount , ListVertex ,  Car , Graph , LogPID  , MetroActor , Name ) ->
-
-	CarName = io_lib:format( "~B~B~s",
-		[ ListCount , CarCount, Name ] ),
+create_person_multi_trip( _ListCount , CarCount , ListVertex ,  Car , Graph , LogPID  , MetroActor ) ->
 
 	StartTime = element ( 1 , Car ),
 	Type = element ( 2 , Car ),
-
 	ListTrips = element ( 4 , Car ),
+	NameFile = element ( 5 , Car ),
+
+	CarName = io_lib:format( "~s_~B",
+		[ NameFile , CarCount ] ),
 	
 	{ ListTripsFinal , ListVertexPath } = create_single_trip( ListTrips , [] , Graph , [] , ListVertex ),
 
