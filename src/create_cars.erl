@@ -112,6 +112,7 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexP
 	LinkOrigin = element ( 3 , Trip ),
 	Mode = element ( 4 , Trip ),
 	LinkDestination = element ( 5 , Trip ),
+	Line = element ( 6 , Trip ),
 
 	case Mode of
 
@@ -123,7 +124,7 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexP
 
 		"bus" ->
 		
-			TripCreated = [ { Mode , Origin , Destination } ],
+			TripCreated = [ { Mode , Origin , Destination , Line } ],
 			
 			create_single_trip( ListTrips , ListTripsFinal ++  TripCreated , Graph , ListVertexPath , ListVertex );
 

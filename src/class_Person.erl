@@ -198,12 +198,14 @@ request_position_bus( State , Trip ) ->
 
 	Destination = element( 3 , Trip ), 
 
+	Line = element( 4 , Trip ), 
+
 	DictVertices = getAttribute( State , dict ),
 
-	VertexPID = element( 2 , dict:find( Origin , DictVertices) ),	% get the pid of the bus stop vertex
+	VertexPID = element( 2 , dict:find( list_to_atom( Origin ) , DictVertices) ),	% get the pid of the bus stop vertex
 
 	class_Actor:send_actor_message( VertexPID ,
-		{ wait_bus , { Destination } }, State ).
+		{ wait_bus , { Destination , Line } }, State ).
 
 			
 -spec request_position_metro( wooper:state() , parameter() ) -> wooper:state().

@@ -81,7 +81,8 @@ extract_node( Node , Multi ) ->
 					LinkOrigin = children( Attributes , link_origin ),
 					LinkDestination = children( Attributes , link_destination ),
 					Mode = children( Attributes , mode ),
-					[ { Origin , Destination , LinkOrigin , Mode , LinkDestination } ]
+					Line = children( Attributes , line ),
+					[ { Origin , Destination , LinkOrigin , Mode , LinkDestination , Line } ]
 					
 			end;
 			
