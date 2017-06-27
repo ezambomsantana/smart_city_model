@@ -64,24 +64,12 @@ create_buses( [ Bus | Buses ] , ListVertex , CityGraph , LogPID  ) ->
 
 	Path = calculate_bus_path( Stops , CityGraph , [] ),
 
-	ListVertexPath = get_path_nodes( Path , ListVertex , [] ),
+	ListVertexPath = create_cars:get_path_nodes( Path , ListVertex , [] ),
 
 	class_Actor:create_initial_actor( class_Bus,
-		[ Id , ListVertexPath , Path , element( 1 , string:to_integer( StartTime )) , Interval , LogPID ] ),
+		[ Id , ListVertexPath , Path , element( 1 , string:to_integer( StartTime )) , Interval , LogPID , Stops ] ),
 
 	create_buses( Buses , ListVertex , CityGraph , LogPID  ).
-
-get_path_nodes( [] , _ListVertex , List ) ->
-	
-	List;
-
-get_path_nodes( [ Node | MoreNodes] , ListVertex , List ) ->
-
-	Element = dict:find( Node , ListVertex ),
-
-	ElementList = [{ Node , element( 2 , Element) }],
-
-	get_path_nodes( MoreNodes , ListVertex , List ++ ElementList ).	
 
 calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 

@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, BusName, ListVertex , Path , StartTime , Interval , LogPID ).
+-define( wooper_construct_parameters, ActorSettings, BusName, ListVertex , Path , StartTime , Interval , LogPID , Stops ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/7, new_link/7,
-		 synchronous_new/7, synchronous_new_link/7,
-		 synchronous_timed_new/7, synchronous_timed_new_link/7,
-		 remote_new/8, remote_new_link/8, remote_synchronous_new/8,
-		 remote_synchronous_new_link/8, remote_synchronisable_new_link/8,
-		 remote_synchronous_timed_new/8, remote_synchronous_timed_new_link/8,
-		 construct/8, destruct/1 ).
+-define( wooper_construct_export, new/8, new_link/8,
+		 synchronous_new/8, synchronous_new_link/8,
+		 synchronous_timed_new/8, synchronous_timed_new_link/8,
+		 remote_new/9, remote_new_link/9, remote_synchronous_new/9,
+		 remote_synchronous_new_link/9, remote_synchronisable_new_link/9,
+		 remote_synchronous_timed_new/9, remote_synchronous_timed_new_link/9,
+		 construct/9, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , continue/3).
@@ -29,13 +29,15 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 
 	ActorState = class_Actor:construct( State, ActorSettings, BusName ),
 
         DictVertices = dict:from_list( ListVertex ),
+
+	DictStops = create_dict_stops( Stops , dict: new() ),
 
 	setAttributes( ActorState, [
 		{ bus_name, BusName },
@@ -49,8 +51,19 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ next_bus , { StartTime , 1 } },
 		{ buses , dict:new( ) },
 		{ buses_time , dict:new() },
-		{ people_bus_stop , dict:new() }
+		{ people_bus_stop , dict:new() },
+		{ stops , DictStops }
 						] ).
+create_dict_stops( [] , Dict ) ->
+
+	Dict;
+
+create_dict_stops( [ Stop | Stops ] , Dict ) ->
+
+	NewDict = dict:store( Stop , ok , Dict ),
+
+	create_dict_stops( Stops , NewDict ).
+
 
 -spec destruct( wooper:state() ) -> wooper:state().
 destruct( State ) ->

@@ -142,8 +142,6 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexP
 
 	end.
 
-
-
 get_path_nodes( [] , _ListVertex , List ) ->
 	
 	List;
