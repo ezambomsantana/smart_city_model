@@ -264,6 +264,8 @@ metro_go( State, PositionTime , _GraphPID ) ->
 -spec bus_go( wooper:state(), value(), pid() ) -> class_Actor:actor_oneway_return().
 bus_go( State, _PositionTime , _GraphPID ) ->
 
+
+
 	% get the current time of the simulation
 	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
 
@@ -276,14 +278,14 @@ bus_go( State, _PositionTime , _GraphPID ) ->
 	
 	Trip = list_utils:get_element_at( Trips , TripIndex ),
 
-	Destination = element( 5 , Trip ), 
+	Destination = element( 3 , Trip ), 
 
 	LastPosition = getAttribute( State , car_position ),	
 
 	PositionState = setAttribute( State, car_position, list_to_atom( Destination ) ),
 
-	LastPositionText = io_lib:format( "<event time=\"~w\" type=\"left link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" trip=\"metro\" />\n", [ CurrentTickOffset , CarId , LastPosition , CarId , Type ] ),
-	NextPositionText = io_lib:format( "<event time=\"~w\" type=\"entered link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" trip=\"metro\" />\n", [  CurrentTickOffset , CarId , Destination , CarId , Type ] ),
+	LastPositionText = io_lib:format( "<event time=\"~w\" type=\"left link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" trip=\"bus\" />\n", [ CurrentTickOffset , CarId , LastPosition , CarId , Type ] ),
+	NextPositionText = io_lib:format( "<event time=\"~w\" type=\"entered link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" trip=\"bus\" />\n", [  CurrentTickOffset , CarId , Destination , CarId , Type ] ),
 
 
 	TextFile = lists:concat( [ LastPositionText , NextPositionText  ] ),

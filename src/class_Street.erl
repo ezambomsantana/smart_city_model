@@ -94,19 +94,19 @@ load_people( State , LineBus , BusPID ) ->
 	IdBus = element( 2 , LineBus ),
 
 	PeopleWaiting = getAttribute( State, people_waiting ),
-
+	
 	case dict:is_key( Line , PeopleWaiting ) of
 
 		true ->
-
+			
 			CurrentPeople = element( 2 , dict:find( Line , PeopleWaiting ) ), % element 1 is just an ok			
 			
 			NewPeopleWaiting = dict:erase( Line , PeopleWaiting ), % remove the current tick from the dick to save memory;
 
-			setAttribute( State , people_waiting , NewPeopleWaiting ),			
+			NewState = setAttribute( State , people_waiting , NewPeopleWaiting ),			
 
 			class_Actor:send_actor_message( BusPID,
-	 			{ continue , { CurrentPeople } }, State );
+	 			{ continue , { CurrentPeople , IdBus } }, NewState );
 
 
 		false ->

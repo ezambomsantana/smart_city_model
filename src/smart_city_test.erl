@@ -79,7 +79,7 @@ calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 
 			NextStop = lists:nth( 1 , List ),
 
-			ParcialPath = lists:droplast( digraph:get_short_path( CityGraph , list_to_atom(Stop) , list_to_atom( NextStop ) ) ),		
+			ParcialPath = lists:droplast( digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) ) ),		
 	
 			calculate_bus_path( List , CityGraph , Path ++ ParcialPath);
 

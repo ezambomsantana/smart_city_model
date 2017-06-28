@@ -60,7 +60,7 @@ create_dict_stops( [] , Dict ) ->
 
 create_dict_stops( [ Stop | Stops ] , Dict ) ->
 
-	NewDict = dict:store( Stop , ok , Dict ),
+	NewDict = dict:store( list_to_atom( Stop ) , ok , Dict ),
 
 	create_dict_stops( Stops , NewDict ).
 
@@ -119,7 +119,7 @@ actSpontaneous( State ) ->
 
 			NewBuses = dict:erase( CurrentTickOffset , ScheduledBuses ), % remove the current tick from the dick to save memory;
 			
-			DictState = setAttribute( BusState, buses_time , NewBuses ),
+			DictState = setAttribute( BusState , buses_time , NewBuses ),
 
 			request_position_buses( DictState , CurrentBuses );
 
@@ -157,11 +157,13 @@ request_position( State , Bus ) ->
 
 	IdBus = list_utils:get_element_at( Bus , 2 ),
 
-	case is_tuple( InitialVertice ) of
+	DictStops = getAttribute( State , stops ), 
+
+	case dict:is_key( InitialVertice , DictStops ) of
 
 		true ->
 
-			NewState = unload_people( State , IdBus , Position ),
+			NewState = unload_people( State , IdBus , InitialVertice ),
 
 			BusLine = getAttribute( NewState , bus_name ), 
 					
@@ -184,8 +186,6 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 	case length( Path ) > Position of
 
 		true ->	
-
-			% get the current and the next vertex in the path	
 
 			FinalVertice = list_utils:get_element_at( Path , Position + 1 ),
 
@@ -210,33 +210,38 @@ unload_people( State , IdBus , Position  ) ->
 
 	DictPeople = getAttribute( State , people_bus_stop ), 
 
-	Key = io_lib:format( "~s~s", [ IdBus , Position ] ), % The key is the id of the bus and the postion id of the bus stop
+	Key = io_lib:format( "~s~w", [ IdBus , Position ] ), % The key is the id of the bus and the postion id of the bus stop
 
-	People = element( 2 , dict:find( Key , DictPeople ) ), % element 1 is just an ok
-
-	unload_person( State , People ).
-
-unload_person( State , [ Person | List ] ) ->
-
-	case length( List ) > 1 of 
+	case dict:is_key( Key , DictPeople ) of
 
 		true ->
 
-			NewState = class_Actor:send_actor_message( element( 1 , Person ) , 
-				{ bus_go, { ok } }, State ),
+			People = element( 2 , dict:find( Key , DictPeople ) ), % element 1 is just an ok
 
-			unload_person( NewState , List );			
+			unload_person( State , People );
 
-		false ->
+		_ ->
 
 			State
+
 	end.
+
+
+unload_person( State , [ ] ) ->
+
+	State;
+
+unload_person( State , [ Person | List ] ) ->
+
+	NewState = class_Actor:send_actor_message( element( 1 , Person ) , 
+		{ bus_go, { ok } }, State ),
+
+	unload_person( NewState , List ).
+			
 
 -spec continue( wooper:state(), parameter(), pid() ) ->
 					   class_Actor:actor_oneway_return().
-continue( State , ListPeople , _StreetPID ) ->
-
-	DictPeople = getAttribute( State , people_bus_stop ), 
+continue( State , ListPeople , _StreetPID ) ->	
 
 	People = element( 1 , ListPeople ),
 	IdBus = element( 2 , ListPeople ),
@@ -252,14 +257,12 @@ continue( State , ListPeople , _StreetPID ) ->
 			State;
 
 		_ ->
-			
+				
 			DictPeople = getAttribute( State , people_bus_stop ), 
-
 			
 			NewDictPeople = load_people( State , IdBus , People , DictPeople ),
 
-
-			setAttribute( State , people_waiting , NewDictPeople )
+			setAttribute( State , people_bus_stop , NewDictPeople )
 	
 	end,
 
@@ -273,6 +276,7 @@ continue( State , ListPeople , _StreetPID ) ->
 
 	move( NewState , Path , Position , IdBus , InitialVertice  , Bus , CurrentTickOffset ).
 
+
 load_people( _State , _IdBus , [ ] , Dict ) ->
 
 	Dict;
@@ -282,7 +286,7 @@ load_people( State , IdBus , [ Person | List ] , Dict ) ->
 	Position = element( 1 , Person ),
 	PersonPID = element( 2 , Person ),
 
-	Key = io_lib:format( "~s~s", [ IdBus , Position ] ), % The key is the id of the bus and the postion id of the bus stop
+	Key = io_lib:format( "~s~w", [ IdBus , list_to_atom( Position ) ] ), % The key is the id of the bus and the postion id of the bus stop
 
 	NewDict = case dict:is_key( Key , Dict ) of
 
