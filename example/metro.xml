@@ -1,0 +1,38 @@
+<metro>
+
+	<stations>
+    <station name="Vila Prudente" idNode="252018921" />
+    <station name="Tamanduatei" idNode="674412889" />
+    <station name="Sacoma" idNode="2533391001" />
+    <station name="Alto Do Ipiranga" idNode="4443113954" />
+    <station name="Santos-imigrantes" idNode="1484829870" />
+    <station name="Chácara Klabin" idNode="922094745" />
+    <station name="Ana Rosa" idNode="467744160" />
+    <station name="Paraíso" idNode="459347687" />
+    <station name="Brigadeiro" idNode="856727276" />
+    <station name="Trianon-masp" idNode="2021000708" />
+    <station name="Consolação" idNode="1819616337" />
+    <station name="Clínicas" idNode="1952545109" />
+    <station name="S. N. Sra. De Fátima-sumaré" idNode="466808387" />
+    <station name="Vila Madalena" idNode="1415720983" />
+
+	</stations>
+
+<links>
+    <link nameOrigin="Tamanduatei" nameDestination="Vila Prudente" idOrigin="674412889" idDestination="252018921" />
+    <link nameOrigin="Sacoma" nameDestination="Tamanduatei" idOrigin="2533391001" idDestination="674412889" />
+    <link nameOrigin="Alto Do Ipiranga" nameDestination="Sacoma" idOrigin="4443113954" idDestination="2533391001" />
+    <link nameOrigin="Santos-imigrantes" nameDestination="Alto Do Ipiranga" idOrigin="1484829870" idDestination="4443113954" />
+    <link nameOrigin="Chácara Klabin" nameDestination="Santos-imigrantes" idOrigin="922094745" idDestination="1484829870" />
+    <link nameOrigin="Ana Rosa" nameDestination="Chácara Klabin" idOrigin="467744160" idDestination="922094745" />
+    <link nameOrigin="Paraíso" nameDestination="Ana Rosa" idOrigin="459347687" idDestination="467744160" />
+    <link nameOrigin="Brigadeiro" nameDestination="Paraíso" idOrigin="856727276" idDestination="459347687" />
+    <link nameOrigin="Trianon-masp" nameDestination="Brigadeiro" idOrigin="2021000708" idDestination="856727276" />
+    <link nameOrigin="Consolação" nameDestination="Trianon-masp" idOrigin="1819616337" idDestination="2021000708" />
+    <link nameOrigin="Clínicas" nameDestination="Consolação" idOrigin="1952545109" idDestination="1819616337" />
+    <link nameOrigin="S. N. Sra. De Fátima-sumaré" nameDestination="Clínicas" idOrigin="466808387" idDestination="1952545109" />
+    <link nameOrigin="Vila Madalena" nameDestination="S. N. Sra. De Fátima-sumaré" idOrigin="1415720983" idDestination="466808387" />
+
+</links>
+
+</metro>

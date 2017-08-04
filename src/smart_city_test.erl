@@ -64,7 +64,7 @@ create_buses( [ Bus | Buses ] , ListVertex , CityGraph , LogPID  ) ->
 
 	Path = calculate_bus_path( Stops , CityGraph , [] ),
 
-	ListVertexPath = create_cars:get_path_nodes( Path , ListVertex , [] ),
+	ListVertexPath = create_agents:get_path_nodes( Path , ListVertex , [] ),
 
 	class_Actor:create_initial_actor( class_Bus,
 		[ Id , ListVertexPath , Path , element( 1 , string:to_integer( StartTime )) , Interval , LogPID , Stops ] ),
@@ -98,18 +98,21 @@ spaw_proccess( [ List | MoreLists ] , ListVertex , CityGraph , LogPID , MetroAct
 	Name = element( 1 , List ),
 	ListTrips = element( 2 , List ),
 
-	spawn(create_cars, iterate_list , [ 1 , dict:from_list( ListVertex ) , ListTrips , CityGraph , LogPID , Name , MetroActor , self() ]),
+	spawn(create_agents, iterate_list , [ 1 , dict:from_list( ListVertex ) , ListTrips , CityGraph , LogPID , Name , MetroActor , self() ]),
 	spaw_proccess( MoreLists  , ListVertex , CityGraph , LogPID , MetroActor ).
+
+
 
 split_list( [] , _NumberLists , _ListSplit , ListReturn ) ->
 	ListReturn;
 
 split_list( [ Name | Names ] , NumberLists , ListSplit , ListReturn ) ->
-	{List , ListCars } = lists:split(round (length (ListSplit) / 6), ListSplit),
+
+	{List , ListCars } = lists:split(round (length (ListSplit) / NumberLists), ListSplit),
 
 	Element = [ { Name , List } ],
 
-	split_list( Names , NumberLists , ListCars , ListReturn ++ Element ).
+	split_list( Names , length ( Names ) , ListCars , ListReturn ++ Element ).
   
 
 collectResults([]) -> ok;
@@ -169,7 +172,7 @@ run() ->
 	DeploymentManagerPid = sim_diasca:init( SimulationSettings,
 							   DeploymentSettings, LoadBalancingSettings ),
 
-	Config = config_parser:show("/home/eduardo/entrada/hospital/config.xml"),
+	Config = config_parser:show("/home/eduardo/entrada/novo/config.xml"),
 
 	ListCars = trip_parser:show( element( 4 , Config ) ), % Read the cars from the trips.xml file
 
@@ -186,7 +189,6 @@ run() ->
 
 	LogPID = class_Actor:create_initial_actor( class_Log,
 		 		[ element( 1 , Config )  ] ),
-
 
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
 
