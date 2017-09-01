@@ -23,10 +23,10 @@ iterate_list( ListCount, ListVertex , [ Car | MoreCars] , Graph , LogPID , Name 
 	case size( Car ) == 8 of
 
 		true ->
-			create_person( ListCount , element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , false , LogPID , MetroActor );
+			create_person( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , false , LogPID , MetroActor );
 
 		false ->			
-			create_person_multi_trip( ListCount , element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , LogPID , MetroActor )
+			create_person_multi_trip( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , LogPID , MetroActor )
 
 	end,
 			
@@ -35,32 +35,26 @@ iterate_list( ListCount, ListVertex , [ Car | MoreCars] , Graph , LogPID , Name 
 
 
 
-create_person( _ListCount , _CarCount = 0 , _ListVertex ,  _Car , _Graph , _Path , _LogPID , _MetroActor ) ->
+create_person( _CarCount = 0 , _ListVertex ,  _Car , _Graph , _Path , _LogPID , _MetroActor ) ->
 	
 	ok;
 
-
-create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor ) ->
+create_person( CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor ) ->
 
 	Origin = element ( 1 , Car ),
 	Destination = element ( 2 , Car ),
-	StartTime = element ( 4 , Car ),
+	StartTime = element( 1 , string:to_integer( element ( 4 , Car ) ) ) + class_RandomManager:get_uniform_value( 600 ),
 	LinkOrigin = element ( 5 , Car ),
 	Type = element ( 6 , Car ),
 	Mode = element ( 7 , Car ),
 	NameFile = element ( 8 , Car ),
 
-	CarName = io_lib:format( "~s_~B",
-		[ NameFile , CarCount ] ),
+	CarName = io_lib:format( "~s_~B", [ NameFile , CarCount ] ),
 
 	ModeFinal = case Mode of
-
 		ok ->
-				
 			"car"; % if the mode is not set in the input file, "car" is the default value.
-
 		_ ->
-
 			Mode % Otherwise, car or walk.
 	end,
 
@@ -75,9 +69,9 @@ create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID 
 			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , NewPath } ],
 
 			class_Actor:create_initial_actor( class_Person,
-				[ CarName , ListVertexPath , ListTripsFinal , element( 1 , string:to_integer( StartTime )) , LogPID , Type , MetroActor ] ),
+				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , MetroActor ] ),
 
-			create_person( ListCount , CarCount - 1 , ListVertex ,  Car , Graph , NewPath , LogPID , MetroActor );
+			create_person( CarCount - 1 , ListVertex ,  Car , Graph , NewPath , LogPID , MetroActor );
 
 		_ ->
 
@@ -86,30 +80,31 @@ create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID 
 			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , Path } ],
 
 			class_Actor:create_initial_actor( class_Person,
-				[ CarName , ListVertexPath , ListTripsFinal , element( 1 , string:to_integer( StartTime )) , LogPID , Type , MetroActor ] ),
+				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , MetroActor ] ),
 
-			create_person( ListCount , CarCount - 1 , ListVertex ,  Car , Graph , Path , LogPID , MetroActor  )
+			create_person( CarCount - 1 , ListVertex ,  Car , Graph , Path , LogPID , MetroActor  )
 
 	end.
 
-create_person_multi_trip( _ListCount , _CarCount = 0 , _ListVertex ,  _Car , _Graph , _LogPID , _MetroActor ) ->
+create_person_multi_trip( _CarCount = 0 , _ListVertex ,  _Car , _Graph , _LogPID , _MetroActor ) ->
 	
 	ok;
 
-create_person_multi_trip( _ListCount , CarCount , ListVertex ,  Car , Graph , LogPID  , MetroActor ) ->
+create_person_multi_trip( CarCount , ListVertex ,  Car , Graph , LogPID  , MetroActor ) ->
 
-	StartTime = element ( 1 , Car ),
+	StartTime = element( 1 , string:to_integer( element ( 1 , Car ) ) ) + class_RandomManager:get_uniform_value( 600 ),
 	Type = element ( 2 , Car ),
 	ListTrips = element ( 4 , Car ),
 	NameFile = element ( 5 , Car ),
 
-	CarName = io_lib:format( "~s_~B",
-		[ NameFile , CarCount ] ),
+	CarName = io_lib:format( "~s_~B", [ NameFile , CarCount ] ),
 	
 	{ ListTripsFinal , ListVertexPath } = create_single_trip( ListTrips , [] , Graph , [] , ListVertex ),
 
 	class_Actor:create_initial_actor( class_Person,
-		[ CarName , ListVertexPath , ListTripsFinal , element( 1 , string:to_integer( StartTime )) , LogPID , Type , MetroActor ] ).
+		[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , MetroActor ] ),
+
+	create_person_multi_trip( CarCount - 1 , ListVertex , Car , Graph , LogPID , MetroActor ).
 
 create_single_trip( [] , ListTripsFinal , _Graph , ListVertexPath , _ListVertex ) ->
 
@@ -140,11 +135,7 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexP
 
 		_ -> % car and walk have the same behaviour.
 
-			Path = digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) ),
-
-
-			io:format("vInicio: ~w~n", [ Mode ]),
-			
+			Path = digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) ),		
 
 			TripCreated = case Mode of
 
