@@ -1,7 +1,5 @@
 -module(create_agents).
 
-
-
 % usage:
 %
 % l(osm_parser).
@@ -55,6 +53,17 @@ create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID 
 	CarName = io_lib:format( "~s_~B",
 		[ NameFile , CarCount ] ),
 
+	ModeFinal = case Mode of
+
+		ok ->
+				
+			"car"; % if the mode is not set in the input file, "car" is the default value.
+
+		_ ->
+
+			Mode % Otherwise, car or walk.
+	end,
+
 	case Path of
 
 		false ->
@@ -63,7 +72,7 @@ create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID 
 
 			ListVertexPath = get_path_nodes( NewPath , ListVertex , [] ),
 
-			ListTripsFinal = [ { Mode , Origin , LinkOrigin , Destination , NewPath } ],
+			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , NewPath } ],
 
 			class_Actor:create_initial_actor( class_Person,
 				[ CarName , ListVertexPath , ListTripsFinal , element( 1 , string:to_integer( StartTime )) , LogPID , Type , MetroActor ] ),
@@ -74,7 +83,7 @@ create_person( ListCount , CarCount , ListVertex ,  Car , Graph , Path , LogPID 
 
 			ListVertexPath = get_path_nodes( Path , ListVertex , [] ),
 
-			ListTripsFinal = [ { Mode , Origin , LinkOrigin , Destination , Path } ],
+			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , Path } ],
 
 			class_Actor:create_initial_actor( class_Person,
 				[ CarName , ListVertexPath , ListTripsFinal , element( 1 , string:to_integer( StartTime )) , LogPID , Type , MetroActor ] ),
@@ -129,11 +138,25 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexP
 			
 			create_single_trip( ListTrips , ListTripsFinal ++  TripCreated , Graph , ListVertexPath , ListVertex );
 
-		_ -> % car and walk have the same behavior.
+		_ -> % car and walk have the same behaviour.
 
 			Path = digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) ),
 
-			TripCreated = [ { Mode , Origin , LinkOrigin , Destination , Path } ],
+
+			io:format("vInicio: ~w~n", [ Mode ]),
+			
+
+			TripCreated = case Mode of
+
+				ok ->
+				
+					[ { "car" , Origin , LinkOrigin , Destination , Path } ]; % if the mode is not set in the input file, "car" is the default value.
+
+				_ ->
+
+					[ { Mode , Origin , LinkOrigin , Destination , Path } ] % Otherwise, car or walk.
+
+			end,
 
 			NewListVertexPath = ListVertexPath ++ get_path_nodes( Path , ListVertex , [] ),
 			
