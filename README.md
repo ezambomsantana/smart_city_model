@@ -1,5 +1,6 @@
-# smart_city_model
-InterSCSimulator code repository
+# InterSCSimulator
+
+It is the official repository of the InterSCSimulator, a large-scale, smart city simulator. InterSCSimulator is based on Sim-Diasca, an general purpose simulator implemented in Erlang.
 
 # Run InterSCSimulator
 
