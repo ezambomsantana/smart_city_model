@@ -1,0 +1,7 @@
+*.beam
+*.trace
+*.swp
+*.sdar
+src/erl_crash.dump
+example/events.xml
+src/Sim-Diasca_Smart_City_Integration_Test*
