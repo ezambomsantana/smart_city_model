@@ -130,8 +130,12 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexP
 		"bus" ->
 		
 			TripCreated = [ { Mode , Origin , Destination , Line } ],
+
+			NewListVertexPath = ListVertexPath ++ get_node( list_to_atom( Origin ) , ListVertex ),
+
+			NewNewListVertexPath = NewListVertexPath ++ get_node( list_to_atom( Destination ) , ListVertex ),
 			
-			create_single_trip( ListTrips , ListTripsFinal ++  TripCreated , Graph , ListVertexPath , ListVertex );
+			create_single_trip( ListTrips , ListTripsFinal ++  TripCreated , Graph , NewNewListVertexPath , ListVertex );
 
 		_ -> % car and walk have the same behaviour.
 
@@ -167,3 +171,14 @@ get_path_nodes( [ Node | MoreNodes] , ListVertex , List ) ->
 	ElementList = [{ Node , element( 2 , Element) }],
 
 	get_path_nodes( MoreNodes , ListVertex , List ++ ElementList ).	
+
+
+
+get_node( Node , ListVertex ) ->
+
+
+	Element = dict:find( Node , ListVertex ),
+
+	ElementList = [{ Node , element( 2 , Element) }],
+	
+	ElementList.

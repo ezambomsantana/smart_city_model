@@ -172,7 +172,7 @@ run() ->
 	DeploymentManagerPid = sim_diasca:init( SimulationSettings,
 							   DeploymentSettings, LoadBalancingSettings ),
 
-	Config = config_parser:show("/home/eduardo/entrada/hospital/config.xml"),
+	Config = config_parser:show("/home/eduardo/entrada/paraisopolis/config.xml"),
 
 	ListCars = trip_parser:show( element( 4 , Config ) ), % Read the cars from the trips.xml file
 
