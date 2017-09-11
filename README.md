@@ -1,7 +1,8 @@
-# smart_city_model
-InterSCSimulator code repository
+# InterSCSimulator
 
-# Run scimulator
+It is the official repository of the InterSCSimulator, a large-scale, smart city simulator. InterSCSimulator is based on Sim-Diasca, an general purpose simulator implemented in Erlang.
+
+# Run InterSCSimulator
 
 In sim-diasca's root directory run:
 
@@ -15,3 +16,9 @@ Enter in mock-simulator/smart_city_model/src and run:
 
 * Install erlang via this script: sim-diasca/common/conf/install-erlang.sh
 * Configure hostname FQDN to something like this: localhost.org
+
+## Open Issues
+
+* Wrong link after a bus trip
+* Create the entire metro network of Sao Paulo
+* Include the instantaneous speed of the cars in each link
