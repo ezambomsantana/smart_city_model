@@ -2,6 +2,15 @@
 
 It is the official repository of the InterSCSimulator, a large-scale, smart city simulator. InterSCSimulator is based on Sim-Diasca, an general purpose simulator implemented in Erlang.
 
+# Configuration
+
+To run the simulator you need to create a configuration file in the root
+directory called `interscsimulator.conf`. This file should contain the path to
+the config.xml. By default you can point to example/config.xml in the root of
+the source tree.
+
+`$(pwd)/example/config.xml`
+
 # Run InterSCSimulator
 
 In sim-diasca's root directory run:
