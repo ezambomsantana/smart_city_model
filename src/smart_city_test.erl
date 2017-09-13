@@ -124,6 +124,10 @@ collectResults(Trains) ->
       collectResults(Trains)
   end.
 
+readConfigPath() ->
+	{ok, Device} = file:open('../interscsimulator.conf', [read]),
+	{ok, Data} = file:read_line(Device),
+	string:chomp(Data).
 
 % Runs the test.
 %
@@ -172,7 +176,9 @@ run() ->
 	DeploymentManagerPid = sim_diasca:init( SimulationSettings,
 							   DeploymentSettings, LoadBalancingSettings ),
 
-	Config = config_parser:show("/home/eduardo/entrada/paraisopolis/config.xml"),
+	ConfigPath = readConfigPath(),
+
+	Config = config_parser:show(ConfigPath),
 
 	ListCars = trip_parser:show( element( 4 , Config ) ), % Read the cars from the trips.xml file
 
