@@ -140,31 +140,31 @@ run() ->
 	% Use default simulation settings (50Hz, batch reproducible):
 	SimulationSettings = #simulation_settings{
 
-	  simulation_name = "Sim-Diasca Smart City Integration Test",
+							simulation_name = "Sim-Diasca Smart City Integration Test",
 
-	  % Using 100Hz here:
-	  tick_duration = 1
+							% Using 100Hz here:
+							tick_duration = 1
 
-	  % We leave it to the default specification (all_outputs):
-	  % result_specification =
-	  %  [ { targeted_patterns, [ {".*",[data_and_plot]} ] },
-	  %    { blacklisted_patterns, ["^Second" ] } ]
+							% We leave it to the default specification (all_outputs):
+							% result_specification =
+							%  [ { targeted_patterns, [ {".*",[data_and_plot]} ] },
+							%    { blacklisted_patterns, ["^Second" ] } ]
 
-	  %result_specification = [ { targeted_patterns, [ {".*",data_only} ] } ]
+							%result_specification = [ { targeted_patterns, [ {".*",data_only} ] } ]
 
-	},
+						   },
 
 
 	DeploymentSettings = #deployment_settings{
 
-		computing_hosts = { use_host_file_otherwise_local,
-							"sim-diasca-host-candidates.txt" },
-		
-		additional_elements_to_deploy = [ { ".", code } ],
+							computing_hosts = { use_host_file_otherwise_local,
+												"sim-diasca-host-candidates.txt" },
 
-		enable_performance_tracker = false
+							additional_elements_to_deploy = [ { ".", code } ],
 
-	},
+							enable_performance_tracker = false
+
+						   },
 
 
 
@@ -174,7 +174,7 @@ run() ->
 
 	% A deployment manager is created directly on the user node:
 	DeploymentManagerPid = sim_diasca:init( SimulationSettings,
-							   DeploymentSettings, LoadBalancingSettings ),
+											DeploymentSettings, LoadBalancingSettings ),
 
 	ConfigPath = readConfigPath(),
 
@@ -193,15 +193,18 @@ run() ->
 	% create the vertices actors
 	ListVertex  = create_street_list( CityGraph ),
 
+	{ _ , Pwd } = file:get_cwd(),
+	OutputPath = string:concat( Pwd, "/" ),
+
 	LogPID = class_Actor:create_initial_actor( class_Log,
-		 		[ element( 1 , Config )  ] ),
+											   [ string:concat( OutputPath, element( 1 , Config ) ) ] ),
 
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
 	spaw_proccess( List , ListVertex , CityGraph , LogPID , MetroActor ),
-  		
+
 	ok = collectResults(Names),
 
 	create_buses( ListBuses , dict:from_list( ListVertex ) , CityGraph , LogPID  ),
@@ -225,7 +228,7 @@ run() ->
 
 		simulation_stopped ->
 
-        		?test_info( "Simulation stopped spontaneously, "
+			?test_info( "Simulation stopped spontaneously, "
 						"specified stop tick must have been reached." )
 
 	end,

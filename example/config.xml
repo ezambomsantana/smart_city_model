@@ -1,3 +1,3 @@
 <scsimulator_config>
-<config trip_file="/home/eduardo/entrada/novo/trips.xml" map_file="/home/eduardo/entrada/novo/map.xml" output_file="/home/eduardo/entrada/novo/events.xml" metro_file="/home/eduardo/entrada/novo/metro.xml" bus_file="/home/eduardo/entrada/novo/buses.xml"  simulation_time="10000"/>                                                                                            
+<config trip_file="../example/trips.xml" map_file="../example/map.xml" output_file="../output/events.xml" metro_file="../example/metro.xml" bus_file="../example/buses.xml"  simulation_time="10000"/>
 </scsimulator_config>
