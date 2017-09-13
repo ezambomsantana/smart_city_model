@@ -7,3 +7,4 @@ example/events.xml
 src/Sim-Diasca_Smart_City_Integration_Test*
 interscsimulator.conf
 output/*
+lib/*
