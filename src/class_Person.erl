@@ -150,7 +150,7 @@ actSpontaneous( State ) ->
 							executeOneway( FinalState , scheduleNextSpontaneousTick );
 
 						start ->
-	
+								
 							NewState = request_position_bus( State , CurrentTrip ),
 
 							?wooper_return_state_only( NewState )
@@ -278,7 +278,7 @@ bus_go( State, _PositionTime , _GraphPID ) ->
 	
 	Trip = list_utils:get_element_at( Trips , TripIndex ),
 
-	Destination = element( 3 , Trip ), 
+	Destination = element( 6 , Trip ), 
 
 	LastPosition = getAttribute( State , car_position ),	
 

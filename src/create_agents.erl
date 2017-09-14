@@ -129,7 +129,7 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexP
 
 		"bus" ->
 		
-			TripCreated = [ { Mode , Origin , Destination , Line } ],
+			TripCreated = [ { Mode , Origin , Destination , Line , LinkOrigin , LinkDestination } ],
 
 			NewListVertexPath = ListVertexPath ++ get_node( list_to_atom( Origin ) , ListVertex ),
 

@@ -117,7 +117,7 @@ actSpontaneous( State ) ->
 
 			CurrentBuses = element( 2 , dict:find( CurrentTickOffset , ScheduledBuses ) ), % element 1 is just an ok
 
-			NewBuses = dict:erase( CurrentTickOffset , ScheduledBuses ), % remove the current tick from the dick to save memory;
+			NewBuses = dict:erase( CurrentTickOffset , ScheduledBuses ), % remove the current tick from the tick to save memory;
 			
 			DictState = setAttribute( BusState , buses_time , NewBuses ),
 
@@ -218,7 +218,11 @@ unload_people( State , IdBus , Position  ) ->
 
 			People = element( 2 , dict:find( Key , DictPeople ) ), % element 1 is just an ok
 
-			unload_person( State , People );
+			NewState = unload_person( State , People ),
+
+			DictClean = dict:erase( Key , DictPeople ),
+
+			setAttribute( NewState , people_bus_stop , DictClean );
 
 		_ ->
 
