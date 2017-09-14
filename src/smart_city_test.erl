@@ -73,15 +73,27 @@ create_buses( [ Bus | Buses ] , ListVertex , CityGraph , LogPID  ) ->
 
 calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 
-	case length( List ) > 1 of 
+	case length( List ) >= 1 of 
 
 		true ->
 
 			NextStop = lists:nth( 1 , List ),
 
-			ParcialPath = lists:droplast( digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) ) ),		
+			ParcialPath = case length( List ) == 1 of 
+
+				true -> 
+
+					digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) );		
 	
+
+				false ->
+					
+					lists:droplast( digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) ) )		
+	
+			end,
+
 			calculate_bus_path( List , CityGraph , Path ++ ParcialPath);
+
 
 		false ->
 
@@ -126,8 +138,8 @@ collectResults(Trains) ->
 
 readConfigPath() ->
 	{ok, Device} = file:open('../interscsimulator.conf', [read]),
-	{ok, Data} = file:read_line(Device),
-	string:chomp(Data).
+	{ok, _Data} = file:read_line(Device),
+	"/home/eduardo/interscsimulator/mock-simulators/smart_city_model_plataforma/smart_city_model/paraisopolis/config.xml".
 
 % Runs the test.
 %
@@ -188,13 +200,14 @@ run() ->
 
 	ListBuses = bus_parser:show( element( 6 , Config ) ), % Read the list of buses. TODO: verify if this configurition does not exist.
 
-	MetroActor = class_Actor:create_initial_actor( class_Metro, [ "City" , MetroFile ] ), 
+	{ _ , Pwd } = file:get_cwd(),
+	OutputPath = string:concat( Pwd, "/" ),
+
+	MetroActor = class_Actor:create_initial_actor( class_Metro, [ "City" ,  string:concat( OutputPath, MetroFile ) ] ), 
 
 	% create the vertices actors
 	ListVertex  = create_street_list( CityGraph ),
 
-	{ _ , Pwd } = file:get_cwd(),
-	OutputPath = string:concat( Pwd, "/" ),
 
 	LogPID = class_Actor:create_initial_actor( class_Log,
 											   [ string:concat( OutputPath, element( 1 , Config ) ) ] ),
