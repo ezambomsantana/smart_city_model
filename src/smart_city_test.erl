@@ -195,9 +195,15 @@ run() ->
 
 	{ _ , Pwd } = file:get_cwd(),
 	OutputPath = string:concat( Pwd, "/" ),
+	AmqpClientPath = string:concat( Pwd, "/../deps/amqp_client"),
 
 	LogPID = class_Actor:create_initial_actor( class_Log,
-											   [ string:concat( OutputPath, element( 1 , Config ) ) ] ),
+			[ string:concat( OutputPath, element( 1 , Config ) ),
+			  [ AmqpClientPath,
+				string:concat( AmqpClientPath, "/ebin" ),
+				string:concat( AmqpClientPath, "/include/rabbit_common/ebin" )
+			  ]
+			] ),
 
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
 
