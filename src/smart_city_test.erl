@@ -126,8 +126,8 @@ collectResults(Trains) ->
 
 readConfigPath() ->
 	{ok, Device} = file:open('../interscsimulator.conf', [read]),
-	{ok, Data} = file:read_line(Device),
-	string:chomp(Data).
+	{ok, _Data} = file:read_line(Device),
+	"/home/eduardo/entrada/config.xml".
 
 % Runs the test.
 %
@@ -197,7 +197,11 @@ run() ->
 	OutputPath = string:concat( Pwd, "/" ),
 
 	LogPID = class_Actor:create_initial_actor( class_Log,
-											   [ string:concat( OutputPath, element( 1 , Config ) ) ] ),
+			[ string:concat( OutputPath, element( 1 , Config ) ),
+
+				["/home/eduardo/lib/amqp_client/", "/home/eduardo/lib/amqp_client/ebin", "/home/eduardo/lib/amqp_client/include/rabbit_common/ebin"]
+
+			 ] ),
 
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
 
