@@ -46,8 +46,9 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ type, Type },
 		{ distance , 0 },
 		{ car_position, -1 },
-		{ start_time , StartTime },	
+		{ start_time , StartTime },
 		{ path , ok },
+		{ cost , 0 },
 		{ metro , MetroPID },
 		{ pt_status , start } %public transport -> bus or metro
 						] ).
@@ -94,7 +95,9 @@ actSpontaneous( State ) ->
 
 					NewState = setAttribute( State , path , finish ),
 
-					FinalState = write_final_message( NewState , CurrentTickOffset , CarId , LastPosition , TotalTime , TotalLength , Type ),
+					Cost = getAttribute( State , cost ), 
+
+					FinalState = write_final_message( NewState , CurrentTickOffset , CarId , LastPosition , TotalTime , TotalLength , Type , Cost ),
 
 					executeOneway( FinalState, scheduleNextSpontaneousTick )
 
@@ -231,7 +234,9 @@ metro_go( State, PositionTime , _GraphPID ) ->
 
 	LastPosition = getAttribute( State , car_position ),	
 
-	PositionState = setAttribute( State, car_position, list_to_atom( Destination ) ),
+	CostState = setAttribute( State, cost, 3.8 ),
+
+	PositionState = setAttribute( CostState , car_position, list_to_atom( Destination ) ),
 
 	StatusState = setAttribute( PositionState , pt_status , finish ),
 
@@ -241,8 +246,6 @@ metro_go( State, PositionTime , _GraphPID ) ->
 
 -spec bus_go( wooper:state(), value(), pid() ) -> class_Actor:actor_oneway_return().
 bus_go( State, _PositionTime , _GraphPID ) ->
-
-
 
 	% get the current time of the simulation
 	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
@@ -260,7 +263,9 @@ bus_go( State, _PositionTime , _GraphPID ) ->
 
 	LastPosition = getAttribute( State , car_position ),	
 
-	PositionState = setAttribute( State, car_position, list_to_atom( Destination ) ),
+	CostState = setAttribute( State, cost, 3.8 ),
+
+	PositionState = setAttribute( CostState , car_position, list_to_atom( Destination ) ),
 
 	StatusState = setAttribute( PositionState , pt_status , finish ),
 
@@ -351,9 +356,27 @@ request_position( State , Trip ) ->
 							
 							executeOneway( PathState , declareTermination );	
 
-						false ->
+						false ->	
+
+							TotalLength = getAttribute( State , distance ),
+
+							Mode = element( 1 , Trip ),
+
+							CostState = case Mode of
+
+								"car" ->
+					
+									Cost = TotalLength / 1000 * 0.70, 
+
+									setAttribute( PathState, cost , Cost );	
+
+								_ ->
+	
+									State
+
+							end,				
 		
-							FinalState = setAttribute( PathState, path, finish ),
+							FinalState = setAttribute( CostState, path, finish ),
 
 							executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 )
 
@@ -405,7 +428,7 @@ move( State, PositionTime ) ->
 
 		false ->
 			
-			write_movement_car_message( State , CurrentTickOffset , CarId , LastPosition , NewPosition , Type );
+			write_movement_car_message( NewState , CurrentTickOffset , CarId , LastPosition , NewPosition , Type );
 
 
 		true -> 
@@ -441,13 +464,13 @@ onFirstDiasca( State, _SendingActorPid ) ->
 
 
 
-write_final_message( State , CurrentTickOffset , CarId , LastPosition , TotalTime , TotalLength , Type ) ->
+write_final_message( State , CurrentTickOffset , CarId , LastPosition , TotalTime , TotalLength , Type , Cost ) ->
 
 	LeavesTraffic = io_lib:format( "<event time=\"~w\" type=\"vehicle leaves traffic\" person=\"~s\" link=\"~s\" vehicle=\"~s\" relativePosition=\"1.0\" />\n", [ CurrentTickOffset , CarId , LastPosition , CarId ] ),
 			
 	LeavesVehicles = io_lib:format( "<event time=\"~w\" type=\"PersonLeavesVehicle\" person=\"~s\" vehicle=\"~s\"/>\n", [ CurrentTickOffset , CarId , CarId ] ),
 						
-	Arrival = io_lib:format( "<event time=\"~w\" type=\"arrival\" person=\"~s\" vehicle=\"~s\" link=\"~s\" legMode=\"car\" trip_time=\"~w\" distance=\"~w\" action=\"~s\"/>\n", [ CurrentTickOffset , CarId , CarId ,  LastPosition, TotalTime , TotalLength , Type ] ),
+	Arrival = io_lib:format( "<event time=\"~w\" type=\"arrival\" person=\"~s\" vehicle=\"~s\" link=\"~s\" legMode=\"car\" trip_time=\"~w\" distance=\"~w\" cost=\"~w\" action=\"~s\"/>\n", [ CurrentTickOffset , CarId , CarId ,  LastPosition, TotalTime , TotalLength , Cost , Type ] ),
 
 	ActStart = io_lib:format( "<event time=\"~w\" type=\"actstart\" person=\"~s\"  link=\"~s\"  actType=\"h\"  />\n", [ CurrentTickOffset , CarId , LastPosition ] ),
 
