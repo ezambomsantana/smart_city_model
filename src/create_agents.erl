@@ -20,7 +20,7 @@ iterate_list( ListCount, ListVertex , [ Car | MoreCars] , Graph , LogPID , Name 
 
 	Count = element ( 3 , Car ),
 
-	case size( Car ) == 8 of
+	case size( Car ) == 9 of
 
 		true ->
 			create_person( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , false , LogPID , MetroActor );
@@ -48,6 +48,7 @@ create_person( CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor
 	Type = element ( 6 , Car ),
 	Mode = element ( 7 , Car ),
 	NameFile = element ( 8 , Car ),
+	Park = element ( 9 , Car ),
 
 	CarName = io_lib:format( "~s_~B", [ NameFile , CarCount ] ),
 
@@ -66,7 +67,7 @@ create_person( CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor
 
 			ListVertexPath = get_path_nodes( NewPath , ListVertex , [] ),
 
-			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , NewPath } ],
+			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , NewPath , Park } ],
 
 			class_Actor:create_initial_actor( class_Person,
 				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , MetroActor ] ),
@@ -77,7 +78,7 @@ create_person( CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor
 
 			ListVertexPath = get_path_nodes( Path , ListVertex , [] ),
 
-			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , Path } ],
+			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , Path , Park } ],
 
 			class_Actor:create_initial_actor( class_Person,
 				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , MetroActor ] ),
