@@ -188,14 +188,14 @@ run() ->
 
 	ListBuses = bus_parser:show( element( 6 , Config ) ), % Read the list of buses. TODO: verify if this configurition does not exist.
 
-	MetroActor = class_Actor:create_initial_actor( class_Metro, [ "City" , MetroFile ] ), 
-
 	% create the vertices actors
 	ListVertex  = create_street_list( CityGraph ),
 
 	{ _ , Pwd } = file:get_cwd(),
 	OutputPath = string:concat( Pwd, "/" ),
 	AmqpClientPath = string:concat( Pwd, "/../deps/amqp_client"),
+
+	MetroActor = class_Actor:create_initial_actor( class_Metro, [ "City" ,  string:concat( OutputPath, MetroFile ) ] ),
 
 	LogPID = class_Actor:create_initial_actor( class_Log,
 			[ string:concat( OutputPath, element( 1 , Config ) ),
@@ -245,4 +245,5 @@ run() ->
 	sim_diasca:shutdown(),
 
 	?test_stop.
+
 
