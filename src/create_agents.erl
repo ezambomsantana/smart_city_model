@@ -146,11 +146,11 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexP
 
 				ok ->
 				
-					[ { "car" , Origin , LinkOrigin , Destination , Path } ]; % if the mode is not set in the input file, "car" is the default value.
+					[ { "car" , Origin , LinkOrigin , Destination , Path , ok } ]; % if the mode is not set in the input file, "car" is the default value. Ok because doesn't have a park spot
 
 				_ ->
 
-					[ { Mode , Origin , LinkOrigin , Destination , Path } ] % Otherwise, car or walk.
+					[ { Mode , Origin , LinkOrigin , Destination , Path , ok } ] % Otherwise, car or walk.
 
 			end,
 
