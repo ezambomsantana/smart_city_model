@@ -1,11 +1,13 @@
 %Class that manage the parking spots in the city
 -module(class_Parking).
 
+-include_lib("../deps/amqp_client/include/amqp_client.hrl").
+
 % Determines what are the mother classes of this class (if any):
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings , ListOfSpots ).
+-define( wooper_construct_parameters, ActorSettings , SpotName , ListOfSpots ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
@@ -47,11 +49,11 @@ construct( State, ?wooper_construct_parameters ) ->
                                     type = <<"topic">> },
     #'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
 
-    ActorState = class_Actor:construct( State, ActorSettings ),
+    ActorState = class_Actor:construct( State, ActorSettings , SpotName ),
 
     setAttributes( ActorState, [
                                 { channel, Channel },
-                                { connection, Connection }
+                                { connection, Connection },
                                 { spots , ParkingSpots } ] ).
 
 % Overridden destructor.
@@ -76,6 +78,18 @@ actSpontaneous( State ) ->
 
 	State.
 
+% Simply schedules this just created actor at the next tick (diasca 0).
+%
+% (actor oneway)
+%
+-spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
+onFirstDiasca( State, _SendingActorPid ) ->
+
+	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
+
+	ScheduledState = executeOneway( State , addSpontaneousTick, CurrentTickOffset + 100 ),
+
+	?wooper_return_state_only( ScheduledState ).
 
 -spec spot_available( wooper:state(), parameter(), pid() ) ->
 					   class_Actor:actor_oneway_return().
@@ -89,20 +103,21 @@ spot_available( State , SpotUUID , PersonPID ) ->
 
     case Available of
         true ->
-            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { GraphNodeID } }, State ).
+            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { GraphNodeID } }, State );
         false ->
-            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { nok } }, State ).
+            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { nok } }, State )
+    end.
 
 
 -spec spot_in_use( wooper:state(), parameter(), pid() ) ->
 					   class_Actor:actor_oneway_return().
-spot_in_use( State, SpotUUID, PersonID ) ->
+spot_in_use( State, SpotUUID, _PersonID ) ->
 	
     ParkingSpots = getAttribute( State, spots ),
     Channel = getAttribute( State, channel ),
 
     StateUpdater = fun( Spot ) -> { element( 1, Spot ), false } end,
-    setAttribute( State, spots, dict:update( SpotUUID, StateUpdater, ParkingSpots ).
+    setAttribute( State, spots, dict:update( SpotUUID, StateUpdater, ParkingSpots )),
 
     publish_data( Channel, SpotUUID, false ).
 
@@ -117,13 +132,11 @@ publish_data( Channel, SpotUUID, Available ) ->
     Timestamp = lists:flatten( io_lib:format( "~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w",
                                               [ Year, Month, Day, Hour, Minute, Second ] ) ),
 
-    State = lists:flatten( io_lib:format( "~p", [ Available ] ),
+    State = lists:flatten( io_lib:format( "~p", [ Available ] ) ),
 
     Message = "{\"parking_monitoring\": [
-                    {\"available\": \"" ++ State ++ "\",
-                    "\"timestamp\": \"" ++ Timestamp ++ "\"
-                    }
-               ]}",
+                    {\"available\": \"" ++ State ++ "\"," ++
+                    "\"timestamp\": \"" ++ Timestamp ++ "\"}]}",
 
     amqp_channel:cast( Channel,
                        Publish,
