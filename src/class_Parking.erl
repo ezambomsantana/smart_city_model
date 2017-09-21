@@ -1,23 +1,21 @@
 %Class that manage the parking spots in the city
 -module(class_Parking).
 
--include_lib("../deps/amqp_client/include/amqp_client.hrl").
-
 % Determines what are the mother classes of this class (if any):
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings , SpotName , ListOfSpots ).
+-define( wooper_construct_parameters, ActorSettings , SpotName , ListOfSpots, LogPID ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/3, new_link/3,
-		 synchronous_new/3, synchronous_new_link/3,
-		 synchronous_timed_new/3, synchronous_timed_new_link/3,
-		 remote_new/4, remote_new_link/4, remote_synchronous_new/4,
-		 remote_synchronous_new_link/4, remote_synchronisable_new_link/4,
-		 remote_synchronous_timed_new/4, remote_synchronous_timed_new_link/4,
-		 construct/4, destruct/1 ).
+-define( wooper_construct_export, new/4, new_link/4,
+		 synchronous_new/4, synchronous_new_link/4,
+		 synchronous_timed_new/4, synchronous_timed_new_link/4,
+		 remote_new/5, remote_new_link/5, remote_synchronous_new/5,
+		 remote_synchronous_new_link/5, remote_synchronisable_new_link/5,
+		 remote_synchronous_timed_new/5, remote_synchronous_timed_new_link/5,
+		 construct/5, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2,
@@ -34,38 +32,23 @@
 % Creates a list with the parking spots in the city
 %
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name() , sensor_type() ) -> wooper:state().
+				class_Actor:name() , parameter(), pid() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
-    % Formatter transforms the { UUID, ID } to { UUID, { ID, availability } }
-    Formatter = fun(Spot) -> { element( 1, Spot ), { element( 2, Spot ), true } } end,
-    ParkingSpotsAvailable = lists:map( Formatter, ListOfSpots ),
-    ParkingSpots = dict:from_list( ParkingSpotsAvailable ),
-
-    { ok, Connection } = amqp_connection:start( #amqp_params_network{} ),
-    { ok, Channel } = amqp_connection:open_channel( Connection ),
-
-    Exchange = #'exchange.declare'{ exchange = <<"data_stream">>,
-                                    type = <<"topic">> },
-    #'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
+    AvailableParkingSpots = dict:from_list( ListOfSpots ),
+    UnavailableParkingSpots = dict:new(),
 
     ActorState = class_Actor:construct( State, ActorSettings , SpotName ),
 
     setAttributes( ActorState, [
-                                { channel, Channel },
-                                { connection, Connection },
-                                { spots , ParkingSpots } ] ).
+                                { logPID, LogPID },
+                                { availableSpots , AvailableParkingSpots },
+                                { unavailableSpots , UnavailableParkingSpots } ] ).
 
 % Overridden destructor.
 %
 -spec destruct( wooper:state() ) -> wooper:state().
 destruct( State ) ->
-
-    Channel = getAttribute( State, channel ),
-    Connection = getAttribute( State, connection ),
-
-    ok = amqp_channel:close(Channel),
-    ok = amqp_connection:close(Connection),
 
     State.
 
@@ -75,6 +58,24 @@ destruct( State ) ->
 %
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
 actSpontaneous( State ) ->
+
+    AvailableParkingSpots = getAttribute( State, availableSpots ),
+    UnavailableParkingSpots = getAttribute( State, unavailableSpots ),
+
+	CurrentTick = class_Actor:get_current_tick_offset( State ),
+
+    FreeSpots = fun( SpotUUID, { NodeGraphId, Tick }) ->
+                    case ( ( Tick - CurrentTick ) < 1200 ) of
+                        true -> true
+                        false ->
+                            setAttribute( State, availableSpots, dict:append( SpotUUID, NodeGraphId, AvailableParkingSpots ) ),
+                            false;
+                    end
+                end,
+
+    setAttribute( State, unavailableSpots, dict:filter( FreeSpots, UnavailableParkingSpots )),
+
+    executeOneway( State , addSpontaneousTick, CurrentTick + 600 ),
 
 	State.
 
@@ -86,47 +87,44 @@ actSpontaneous( State ) ->
 onFirstDiasca( State, _SendingActorPid ) ->
 
 	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
-
 	ScheduledState = executeOneway( State , addSpontaneousTick, CurrentTickOffset + 100 ),
 
 	?wooper_return_state_only( ScheduledState ).
 
--spec spot_available( wooper:state(), parameter(), pid() ) ->
-					   class_Actor:actor_oneway_return().
+
+-spec spot_available( wooper:state(), parameter(), pid() ) -> class_Actor:actor_oneway_return().
 spot_available( State , SpotUUID , PersonPID ) ->
 	
-    ParkingSpots = getAttribute( State, spots ),
+    AvailableParkingSpots = getAttribute( State, availableSpots ),
 
-    SpotData = dict:fetch( SpotUUID, ParkingSpots ),
-    GraphNodeID = element( 1, SpotData ),
-    Available = element( 2, SpotData ),
-
-    case Available of
-        true ->
+    case dict:find( SpotUUID, AvailableParkingSpots ) of
+        { ok, GraphNodeID } ->
             class_Actor:send_actor_message( PersonPID, { get_parking_spot, { GraphNodeID } }, State );
-        false ->
+        { error } ->
             class_Actor:send_actor_message( PersonPID, { get_parking_spot, { nok } }, State )
     end.
 
 
--spec spot_in_use( wooper:state(), parameter(), pid() ) ->
-					   class_Actor:actor_oneway_return().
+-spec spot_in_use( wooper:state(), parameter(), pid() ) -> class_Actor:actor_oneway_return().
 spot_in_use( State, SpotUUID, _PersonID ) ->
-	
-    ParkingSpots = getAttribute( State, spots ),
-    Channel = getAttribute( State, channel ),
 
-    StateUpdater = fun( Spot ) -> { element( 1, Spot ), false } end,
-    setAttribute( State, spots, dict:update( SpotUUID, StateUpdater, ParkingSpots )),
+	LogPID = getAttribute( State, logPID ),
+	AvailableParkingSpots = getAttribute( State, availableSpots ),
+	UnavailableParkingSpots = getAttribute( State, unavailableSpots ),
 
-    publish_data( Channel, SpotUUID, false ).
+	CurrentTick = class_Actor:get_current_tick_offset( State ),
+
+	{ ok, GraphNodeID } = dict:fetch( SpotUUID, AvailableParkingSpots ),
+	setAttribute( State, availableSpots, dict:erase( SpotUUID, AvailableParkingSpots ) ),
+	setAttribute( State, unavailableSpots, dict:append( SpotUUID, { GraphNodeID, CurrentTick }, UnavailableParkingSpots ) ),
+
+	change_spot_state( SpotUUID, false, LogPID ).
 
 
-publish_data( Channel, SpotUUID, Available ) ->
+change_spot_state( SpotUUID, Available, LogPID ) ->
 
+    Topic = "data_stream",
     RoutingKey = string:concat( SpotUUID, ".parking_monitoring.simulated" ),
-    Publish = #'basic.publish'{ exchange = <<"data_stream">>,
-                                routing_key = list_to_binary( RoutingKey ) },
 
     { { Year, Month, Day }, { Hour, Minute, Second } } = calendar:local_time(),
     Timestamp = lists:flatten( io_lib:format( "~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w",
@@ -138,8 +136,6 @@ publish_data( Channel, SpotUUID, Available ) ->
                     {\"available\": \"" ++ State ++ "\"," ++
                     "\"timestamp\": \"" ++ Timestamp ++ "\"}]}",
 
-    amqp_channel:cast( Channel,
-                       Publish,
-                       #amqp_msg{ payload = list_to_binary( Message ) }),
+    Data = { Topic, RoutingKey, Message },
+    class_Actor:send_actor_message( LogPID, { publish_data, { Data } }, State ).
 
-    ok.
