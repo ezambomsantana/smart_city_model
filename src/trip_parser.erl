@@ -95,7 +95,8 @@ extract_node( Node , Multi ) ->
 			Count = children( Attributes , count ),
 			StartTime = children( Attributes , start ),
 			Type = children( Attributes , type ),
-			[ { StartTime , Type , Count , List , NamePerson } ];
+			Mode = children( Attributes , mode ), 
+			[ { StartTime , Type , Count , List , NamePerson , Mode } ];
 			
 
 		_ ->

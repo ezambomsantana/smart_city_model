@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName, ListVertex , ListTripsFinal , StartTime , LogPID , Type , MetroPID ).
+-define( wooper_construct_parameters, ActorSettings, CarName, ListVertex , ListTripsFinal , StartTime , LogPID , Type , Mode , MetroPID ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/8, new_link/8,
-		 synchronous_new/8, synchronous_new_link/8,
-		 synchronous_timed_new/8, synchronous_timed_new_link/8,
-		 remote_new/9, remote_new_link/9, remote_synchronous_new/9,
-		 remote_synchronous_new_link/9, remote_synchronisable_new_link/9,
-		 remote_synchronous_timed_new/9, remote_synchronous_timed_new_link/9,
-		 construct/9, destruct/1 ).
+-define( wooper_construct_export, new/9, new_link/9,
+		 synchronous_new/9, synchronous_new_link/9,
+		 synchronous_timed_new/9, synchronous_timed_new_link/9,
+		 remote_new/10, remote_new_link/10, remote_synchronous_new/10,
+		 remote_synchronous_new_link/10, remote_synchronisable_new_link/10,
+		 remote_synchronous_timed_new/10, remote_synchronous_timed_new_link/10,
+		 construct/10, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , metro_go/3 , bus_go/3 ).
@@ -29,7 +29,7 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 
@@ -50,6 +50,7 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ path , ok },
 		{ cost , 0 },
 		{ metro , MetroPID },
+		{ mode , Mode },
 		{ pt_status , start } %public transport -> bus or metro
 						] ).
 
@@ -97,7 +98,9 @@ actSpontaneous( State ) ->
 
 					Cost = getAttribute( State , cost ), 
 
-					FinalState = write_final_message( NewState , CurrentTickOffset , CarId , LastPosition , TotalTime , TotalLength , Type , Cost ),
+					Mode = getAttribute( State , mode ), 
+
+					FinalState = write_final_message( NewState , CurrentTickOffset , CarId , LastPosition , TotalTime , TotalLength , Type , Cost , Mode ),
 
 					executeOneway( FinalState, scheduleNextSpontaneousTick )
 
@@ -464,13 +467,13 @@ onFirstDiasca( State, _SendingActorPid ) ->
 
 
 
-write_final_message( State , CurrentTickOffset , CarId , LastPosition , TotalTime , TotalLength , Type , Cost ) ->
+write_final_message( State , CurrentTickOffset , CarId , LastPosition , TotalTime , TotalLength , Type , Cost , Mode ) ->
 
 	LeavesTraffic = io_lib:format( "<event time=\"~w\" type=\"vehicle leaves traffic\" person=\"~s\" link=\"~s\" vehicle=\"~s\" relativePosition=\"1.0\" />\n", [ CurrentTickOffset , CarId , LastPosition , CarId ] ),
 			
 	LeavesVehicles = io_lib:format( "<event time=\"~w\" type=\"PersonLeavesVehicle\" person=\"~s\" vehicle=\"~s\"/>\n", [ CurrentTickOffset , CarId , CarId ] ),
 						
-	Arrival = io_lib:format( "<event time=\"~w\" type=\"arrival\" person=\"~s\" vehicle=\"~s\" link=\"~s\" legMode=\"car\" trip_time=\"~w\" distance=\"~w\" cost=\"~w\" action=\"~s\"/>\n", [ CurrentTickOffset , CarId , CarId ,  LastPosition, TotalTime , TotalLength , Cost , Type ] ),
+	Arrival = io_lib:format( "<event time=\"~w\" type=\"arrival\" person=\"~s\" vehicle=\"~s\" link=\"~s\" legMode=\"~s\" trip_time=\"~w\" distance=\"~w\" cost=\"~w\" action=\"~s\"/>\n", [ CurrentTickOffset , CarId , CarId ,  LastPosition, Mode , TotalTime , TotalLength , Cost , Type ] ),
 
 	ActStart = io_lib:format( "<event time=\"~w\" type=\"actstart\" person=\"~s\"  link=\"~s\"  actType=\"h\"  />\n", [ CurrentTickOffset , CarId , LastPosition ] ),
 
