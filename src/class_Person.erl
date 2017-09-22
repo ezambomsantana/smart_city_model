@@ -5,20 +5,20 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName, ListVertex , ListTripsFinal , StartTime , LogPID , Type , MetroPID ).
+-define( wooper_construct_parameters, ActorSettings, CarName, ListVertex , ListTripsFinal , StartTime , LogPID , Type , Park , PID ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/8, new_link/8,
-		 synchronous_new/8, synchronous_new_link/8,
-		 synchronous_timed_new/8, synchronous_timed_new_link/8,
-		 remote_new/9, remote_new_link/9, remote_synchronous_new/9,
-		 remote_synchronous_new_link/9, remote_synchronisable_new_link/9,
-		 remote_synchronous_timed_new/9, remote_synchronous_timed_new_link/9,
-		 construct/9, destruct/1 ).
+-define( wooper_construct_export, new/9, new_link/9,
+		 synchronous_new/9, synchronous_new_link/9,
+		 synchronous_timed_new/9, synchronous_timed_new_link/9,
+		 remote_new/10, remote_new_link/10, remote_synchronous_new/10,
+		 remote_synchronous_new_link/10, remote_synchronisable_new_link/10,
+		 remote_synchronous_timed_new/10, remote_synchronous_timed_new_link/10,
+		 construct/10, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , metro_go/3 , bus_go/3 ).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , metro_go/3 , bus_go/3 , get_parking_spot/3 ).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -29,9 +29,8 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
-
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
 
@@ -49,7 +48,9 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ start_time , StartTime },
 		{ path , ok },
 		{ cost , 0 },
-		{ metro , MetroPID },
+		{ metro , element ( 1 , PID ) },
+		{ parking , element ( 2 , PID ) },
+		{ park , Park },
 		{ pt_status , start } %public transport -> bus or metro
 						] ).
 
@@ -358,27 +359,41 @@ request_position( State , Trip ) ->
 
 						false ->	
 
-							TotalLength = getAttribute( State , distance ),
+							Park = getAttribute( State , park ),
 
-							Mode = element( 1 , Trip ),
+							Parking = getAttribute( State , parking ),
 
-							CostState = case Mode of
+							case Park of
 
-								"car" ->
+								ok ->
+									
+									TotalLength = getAttribute( State , distance ),
+
+									Mode = element( 1 , Trip ),
+
+									CostState = case Mode of
+
+										"car" ->
 					
-									Cost = TotalLength / 1000 * 0.70, 
+											Cost = TotalLength / 1000 * 0.70, 
 
-									setAttribute( PathState, cost , Cost );	
+											setAttribute( State , cost , Cost );	
 
-								_ ->
+										_ ->
 	
-									State
+											State
 
-							end,				
+									end,				
 		
-							FinalState = setAttribute( CostState, path, finish ),
+									FinalState = setAttribute( CostState, path, finish ),
 
-							executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 )
+									executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
+								_ ->
+
+            								class_Actor:send_actor_message( Parking, { spot_available, { Park } } , State )
+
+							end
+
 
 					end
 
@@ -386,8 +401,58 @@ request_position( State , Trip ) ->
 
 	end.
 
+get_parking_spot( State , IdNode , _ParkingPID ) ->
+
+	Node = element( 1 , IdNode ),
+
+	case Node of 
+
+	     nok ->
+
+		io:format( "nao disponivel");
+
+    	     _ ->
+
+		io:format("sucesso! ~s" , [ Node ])
+
+	end,
+
+	Trips = getAttribute( State , trips ), 
+
+	TripIndex = getAttribute( State , trip_index ), 
 	
 
+	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 	
+
+
+			Trip = list_utils:get_element_at( Trips , TripIndex ),
+
+
+									
+									TotalLength = getAttribute( State , distance ),
+
+									Mode = element( 1 , Trip ),
+
+									CostState = case Mode of
+
+										"car" ->
+					
+											Cost = TotalLength / 1000 * 0.70, 
+
+											setAttribute( State , cost , Cost );	
+
+										_ ->
+	
+											State
+
+									end,				
+		
+									FinalState = setAttribute( CostState, path, finish ),
+
+									executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 ).
+
+ 
+ 
 % Called by the route with the requested position. Write the file to show the position of the car in the map.
 %
 % (actor oneway)

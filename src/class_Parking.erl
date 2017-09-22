@@ -35,10 +35,10 @@
 				class_Actor:name() , parameter(), pid() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
-    io:format("teste: ~w", [ ListOfSpots ] ),
-
     AvailableParkingSpots = dict:from_list( ListOfSpots ),
     UnavailableParkingSpots = dict:new(),
+
+    %print( ListOfSpots ),
 
     ActorState = class_Actor:construct( State, ActorSettings , SpotName ),
 
@@ -46,6 +46,17 @@ construct( State, ?wooper_construct_parameters ) ->
                                 { logPID, LogPID },
                                 { availableSpots , AvailableParkingSpots },
                                 { unavailableSpots , UnavailableParkingSpots } ] ).
+
+
+%print( [] ) ->
+%    ok;
+
+%print( [ Obj | List ] ) ->
+
+%    Uuid = element( 1 , Obj ),
+%    IdNo = element( 2 , Obj ),
+%    io:format("spot: ~s ~s" , [ Uuid , IdNo ] ),
+%    print( List ).
 
 % Overridden destructor.
 %
@@ -99,10 +110,10 @@ spot_available( State , SpotUUID , PersonPID ) ->
 	
     AvailableParkingSpots = getAttribute( State, availableSpots ),
 
-    case dict:find( SpotUUID, AvailableParkingSpots ) of
+    case dict:find( element( 1 , SpotUUID ) , AvailableParkingSpots ) of
         { ok, GraphNodeID } ->
             class_Actor:send_actor_message( PersonPID, { get_parking_spot, { GraphNodeID } }, State );
-        { error } ->
+        error ->
             class_Actor:send_actor_message( PersonPID, { get_parking_spot, { nok } }, State )
     end.
 

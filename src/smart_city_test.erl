@@ -207,13 +207,13 @@ run() ->
 			  ]
 			] ),
 
-	_ParkActor = class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots , LogPID ] ),
+	ParkActor = class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots , LogPID ] ),
 
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
-	spaw_proccess( List , ListVertex , CityGraph , LogPID , MetroActor ),
+	spaw_proccess( List , ListVertex , CityGraph , LogPID , { MetroActor , ParkActor } ),
 
 	ok = collectResults(Names),
 

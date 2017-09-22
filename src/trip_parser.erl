@@ -73,7 +73,8 @@ extract_node( Node , Multi ) ->
 					LinkOrigin = children( Attributes , link_origin ),
 					Type = children( Attributes , type ),
 					Mode = children( Attributes , mode ),
-					[ { Origin , Destination , Count , StartTime , LinkOrigin , Type , Mode , NamePerson } ];
+					Park = children( Attributes , park ),
+					[ { Origin , Destination , Count , StartTime , LinkOrigin , Type , Mode , NamePerson , Park } ];
 
 				true ->
 
