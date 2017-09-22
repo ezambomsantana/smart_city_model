@@ -121,7 +121,7 @@ spot_available( State , SpotUUID , PersonPID ) ->
 -spec spot_in_use( wooper:state(), parameter(), pid() ) -> class_Actor:actor_oneway_return().
 spot_in_use( State, SpotUUID, _PersonID ) ->
 
-%	LogPID = getAttribute( State, logPID ),
+	LogPID = getAttribute( State, logPID ),
 	AvailableParkingSpots = getAttribute( State, availableSpots ),
 	UnavailableParkingSpots = getAttribute( State, unavailableSpots ),
 
@@ -133,27 +133,25 @@ spot_in_use( State, SpotUUID, _PersonID ) ->
 	GraphNodeID = dict:fetch( UUID , AvailableParkingSpots ),
 	NewState = setAttribute( State, availableSpots, dict:erase( UUID, AvailableParkingSpots ) ),
 	NewNewState = setAttribute( NewState , unavailableSpots, dict:append( UUID, { GraphNodeID, CurrentTick }, UnavailableParkingSpots ) ),
-	NewNewState.
-	
 
-%	change_spot_state( UUID, false, LogPID ).
+	change_spot_state( NewNewState , UUID, false, LogPID ).
 
 
-%change_spot_state( SpotUUID, Available, LogPID ) ->
+change_spot_state( State , SpotUUID, Available, LogPID ) ->
 
-%    Topic = "data_stream",
-%    RoutingKey = string:concat( SpotUUID, ".parking_monitoring.simulated" ),
+    Topic = "data_stream",
+    RoutingKey = string:concat( SpotUUID, ".parking_monitoring.simulated" ),
 
-%    { { Year, Month, Day }, { Hour, Minute, Second } } = calendar:local_time(),
-%    Timestamp = lists:flatten( io_lib:format( "~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w",
-    %                                          [ Year, Month, Day, Hour, Minute, Second ] ) ),
+    { { Year, Month, Day }, { Hour, Minute, Second } } = calendar:local_time(),
+    Timestamp = lists:flatten( io_lib:format( "~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w",
+                                          [ Year, Month, Day, Hour, Minute, Second ] ) ),
 
-%    State = lists:flatten( io_lib:format( "~p", [ Available ] ) ),
+    SpotState = lists:flatten( io_lib:format( "~p", [ Available ] ) ),
 
-%    Message = "{\"parking_monitoring\": [
-  %                  {\"available\": \"" ++ State ++ "\"," ++
- %                   "\"timestamp\": \"" ++ Timestamp ++ "\"}]}",
+    Message = "{\"parking_monitoring\": [
+                  {\"available\": \"" ++ SpotState ++ "\"," ++
+                   "\"timestamp\": \"" ++ Timestamp ++ "\"}]}",
 
-   % Data = { Topic, RoutingKey, Message },
-%	    class_Actor:send_actor_message( LogPID, { publish_data, { Data } }, State ).
+    Data = { Topic, RoutingKey, Message },
+    class_Actor:send_actor_message( LogPID, { publish_data, { Data } }, State ).
 
