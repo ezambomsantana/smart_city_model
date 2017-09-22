@@ -18,7 +18,7 @@
 		 construct/10, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , metro_go/3 , bus_go/3 , get_parking_spot/3 ).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , metro_go/3 , bus_go/3 , get_parking_spot/3 , set_new_path/3 ).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -50,6 +50,7 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ cost , 0 },
 		{ metro , element ( 1 , PID ) },
 		{ parking , element ( 2 , PID ) },
+		{ city , element ( 3 , PID ) },
 		{ park , Park },
 		{ pt_status , start } %public transport -> bus or metro
 						] ).
@@ -336,9 +337,11 @@ request_position( State , Trip ) ->
 					%the mode that the person will make the trip, walking or by car
 					Mode = element( 1 , Trip ),
 
+					No = dict:find( InitialVertice , DictVertices),
+					
 					Vertices = list_to_atom(lists:concat( [ InitialVertice , FinalVertice ] )),
 
-					VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
+					VertexPID = element( 2 , No ),	
 
 					PathRest = remove_first( Path ),
 
@@ -413,45 +416,36 @@ get_parking_spot( State , IdNode , _ParkingPID ) ->
 
     	     _ ->
 
-		io:format("sucesso! ~s" , [ Node ])
+		Path = getAttribute( State , path ),
 
-	end,
+		CurrentVertice = list_utils:get_element_at( Path , 1 ),
 
-	Trips = getAttribute( State , trips ), 
+		City = getAttribute( State , city ), 
 
-	TripIndex = getAttribute( State , trip_index ), 
-	
+		class_Actor:send_actor_message( City , { get_path, { CurrentVertice , Node } } , State )
 
-	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 	
-
-
-			Trip = list_utils:get_element_at( Trips , TripIndex ),
-
-
-									
-									TotalLength = getAttribute( State , distance ),
-
-									Mode = element( 1 , Trip ),
-
-									CostState = case Mode of
-
-										"car" ->
-					
-											Cost = TotalLength / 1000 * 0.70, 
-
-											setAttribute( State , cost , Cost );	
-
-										_ ->
-	
-											State
-
-									end,				
-		
-									FinalState = setAttribute( CostState, path, finish ),
-
-									executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 ).
-
+	end.
  
+set_new_path( State , NewPath , _CityPID ) ->
+
+	Path = element( 1 , NewPath ), 
+
+	DictNewVertices = dict:from_list( element( 2 , NewPath ) ),
+
+	StateDict = setAttribute( State , dict , DictNewVertices ),
+
+	NewState = setAttribute( StateDict , path , Path ),
+
+	NewNewState = setAttribute( NewState , park , ok ),
+
+	Trips = getAttribute( NewNewState , trips ), 
+
+	TripIndex = getAttribute( NewNewState , trip_index ), 
+
+	CurrentTrip = list_utils:get_element_at( Trips , TripIndex ),
+
+        request_position( NewNewState , CurrentTrip ).
+
  
 % Called by the route with the requested position. Write the file to show the position of the car in the map.
 %
