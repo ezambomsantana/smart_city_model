@@ -36,6 +36,18 @@ construct( State, ?wooper_construct_parameters ) ->
 
         DictVertices = dict:from_list( ListVertex ),
 
+	ParkStatus = case Park of
+
+		ok ->
+
+			finish;
+
+		_ ->
+
+			find
+
+	end,
+
 	setAttributes( ActorState, [
 		{ car_name, CarName },
 		{ dict , DictVertices },
@@ -52,6 +64,7 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ parking , element ( 2 , PID ) },
 		{ city , element ( 3 , PID ) },
 		{ park , Park },
+		{ park_status , ParkStatus },
 		{ pt_status , start } %public transport -> bus or metro
 						] ).
 
@@ -364,13 +377,25 @@ request_position( State , Trip ) ->
 
 							Park = getAttribute( State , park ),
 
+							ParkStatus = getAttribute( State , park_status ),
+
 							Parking = getAttribute( State , parking ),
 
-							case Park of
+							case ParkStatus of
 
-								ok ->
+								finish ->
+
+									NewState = case Park of
+
+										ok ->
+		
+											State;
+
+										_ -> class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , State )
+
+									end,
 									
-									TotalLength = getAttribute( State , distance ),
+									TotalLength = getAttribute( NewState , distance ),
 
 									Mode = element( 1 , Trip ),
 
@@ -380,18 +405,18 @@ request_position( State , Trip ) ->
 					
 											Cost = TotalLength / 1000 * 0.70, 
 
-											setAttribute( State , cost , Cost );	
+											setAttribute( NewState , cost , Cost );	
 
 										_ ->
 	
-											State
+											NewState
 
 									end,				
 		
 									FinalState = setAttribute( CostState, path, finish ),
 
 									executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
-								_ ->
+								find ->
 
             								class_Actor:send_actor_message( Parking, { spot_available, { Park } } , State )
 
@@ -436,7 +461,7 @@ set_new_path( State , NewPath , _CityPID ) ->
 
 	NewState = setAttribute( StateDict , path , Path ),
 
-	NewNewState = setAttribute( NewState , park , ok ),
+	NewNewState = setAttribute( NewState , park_status , finish ),
 
 	Trips = getAttribute( NewNewState , trips ), 
 
