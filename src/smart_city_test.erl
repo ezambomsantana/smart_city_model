@@ -188,6 +188,8 @@ run() ->
 
 	ListBuses = bus_parser:show( element( 6 , Config ) ), % Read the list of buses. TODO: verify if this configurition does not exist.
 
+	ParkSpots = park_parser:show( element( 7 , Config ) ),
+	
 	MetroActor = class_Actor:create_initial_actor( class_Metro, [ "City" , MetroFile ] ), 
 
 	% create the vertices actors
@@ -204,6 +206,8 @@ run() ->
 				string:concat( AmqpClientPath, "/include/rabbit_common/ebin" )
 			  ]
 			] ),
+
+	_ParkActor = class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots , LogPID ] ),
 
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
 

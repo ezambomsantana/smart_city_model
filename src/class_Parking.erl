@@ -35,6 +35,8 @@
 				class_Actor:name() , parameter(), pid() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
+    io:format("teste: ~w", [ ListOfSpots ] ),
+
     AvailableParkingSpots = dict:from_list( ListOfSpots ),
     UnavailableParkingSpots = dict:new(),
 
@@ -62,14 +64,14 @@ actSpontaneous( State ) ->
     AvailableParkingSpots = getAttribute( State, availableSpots ),
     UnavailableParkingSpots = getAttribute( State, unavailableSpots ),
 
-	CurrentTick = class_Actor:get_current_tick_offset( State ),
+    CurrentTick = class_Actor:get_current_tick_offset( State ),
 
     FreeSpots = fun( SpotUUID, { NodeGraphId, Tick }) ->
                     case ( ( Tick - CurrentTick ) < 1200 ) of
-                        true -> true
+                        true -> true;
                         false ->
                             setAttribute( State, availableSpots, dict:append( SpotUUID, NodeGraphId, AvailableParkingSpots ) ),
-                            false;
+                            false
                     end
                 end,
 
