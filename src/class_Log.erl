@@ -19,7 +19,8 @@
 		 construct/4, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, receive_action/3).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2,
+         receive_action/3, publish_data/3 ).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -119,3 +120,23 @@ onFirstDiasca( State, _SendingActorPid ) ->
 	?wooper_return_state_only( State ).
 
 
+% Receive a message from an agent and saves it in the log file.
+-spec publish_data( wooper:state() , parameter() , pid() ) -> wooper:state().
+publish_data( State , Data , _Pid ) ->
+
+	Channel = ?getAttr(channel),
+
+	Topic = element ( 1, Data ),
+	RoutingKey = element( 2, Data ),
+	Message = element( 3, Data ),
+
+	Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ),
+									type = <<"topic">> },
+	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
+
+	Publish = #'basic.publish'{ exchange = list_to_binary( Topic ),
+								routing_key = list_to_binary( RoutingKey ) },
+
+	amqp_channel:cast( Channel,
+					   Publish,
+					   #amqp_msg{ payload = list_to_binary( Message ) }).

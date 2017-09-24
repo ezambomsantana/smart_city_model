@@ -70,7 +70,7 @@ create_person( CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor
 			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , NewPath , Park } ],
 
 			class_Actor:create_initial_actor( class_Person,
-				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , ModeFinal , MetroActor ] ),
+				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , Park , ModeFinal , MetroActor ] ),
 
 			create_person( CarCount - 1 , ListVertex ,  Car , Graph , NewPath , LogPID , MetroActor );
 
@@ -81,7 +81,7 @@ create_person( CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor
 			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , Path , Park } ],
 
 			class_Actor:create_initial_actor( class_Person,
-				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , ModeFinal , MetroActor ] ),
+				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , Park , ModeFinal , MetroActor ] ),
 
 			create_person( CarCount - 1 , ListVertex ,  Car , Graph , Path , LogPID , MetroActor  )
 

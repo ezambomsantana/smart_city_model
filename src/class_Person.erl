@@ -5,7 +5,7 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName, ListVertex , ListTripsFinal , StartTime , LogPID , Type , Mode , MetroPID ).
+-define( wooper_construct_parameters, ActorSettings, CarName, ListVertex , ListTripsFinal , StartTime , LogPID , Type , Park , Mode , PID ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
@@ -18,7 +18,7 @@
 		 construct/10, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , metro_go/3 , bus_go/3 ).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , metro_go/3 , bus_go/3 , get_parking_spot/3 , set_new_path/3 ).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -31,7 +31,6 @@
 -spec construct( wooper:state(), class_Actor:actor_settings(),
 				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
-
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
 
@@ -49,7 +48,10 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ start_time , StartTime },
 		{ path , ok },
 		{ cost , 0 },
-		{ metro , MetroPID },
+		{ metro , element ( 1 , PID ) },
+		{ parking , element ( 2 , PID ) },
+		{ city , element ( 3 , PID ) },
+		{ park , Park },
 		{ mode , Mode },
 		{ pt_status , start } %public transport -> bus or metro
 						] ).
@@ -338,9 +340,11 @@ request_position( State , Trip ) ->
 					%the mode that the person will make the trip, walking or by car
 					Mode = element( 1 , Trip ),
 
+					No = dict:find( InitialVertice , DictVertices),
+					
 					Vertices = list_to_atom(lists:concat( [ InitialVertice , FinalVertice ] )),
 
-					VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
+					VertexPID = element( 2 , No ),	
 
 					PathRest = remove_first( Path ),
 
@@ -361,27 +365,41 @@ request_position( State , Trip ) ->
 
 						false ->	
 
-							TotalLength = getAttribute( State , distance ),
+							Park = getAttribute( State , park ),
 
-							Mode = element( 1 , Trip ),
+							Parking = getAttribute( State , parking ),
 
-							CostState = case Mode of
+							case Park of
 
-								"car" ->
+								ok ->
+									
+									TotalLength = getAttribute( State , distance ),
+
+									Mode = element( 1 , Trip ),
+
+									CostState = case Mode of
+
+										"car" ->
 					
-									Cost = TotalLength / 1000 * 0.70, 
+											Cost = TotalLength / 1000 * 0.70, 
 
-									setAttribute( PathState, cost , Cost );	
+											setAttribute( State , cost , Cost );	
 
-								_ ->
+										_ ->
 	
-									State
+											State
 
-							end,				
+									end,				
 		
-							FinalState = setAttribute( CostState, path, finish ),
+									FinalState = setAttribute( CostState, path, finish ),
 
-							executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 )
+									executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
+								_ ->
+
+            								class_Actor:send_actor_message( Parking, { spot_available, { Park } } , State )
+
+							end
+
 
 					end
 
@@ -389,8 +407,49 @@ request_position( State , Trip ) ->
 
 	end.
 
-	
+get_parking_spot( State , IdNode , _ParkingPID ) ->
 
+	Node = element( 1 , IdNode ),
+
+	case Node of 
+
+	     nok ->
+
+		io:format( "nao disponivel");
+
+    	     _ ->
+
+		Path = getAttribute( State , path ),
+
+		CurrentVertice = list_utils:get_element_at( Path , 1 ),
+
+		City = getAttribute( State , city ), 
+
+		class_Actor:send_actor_message( City , { get_path, { CurrentVertice , Node } } , State )
+
+	end.
+ 
+set_new_path( State , NewPath , _CityPID ) ->
+
+	Path = element( 1 , NewPath ), 
+
+	DictNewVertices = dict:from_list( element( 2 , NewPath ) ),
+
+	StateDict = setAttribute( State , dict , DictNewVertices ),
+
+	NewState = setAttribute( StateDict , path , Path ),
+
+	NewNewState = setAttribute( NewState , park , ok ),
+
+	Trips = getAttribute( NewNewState , trips ), 
+
+	TripIndex = getAttribute( NewNewState , trip_index ), 
+
+	CurrentTrip = list_utils:get_element_at( Trips , TripIndex ),
+
+        request_position( NewNewState , CurrentTrip ).
+
+ 
 % Called by the route with the requested position. Write the file to show the position of the car in the map.
 %
 % (actor oneway)

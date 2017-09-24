@@ -1,4 +1,4 @@
--module(config_parser).
+-module(park_parser).
 -include_lib("xmerl/include/xmerl.hrl").
 
 % usage:
@@ -22,9 +22,9 @@ init(Node) ->
             
 	    case Name of
 		
-		scsimulator_config -> 
+		park -> 
 
-			List = config(Content , []),
+			List = spots(Content , [] ),
 			List;
 
 		_ -> ok
@@ -33,41 +33,37 @@ init(Node) ->
             _ -> ok
     end.
 
-config([], List) ->
+spots( [] , List ) ->
     List;
 
-config([Node | MoreNodes], List) ->
-    Element = extract_node(Node),
+spots([Node | MoreNodes] , List ) ->
+
+    Element = extract_node( Node ),
+
     case Element of
 
 	ok ->
     		
-		config(MoreNodes , List);
+		spots( MoreNodes , List );
 
 	_ ->
-		Element
+		NewList = List ++ Element,
+		spots( MoreNodes , NewList )
 
     end.
 
-%
-% Show a node/element and then the children of that node.
-extract_node(Node) ->
+extract_node( Node ) ->
 
     case Node of
-        #xmlElement{name=Name, attributes=Attributes} ->
+        #xmlElement{ name=Name , attributes=Attributes } ->
             
 	    case Name of
-		
-		config -> 
-			
-			OutputFile = children( Attributes , output_file ),
-			SimulationTime = children( Attributes , simulation_time ),
-			MapFile = children( Attributes , map_file ),
-			TripFile = children( Attributes , trip_file ),
-			MetroFile = children( Attributes , metro_file ),
-			BusFile = children( Attributes , bus_file ),
-			ParkFile = children( Attributes , park_file ),
-			{ OutputFile , SimulationTime , MapFile , TripFile , MetroFile , BusFile , ParkFile };
+					
+		spot ->
+
+			Uuid = children( Attributes , uuid ),
+			NodeId = children( Attributes , node ),
+			[ { Uuid , NodeId } ];	
 
 		_ ->
 			ok

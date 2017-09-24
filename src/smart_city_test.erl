@@ -200,14 +200,14 @@ run() ->
 
 	ListBuses = bus_parser:show( element( 6 , Config ) ), % Read the list of buses. TODO: verify if this configurition does not exist.
 
+	ParkSpots = park_parser:show( element( 7 , Config ) ), 
+
 	% create the vertices actors
 	ListVertex  = create_street_list( CityGraph ),
 
 	{ _ , Pwd } = file:get_cwd(),
 	OutputPath = string:concat( Pwd, "/" ),
 	AmqpClientPath = string:concat( Pwd, "/../deps/amqp_client"),
-
-	MetroActor = class_Actor:create_initial_actor( class_Metro, [ "City" ,  string:concat( OutputPath, MetroFile ) ] ),
 
 	LogPID = class_Actor:create_initial_actor( class_Log,
 			[ string:concat( OutputPath, element( 1 , Config ) ),
@@ -217,11 +217,17 @@ run() ->
 			  ]
 			] ),
 
+	MetroActor = class_Actor:create_initial_actor( class_Metro, [ "MetroCity" , string:concat( OutputPath, MetroFile ) ] ), 
+
+	CityActor = class_Actor:create_initial_actor( class_City, [ "City" , { string:concat( OutputPath, element( 3 , Config ) ), ListVertex } ] ),
+
+	ParkActor = class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots , LogPID ] ),
+
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
-	spaw_proccess( List , ListVertex , CityGraph , LogPID , MetroActor ),
+	spaw_proccess( List , ListVertex , CityGraph , LogPID , { MetroActor , ParkActor , CityActor } ),
 
 	ok = collectResults(Names),
 
