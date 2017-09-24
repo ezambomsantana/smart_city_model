@@ -5,7 +5,7 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName, ListVertex , ListTripsFinal , StartTime , LogPID , Type , Park , PID ).
+-define( wooper_construct_parameters, ActorSettings, CarName, ListVertex , ListTripsFinal , StartTime , LogPID , Type , Park , Mode , PID ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
@@ -65,6 +65,7 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ city , element ( 3 , PID ) },
 		{ park , Park },
 		{ park_status , ParkStatus },
+		{ mode , Mode },
 		{ pt_status , start } %public transport -> bus or metro
 						] ).
 
@@ -112,7 +113,9 @@ actSpontaneous( State ) ->
 
 					Cost = getAttribute( State , cost ), 
 
-					FinalState = write_final_message( NewState , CurrentTickOffset , CarId , LastPosition , TotalTime , TotalLength , Type , Cost ),
+					Mode = getAttribute( State , mode ), 
+
+					FinalState = write_final_message( NewState , CurrentTickOffset , CarId , LastPosition , TotalTime , TotalLength , Type , Cost , Mode ),
 
 					executeOneway( FinalState, scheduleNextSpontaneousTick )
 
@@ -548,13 +551,13 @@ onFirstDiasca( State, _SendingActorPid ) ->
 
 
 
-write_final_message( State , CurrentTickOffset , CarId , LastPosition , TotalTime , TotalLength , Type , Cost ) ->
+write_final_message( State , CurrentTickOffset , CarId , LastPosition , TotalTime , TotalLength , Type , Cost , Mode ) ->
 
 	LeavesTraffic = io_lib:format( "<event time=\"~w\" type=\"vehicle leaves traffic\" person=\"~s\" link=\"~s\" vehicle=\"~s\" relativePosition=\"1.0\" />\n", [ CurrentTickOffset , CarId , LastPosition , CarId ] ),
 			
 	LeavesVehicles = io_lib:format( "<event time=\"~w\" type=\"PersonLeavesVehicle\" person=\"~s\" vehicle=\"~s\"/>\n", [ CurrentTickOffset , CarId , CarId ] ),
 						
-	Arrival = io_lib:format( "<event time=\"~w\" type=\"arrival\" person=\"~s\" vehicle=\"~s\" link=\"~s\" legMode=\"car\" trip_time=\"~w\" distance=\"~w\" cost=\"~w\" action=\"~s\"/>\n", [ CurrentTickOffset , CarId , CarId ,  LastPosition, TotalTime , TotalLength , Cost , Type ] ),
+	Arrival = io_lib:format( "<event time=\"~w\" type=\"arrival\" person=\"~s\" vehicle=\"~s\" link=\"~s\" legMode=\"~s\" trip_time=\"~w\" distance=\"~w\" cost=\"~w\" action=\"~s\"/>\n", [ CurrentTickOffset , CarId , CarId ,  LastPosition, Mode , TotalTime , TotalLength , Cost , Type ] ),
 
 	ActStart = io_lib:format( "<event time=\"~w\" type=\"actstart\" person=\"~s\"  link=\"~s\"  actType=\"h\"  />\n", [ CurrentTickOffset , CarId , LastPosition ] ),
 

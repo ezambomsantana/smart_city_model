@@ -67,10 +67,10 @@ create_person( CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor
 
 			ListVertexPath = get_path_nodes( NewPath , ListVertex , [] ),
 
-			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , NewPath } ],
+			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , NewPath , Park } ],
 
 			class_Actor:create_initial_actor( class_Person,
-				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , Park , MetroActor ] ),
+				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , Park , ModeFinal , MetroActor ] ),
 
 			create_person( CarCount - 1 , ListVertex ,  Car , Graph , NewPath , LogPID , MetroActor );
 
@@ -78,10 +78,10 @@ create_person( CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor
 
 			ListVertexPath = get_path_nodes( Path , ListVertex , [] ),
 
-			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , Path } ],
+			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , Path , Park } ],
 
 			class_Actor:create_initial_actor( class_Person,
-				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , Park , MetroActor ] ),
+				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , Park , ModeFinal , MetroActor ] ),
 
 			create_person( CarCount - 1 , ListVertex ,  Car , Graph , Path , LogPID , MetroActor  )
 
@@ -97,13 +97,14 @@ create_person_multi_trip( CarCount , ListVertex ,  Car , Graph , LogPID  , Metro
 	Type = element ( 2 , Car ),
 	ListTrips = element ( 4 , Car ),
 	NameFile = element ( 5 , Car ),
+	Mode = element ( 6 , Car ),
 
 	CarName = io_lib:format( "~s_~B", [ NameFile , CarCount ] ),
 	
 	{ ListTripsFinal , ListVertexPath } = create_single_trip( ListTrips , [] , Graph , [] , ListVertex ),
 
 	class_Actor:create_initial_actor( class_Person,
-		[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , MetroActor ] ),
+		[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , Mode , MetroActor ] ),
 
 	create_person_multi_trip( CarCount - 1 , ListVertex , Car , Graph , LogPID , MetroActor ).
 
@@ -146,11 +147,11 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexP
 
 				ok ->
 				
-					[ { "car" , Origin , LinkOrigin , Destination , Path } ]; % if the mode is not set in the input file, "car" is the default value.
+					[ { "car" , Origin , LinkOrigin , Destination , Path , ok } ]; % if the mode is not set in the input file, "car" is the default value. Ok because doesn't have a park spot
 
 				_ ->
 
-					[ { Mode , Origin , LinkOrigin , Destination , Path } ] % Otherwise, car or walk.
+					[ { Mode , Origin , LinkOrigin , Destination , Path , ok } ] % Otherwise, car or walk.
 
 			end,
 
