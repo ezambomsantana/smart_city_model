@@ -221,7 +221,17 @@ run() ->
 
 	CityActor = class_Actor:create_initial_actor( class_City, [ "City" , { string:concat( OutputPath, element( 3 , Config ) ), ListVertex } ] ),
 
-	ParkActor = class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots , LogPID ] ),
+	ParkActor = case ParkSpots of
+
+	    ok ->
+
+		ok;
+
+	    _ ->
+			
+		class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots , LogPID ] )
+
+	end,
 
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
 

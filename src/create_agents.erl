@@ -104,7 +104,7 @@ create_person_multi_trip( CarCount , ListVertex ,  Car , Graph , LogPID  , Metro
 	{ ListTripsFinal , ListVertexPath } = create_single_trip( ListTrips , [] , Graph , [] , ListVertex ),
 
 	class_Actor:create_initial_actor( class_Person,
-		[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , Mode , MetroActor ] ),
+		[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , ok , Mode , MetroActor ] ),
 
 	create_person_multi_trip( CarCount - 1 , ListVertex , Car , Graph , LogPID , MetroActor ).
 
