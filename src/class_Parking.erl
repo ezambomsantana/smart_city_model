@@ -125,29 +125,32 @@ spot_in_use( State, SpotUUID, _PersonID ) ->
 	AvailableParkingSpots = getAttribute( State, availableSpots ),
 	UnavailableParkingSpots = getAttribute( State, unavailableSpots ),
 
+
 	CurrentTick = class_Actor:get_current_tick_offset( State ),
 
-	{ ok, GraphNodeID } = dict:fetch( SpotUUID, AvailableParkingSpots ),
-	setAttribute( State, availableSpots, dict:erase( SpotUUID, AvailableParkingSpots ) ),
-	setAttribute( State, unavailableSpots, dict:append( SpotUUID, { GraphNodeID, CurrentTick }, UnavailableParkingSpots ) ),
+	UUID = element( 1 , SpotUUID ),
 
-	change_spot_state( SpotUUID, false, LogPID ).
+	GraphNodeID = dict:fetch( UUID , AvailableParkingSpots ),
+	NewState = setAttribute( State, availableSpots, dict:erase( UUID, AvailableParkingSpots ) ),
+	NewNewState = setAttribute( NewState , unavailableSpots, dict:append( UUID, { GraphNodeID, CurrentTick }, UnavailableParkingSpots ) ),
+
+	change_spot_state( NewNewState , UUID, false, LogPID ).
 
 
-change_spot_state( SpotUUID, Available, LogPID ) ->
+change_spot_state( State , SpotUUID, Available, LogPID ) ->
 
     Topic = "data_stream",
     RoutingKey = string:concat( SpotUUID, ".parking_monitoring.simulated" ),
 
     { { Year, Month, Day }, { Hour, Minute, Second } } = calendar:local_time(),
     Timestamp = lists:flatten( io_lib:format( "~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w",
-                                              [ Year, Month, Day, Hour, Minute, Second ] ) ),
+                                          [ Year, Month, Day, Hour, Minute, Second ] ) ),
 
-    State = lists:flatten( io_lib:format( "~p", [ Available ] ) ),
+    SpotState = lists:flatten( io_lib:format( "~p", [ Available ] ) ),
 
     Message = "{\"parking_monitoring\": [
-                    {\"available\": \"" ++ State ++ "\"," ++
-                    "\"timestamp\": \"" ++ Timestamp ++ "\"}]}",
+                  {\"available\": \"" ++ SpotState ++ "\"," ++
+                   "\"timestamp\": \"" ++ Timestamp ++ "\"}]}",
 
     Data = { Topic, RoutingKey, Message },
     class_Actor:send_actor_message( LogPID, { publish_data, { Data } }, State ).
