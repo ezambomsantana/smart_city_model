@@ -73,15 +73,27 @@ create_buses( [ Bus | Buses ] , ListVertex , CityGraph , LogPID  ) ->
 
 calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 
-	case length( List ) > 1 of 
+	case length( List ) >= 1 of 
 
 		true ->
 
 			NextStop = lists:nth( 1 , List ),
 
-			ParcialPath = lists:droplast( digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) ) ),		
+			ParcialPath = case length( List ) == 1 of 
+
+				true -> 
+
+					digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) );		
 	
+
+				false ->
+					
+					lists:droplast( digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) ) )		
+	
+			end,
+
 			calculate_bus_path( List , CityGraph , Path ++ ParcialPath);
+
 
 		false ->
 
@@ -251,4 +263,5 @@ run() ->
 	sim_diasca:shutdown(),
 
 	?test_stop.
+
 
