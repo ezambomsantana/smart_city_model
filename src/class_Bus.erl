@@ -164,14 +164,15 @@ request_position( State , Bus ) ->
 
 		true ->
 
+			BusStop = string:concat( IdBus , atom_to_list( InitialVertice ) ),
 
 			AlreadyPassedBusStops = getAttribute( State , already_passed_bus_stop ),
 			
-			case dict:is_key( string:concat( IdBus , atom_to_list( InitialVertice ) ) , AlreadyPassedBusStops ) of
+			case dict:is_key( BusStop , AlreadyPassedBusStops ) of
 
 				false ->
 
-					DictFinal = dict:store( string:concat( IdBus , atom_to_list( InitialVertice ) ) , ok , AlreadyPassedBusStops ),
+					DictFinal = dict:store( BusStop , ok , AlreadyPassedBusStops ),
 
 					StatePassed = setAttribute( State , already_passed_bus_stop , DictFinal ), 				
 
@@ -188,7 +189,9 @@ request_position( State , Bus ) ->
 
 				true ->
 
-					move( State , Path , Position , IdBus , InitialVertice  , Bus , CurrentTickOffset )
+					NewState = unload_people( State , IdBus , InitialVertice ),
+
+					move( NewState , Path , Position , IdBus , InitialVertice  , Bus , CurrentTickOffset )
 
 			end;
 					
