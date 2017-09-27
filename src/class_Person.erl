@@ -37,29 +37,32 @@ construct( State, ?wooper_construct_parameters ) ->
         DictVertices = dict:from_list( ListVertex ),
 
 	ParkStatus = case Park of
-
 		ok ->
-
 			finish;
-
 		_ ->
-
 			find
+	end,
 
+	Cost = case Mode of
+		"bus" ->
+			3.8;
+		"metro" ->
+			3.8;			
+		_ ->
+			0
 	end,
 
 	setAttributes( ActorState, [
 		{ car_name, CarName },
 		{ dict , DictVertices },
 		{ trips , ListTripsFinal },
-		{ trip_index , 1 },
 		{ log_pid, LogPID },
 		{ type, Type },
 		{ distance , 0 },
 		{ car_position, -1 },
 		{ start_time , StartTime },
 		{ path , ok },
-		{ cost , 0 },
+		{ cost , Cost },
 		{ metro , element ( 1 , PID ) },
 		{ parking , element ( 2 , PID ) },
 		{ city , element ( 3 , PID ) },
@@ -78,12 +81,10 @@ destruct( State ) ->
 actSpontaneous( State ) ->
 	
 	Trips = getAttribute( State , trips ), 
-
-	TripIndex = getAttribute( State , trip_index ), 
 	
-	case TripIndex > length( Trips ) of
+	case length( Trips ) > 0 of
 
-		true ->		
+		false ->		
 			
 			Path = getAttribute( State , path ), 
 
@@ -104,9 +105,9 @@ actSpontaneous( State ) ->
 				end;
 
 
-		_ ->
+		true ->
 
-			CurrentTrip = list_utils:get_element_at( Trips , TripIndex ),
+			CurrentTrip = list_utils:get_element_at( Trips , 1 ),
 
 			Mode = element( 1 , CurrentTrip ),			
 
@@ -130,10 +131,11 @@ actSpontaneous( State ) ->
 	
 	
 						finish ->
-					
-							NextTrip = getAttribute( State , trip_index ) + 1,
 
-							NewState = setAttribute( State , trip_index , NextTrip ),
+
+							NewTrips = list_utils:remove_element_at( Trips , 1 ),
+
+							NewState = setAttribute( State , trips , NewTrips ),					
 
 							FinalState = setAttribute( NewState , pt_status , start ),
 
@@ -156,10 +158,10 @@ actSpontaneous( State ) ->
 	
 	
 						finish ->
-					
-							NextTrip = getAttribute( State , trip_index ) + 1,
+							
+							NewTrips = list_utils:remove_element_at( Trips , 1 ),
 
-							NewState = setAttribute( State , trip_index , NextTrip ),
+							NewState = setAttribute( State , trips , NewTrips ),
 
 							FinalState = setAttribute( NewState , pt_status , start ),
 
@@ -205,9 +207,7 @@ request_position_metro( State , Trip ) ->
 
 	Destination = element( 4 , Trip ), 
 
-	MetroPID = ?getAttr( metro ),
-
-	class_Actor:send_actor_message( MetroPID ,
+	class_Actor:send_actor_message( ?getAttr( metro ) ,
 		{ getTravelTime, { Origin , Destination } }, State ).
 
 
@@ -215,30 +215,21 @@ request_position_metro( State , Trip ) ->
 -spec metro_go( wooper:state(), value(), pid() ) -> class_Actor:actor_oneway_return().
 metro_go( State, PositionTime , _GraphPID ) ->
 
-	% get the current time of the simulation
-	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
-
-	% get the response from the city graph
-	Time = element( 1 , PositionTime ),
+	TotalTime = class_Actor:get_current_tick_offset( State ) + element( 1 , PositionTime ), % CurrentTime + Time to pass the link
 
 	Trips = getAttribute( State , trips ), 
-
-	TripIndex = getAttribute( State , trip_index ), 
 	
-	Trip = list_utils:get_element_at( Trips , TripIndex ),
+	Trip = list_utils:get_element_at( Trips , 1 ),
 
 	Destination = element( 5 , Trip ), 
 
-
-	CostState = setAttribute( State, cost, 3.8 ),
-
-	PositionState = setAttribute( CostState , car_position, list_to_atom( Destination ) ),
+	PositionState = setAttribute( State , car_position, list_to_atom( Destination ) ),
 
 	StatusState = setAttribute( PositionState , pt_status , finish ),
 
 	% FinalState = write_movement_metro_message( StatusState , CurrentTickOffset , Destination ),
 
-	executeOneway( StatusState , addSpontaneousTick, CurrentTickOffset + Time ).
+	executeOneway( StatusState , addSpontaneousTick, TotalTime ).
 
 -spec bus_go( wooper:state(), value(), pid() ) -> class_Actor:actor_oneway_return().
 bus_go( State, _PositionTime , _GraphPID ) ->
@@ -247,16 +238,12 @@ bus_go( State, _PositionTime , _GraphPID ) ->
 	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
 
 	Trips = getAttribute( State , trips ), 
-
-	TripIndex = getAttribute( State , trip_index ), 
 	
-	Trip = list_utils:get_element_at( Trips , TripIndex ),
+	Trip = list_utils:get_element_at( Trips , 1 ),
 
 	Destination = element( 6 , Trip ), 
 
-	CostState = setAttribute( State, cost, 3.8 ),
-
-	PositionState = setAttribute( CostState , car_position, list_to_atom( Destination ) ),
+	PositionState = setAttribute( State , car_position, list_to_atom( Destination ) ),
 
 	StatusState = setAttribute( PositionState , pt_status , finish ),
 
@@ -297,14 +284,16 @@ request_position( State , Trip ) ->
 	case Path of 
 
 		finish ->
-			
-			NextTrip = getAttribute( PathState , trip_index ) + 1,
 
-			NewState = setAttribute( PathState , trip_index, NextTrip ),
+			Trips = getAttribute( State , trips ), 
+			
+			NewTrips = list_utils:remove_element_at( Trips , 1 ),
+
+			NewState = setAttribute( State , trips , NewTrips ),
 			
 			FinalState = setAttribute( NewState, path, ok ),
 
-			executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );	
+			executeOneway( FinalState , addSpontaneousTick , CurrentTickOffset + 1 );	
 	
 		false ->
 
@@ -326,27 +315,23 @@ request_position( State , Trip ) ->
 					%the mode that the person will make the trip, walking or by car
 					Mode = element( 1 , Trip ),
 
-					No = dict:find( InitialVertice , DictVertices),
+					VertexPID = dict:find( InitialVertice , DictVertices),
 					
-					Vertices = list_to_atom(lists:concat( [ InitialVertice , FinalVertice ] )),
+					Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] )),
 
-					VertexPID = element( 2 , No ),	
-
-					PathRest = remove_first( Path ),
-
-					FinalState = setAttribute( PathState , path, PathRest ),
+					FinalState = setAttribute( PathState , path, remove_first( Path ) ), % remove the current element of the path
 
 					case Mode  of
 
 						"walk" ->
 							
-							class_Actor:send_actor_message( VertexPID ,
+							class_Actor:send_actor_message( element( 2 , VertexPID ) ,
 								{ getSpeedWalk, { Vertices } }, FinalState );
 
 						_ ->
 
 							
-							class_Actor:send_actor_message( VertexPID ,
+							class_Actor:send_actor_message( element( 2 , VertexPID ) ,
 								{ getSpeedCar, { Vertices } }, FinalState )
 
 					end;
@@ -453,9 +438,7 @@ set_new_path( State , NewPath , _CityPID ) ->
 
 	Trips = getAttribute( NewNewState , trips ), 
 
-	TripIndex = getAttribute( NewNewState , trip_index ), 
-
-	CurrentTrip = list_utils:get_element_at( Trips , TripIndex ),
+	CurrentTrip = list_utils:get_element_at( Trips , 1 ),
 
         request_position( NewNewState , CurrentTrip ).
 
@@ -472,19 +455,13 @@ go( State, PositionTime , _GraphPID ) ->
 -spec move( wooper:state(), car_position() ) -> class_Actor:actor_oneway_return().
 move( State, PositionTime ) ->
 
-	% get the current time of the simulation
-	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
-
-	% get the response from the city graph
-	NewPosition = element( 1 , PositionTime ),
-	Time = element( 2 , PositionTime),
-	Length = element( 3 , PositionTime),
+	TotalTime = class_Actor:get_current_tick_offset( State ) + element( 2 , PositionTime ), % CurrentTime + Time to pass the link
 
 	% Calculate the total distance that the person moved until now.
-	TotalLength = getAttribute( State , distance ) + Length,
+	TotalLength = getAttribute( State , distance ) + element( 3 , PositionTime),
 	LengthState = setAttribute( State, distance , TotalLength ),
 	
-	NewState = setAttribute( LengthState, car_position, NewPosition ),
+	NewState = setAttribute( LengthState , car_position , element( 1 , PositionTime ) ),
 		
 %	TripIndex = getAttribute( State , trip_index ), 
 
@@ -509,7 +486,7 @@ move( State, PositionTime ) ->
 
 	%end,
 
-	executeOneway( NewState , addSpontaneousTick, CurrentTickOffset + Time ).
+	executeOneway( NewState , addSpontaneousTick , TotalTime ).
 
 
 % Simply schedules this just created actor at the next tick (diasca 0).
