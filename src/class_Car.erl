@@ -103,10 +103,6 @@ actSpontaneous( State ) ->
 
 	end.
 
-remove_first( [ _First | List ] ) ->
-	
-	List.	
-
 -spec request_position( wooper:state() , parameter() ) -> wooper:state().
 request_position( State , Trip ) ->
 	
@@ -168,7 +164,7 @@ request_position( State , Trip ) ->
 					
 					Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] )),
 
-					FinalState = setAttribute( PathState , path, remove_first( Path ) ), % remove the current element of the path
+					FinalState = setAttribute( PathState , path, list_utils:remove_element_at( Path , 1 ) ), % remove the current element of the path
 
 					case Mode  of
 
