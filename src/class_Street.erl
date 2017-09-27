@@ -18,7 +18,7 @@
 		 construct/4, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, getPosition/3, wait_bus/3, load_people/3 ).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, wait_bus/3, load_people/3 , getSpeedBus/3 , getSpeedCar/3 , getSpeedWalk/3 ).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -118,41 +118,10 @@ load_people( State , LineBus , BusPID ) ->
 
 	
 	
+getSpeedBus( State , Data , CarPID ) ->
 
-
-
-
-% Called by a car wanting to know his next position.
-%
-% (actor oneway)
-%
--spec getPosition( wooper:state(), car_index(), pid() ) ->
-					   class_Actor:actor_oneway_return().
-getPosition( State, Path , CarPID ) ->
-
-	LinkId = element( 1 , Path ),
-	Mode = element( 2 , Path ),
-
-	case Mode  of
-
-		"walk" ->
-
-			getSpeedWalk( State , LinkId , CarPID );
-
-		"bus" ->
-
-			BusId = element( 3 , Path ),
-
-			getSpeedBus( State , LinkId , BusId , CarPID );
-
-
-		_ ->
-
-			getSpeedCar( State , LinkId , CarPID )
-
-	end.
-
-getSpeedBus( State , LinkId , BusId , CarPID ) ->
+	LinkId = element( 1 , Data ),
+	BusId = element( 2 , Data ),
 
 	Dict = getAttribute( State, dict ),
 
@@ -191,7 +160,9 @@ getSpeedBus( State , LinkId , BusId , CarPID ) ->
 	class_Actor:send_actor_message( CarPID,
 	 	{ go, { Id , round( Time ) , BusId } }, NewState ).
 
-getSpeedCar( State , LinkId , CarPID ) ->
+getSpeedCar( State , Data , CarPID ) ->
+
+	LinkId = element( 1 , Data ),
 
 	Dict = getAttribute( State, dict ),
 
@@ -231,8 +202,9 @@ getSpeedCar( State , LinkId , CarPID ) ->
 	 	{ go, { Id , round( Time ) , round ( Length ) } }, NewState ).
 
 
-getSpeedWalk( State , LinkId , CarPID ) ->
+getSpeedWalk( State , Data , CarPID ) ->
 
+	LinkId = element( 1 , Data ),
 
 	Dict = getAttribute( State, dict ),
 

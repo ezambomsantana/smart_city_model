@@ -218,7 +218,7 @@ move( State , Path , Position , IdBus , InitialVertice , _Bus , _CurrentTickOffs
 			VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
 				
 			class_Actor:send_actor_message( VertexPID ,
-				{ getPosition, { Vertices , "bus" , IdBus } }, State );
+				{ getSpeedBus, { Vertices , IdBus } }, State );
 
 		false ->							
 					
@@ -410,10 +410,6 @@ go( State, PositionTime , _GraphPID ) ->
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
 
-	Time = getAttribute( State, start_time ),
-
-    	CurrentTickOffset = class_Actor:get_current_tick_offset( State ),   	
-
 	Path = getAttribute( State , path ),
 
 	case Path of 
@@ -424,7 +420,10 @@ onFirstDiasca( State, _SendingActorPid ) ->
 
 		_ ->
 
-			ScheduledState = executeOneway( State , addSpontaneousTick, CurrentTickOffset + Time ),
+			
+    			FirstActionTime = class_Actor:get_current_tick_offset( State ) + getAttribute( State, start_time ),   	
+
+			ScheduledState = executeOneway( State , addSpontaneousTick, FirstActionTime ),
 
 			?wooper_return_state_only( ScheduledState )
 	
