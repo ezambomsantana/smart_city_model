@@ -82,9 +82,7 @@ actSpontaneous( State ) ->
 
 		true ->
 
-			BusName = getAttribute( State , bus_name ), 				
-
-			Id = io_lib:format( "~s~B", [ BusName , element( 2 , NextBus ) ] ),
+			Id = io_lib:format( "~s~B", [ getAttribute( State , bus_name ) , element( 2 , NextBus ) ] ),
 			
 			Interval = getAttribute( State , interval ), 
 
