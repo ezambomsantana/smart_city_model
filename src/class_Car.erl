@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName, ListVertex , ListTripsFinal , StartTime , LogPID , Type , Park , Mode , PID ).
+-define( wooper_construct_parameters, ActorSettings, CarName, ListVertex , ListTripsFinal , StartTime , LogPID , Type , Park , Mode , PID , Coordinates ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/10, new_link/10,
-		 synchronous_new/10, synchronous_new_link/10,
-		 synchronous_timed_new/10, synchronous_timed_new_link/10,
-		 remote_new/11, remote_new_link/11, remote_synchronous_new/11,
-		 remote_synchronous_new_link/11, remote_synchronisable_new_link/11,
-		 remote_synchronous_timed_new/11, remote_synchronous_timed_new_link/11,
-		 construct/11, destruct/1 ).
+-define( wooper_construct_export, new/11, new_link/11,
+		 synchronous_new/11, synchronous_new_link/11,
+		 synchronous_timed_new/11, synchronous_timed_new_link/11,
+		 remote_new/12, remote_new_link/12, remote_synchronous_new/12,
+		 remote_synchronous_new_link/12, remote_synchronisable_new_link/12,
+		 remote_synchronous_timed_new/12, remote_synchronous_timed_new_link/12,
+		 construct/12, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , get_parking_spot/3 , set_new_path/3 ).
@@ -29,7 +29,7 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() , parameter() , parameter() , parameter()  ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() , parameter() , parameter() , parameter() , parameter()  ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
@@ -42,6 +42,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		_ ->
 			find
 	end,
+
+	io:format("coordinates: ~w", [ Coordinates ] ),
 
 	setAttributes( ActorState, [
 		{ car_name, CarName },
@@ -58,7 +60,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ city , element ( 3 , PID ) },
 		{ park , Park },
 		{ park_status , ParkStatus },
-		{ mode , Mode }
+		{ mode , Mode },
+		{ coordinates , Coordinates }
 						] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().

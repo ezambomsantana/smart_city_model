@@ -74,7 +74,8 @@ extract_node( Node , Multi ) ->
 					Type = children( Attributes , type ),
 					Mode = children( Attributes , mode ),
 					Park = children( Attributes , park ),
-					[ { Origin , Destination , Count , StartTime , LinkOrigin , Type , Mode , NamePerson , Park } ];
+					Coordinates = { children( Attributes , lat ), children( Attributes , lon ) },
+					[ { Origin , Destination , Count , StartTime , LinkOrigin , Type , Mode , NamePerson , Park , Coordinates } ];
 
 				true ->
 
