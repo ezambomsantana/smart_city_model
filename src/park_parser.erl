@@ -63,7 +63,8 @@ extract_node( Node ) ->
 
 			Uuid = children( Attributes , uuid ),
 			NodeId = children( Attributes , node ),
-			[ { Uuid , NodeId } ];	
+			Coordinates = { children( Attributes , lat ) , children( Attributes , lon ) },
+			[ { Uuid , { NodeId , Coordinates } } ];	
 
 		_ ->
 			ok
