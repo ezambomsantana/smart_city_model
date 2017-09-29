@@ -112,7 +112,7 @@ spot_available( State , SpotUUID , PersonPID ) ->
 
     case dict:find( element( 1 , SpotUUID ) , AvailableParkingSpots ) of
         { ok, GraphNodeID } ->
-            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { GraphNodeID } }, State );
+            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { element( 1 , GraphNodeID ) } }, State );
         error ->
             class_Actor:send_actor_message( PersonPID, { get_parking_spot, { nok } }, State )
     end.
