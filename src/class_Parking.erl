@@ -133,7 +133,6 @@ spot_in_use( State, SpotUUID, _PersonID ) ->
 	AvailableParkingSpots = getAttribute( State, availableSpots ),
 	UnavailableParkingSpots = getAttribute( State, unavailableSpots ),
 
-
 	CurrentTick = class_Actor:get_current_tick_offset( State ),
 
 	UUID = element( 1 , SpotUUID ),

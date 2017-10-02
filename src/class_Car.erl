@@ -43,8 +43,6 @@ construct( State, ?wooper_construct_parameters ) ->
 			find
 	end,
 
-	io:format("coordinates: ~w", [ Coordinates ] ),
-
 	setAttributes( ActorState, [
 		{ car_name, CarName },
 		{ dict , DictVertices },
@@ -55,7 +53,6 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ car_position, -1 },
 		{ start_time , StartTime },
 		{ path , ok },
-		{ cost , 0 },
 		{ parking , element ( 2 , PID ) },
 		{ city , element ( 3 , PID ) },
 		{ park , Park },
@@ -196,8 +193,6 @@ request_position( State , Trip ) ->
 
 						false ->	
 
-							Park = getAttribute( State , park ),
-
 							ParkStatus = getAttribute( State , park_status ),
 
 							Parking = getAttribute( State , parking ),
@@ -206,40 +201,23 @@ request_position( State , Trip ) ->
 
 								finish ->
 
-									NewState = case Park of
+									Park = getAttribute( State , park ),
 
-										ok ->
-		
-											State;
-
-										_ -> class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , State )
-
-									end,
-									
-									TotalLength = getAttribute( NewState , distance ),
-
-									Mode = element( 1 , Trip ),	
-
-									CostState = case Mode of
-
-										"car" ->
-					
-											Cost = TotalLength / 1000 * 0.70, 
-
-											setAttribute( NewState , cost , Cost );	
-
-										_ ->
-	
-											NewState
-
-									end,			
-		
-									FinalState = setAttribute( CostState, path, finish ),
+            								NewState = class_Actor:send_actor_message( Parking, { spot_in_use , { Park } } , State ),
+											
+									FinalState = setAttribute( NewState , path , finish ),
 
 									executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
-								find ->
 
-            								class_Actor:send_actor_message( Parking, { spot_available, { Park } } , State )
+								find ->
+									
+									Coordinates = getAttribute( State , coordinates ),
+
+									Park = platform_request:call_parking_service( Coordinates ),	
+
+									FinalState = setAttribute( State, park , Park ),											
+
+            								class_Actor:send_actor_message( Parking, { spot_available, { Park } } , FinalState )
 
 							end
 
@@ -250,15 +228,21 @@ request_position( State , Trip ) ->
 
 	end.
 
-get_parking_spot( State , IdNode , _ParkingPID ) ->
+get_parking_spot( State , IdNodeCoordinates , ParkingPID ) ->
 
-	Node = element( 1 , IdNode ),
+	Node = element( 1 , IdNodeCoordinates ),
 
 	case Node of 
 
 	     nok ->
 
-		io:format( "nao disponivel");
+		Coordinates = getAttribute( State , coordinates ),
+
+		Park = platform_request:call_parking_service( Coordinates ),	
+
+		FinalState = setAttribute( State , park , Park ),											
+
+            	class_Actor:send_actor_message( ParkingPID, { spot_available, { Park } } , FinalState );
 
     	     _ ->
 
@@ -356,15 +340,13 @@ write_final_message( State ) ->
 
 	LastPosition = getAttribute( State , car_position ),
 
-	Cost = getAttribute( State , cost ), 
-
 	Mode = getAttribute( State , mode ), 
 
 %	LeavesTraffic = io_lib:format( "<event time=\"~w\" type=\"vehicle leaves traffic\" person=\"~s\" link=\"~s\" vehicle=\"~s\" relativePosition=\"1.0\" />\n", [ CurrentTickOffset , CarId , LastPosition , CarId ] ),
 			
 %	LeavesVehicles = io_lib:format( "<event time=\"~w\" type=\"PersonLeavesVehicle\" person=\"~s\" vehicle=\"~s\"/>\n", [ CurrentTickOffset , CarId , CarId ] ),
 						
-	Arrival = io_lib:format( "<event time=\"~w\" type=\"arrival\" person=\"~s\" vehicle=\"~s\" link=\"~s\" legMode=\"~s\" trip_time=\"~w\" distance=\"~w\" cost=\"~w\" action=\"~s\"/>\n", [ CurrentTickOffset , CarId , CarId ,  LastPosition, Mode , TotalTime , TotalLength , Cost , Type ] ),
+	Arrival = io_lib:format( "<event time=\"~w\" type=\"arrival\" person=\"~s\" vehicle=\"~s\" link=\"~s\" legMode=\"~s\" trip_time=\"~w\" distance=\"~w\" action=\"~s\"/>\n", [ CurrentTickOffset , CarId , CarId ,  LastPosition, Mode , TotalTime , TotalLength , Type ] ),
 
 %	ActStart = io_lib:format( "<event time=\"~w\" type=\"actstart\" person=\"~s\"  link=\"~s\"  actType=\"h\"  />\n", [ CurrentTickOffset , CarId , LastPosition ] ),
 
