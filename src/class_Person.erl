@@ -110,11 +110,9 @@ actSpontaneous( State ) ->
 
 							NewTrips = list_utils:remove_element_at( Trips , 1 ),
 
-							NewState = setAttribute( State , trips , NewTrips ),					
+							NewState = setAttributes( State , [ {trips , NewTrips } , {  pt_status , start } ] ),					
 
-							FinalState = setAttribute( NewState , pt_status , start ),
-
-							executeOneway( FinalState , scheduleNextSpontaneousTick );
+							executeOneway( NewState , scheduleNextSpontaneousTick );
 
 						start ->
 								
@@ -136,11 +134,8 @@ actSpontaneous( State ) ->
 							
 							NewTrips = list_utils:remove_element_at( Trips , 1 ),
 
-							NewState = setAttribute( State , trips , NewTrips ),
-
-							FinalState = setAttribute( NewState , pt_status , start ),
-
-							executeOneway( FinalState , scheduleNextSpontaneousTick );
+							NewState = setAttributes( State , [ {trips , NewTrips } , {  pt_status , start } ] ),					
+							executeOneway( NewState , scheduleNextSpontaneousTick );
 
 						start ->
 	
@@ -198,13 +193,11 @@ metro_go( State, PositionTime , _GraphPID ) ->
 
 	Destination = element( 5 , Trip ), 
 
-	PositionState = setAttribute( State , car_position, list_to_atom( Destination ) ),
-
-	StatusState = setAttribute( PositionState , pt_status , finish ),
+	PositionState = setAttributes( State , [ { car_position, list_to_atom( Destination ) } , { pt_status , finish } ] ),
 
 	% FinalState = write_movement_metro_message( StatusState , CurrentTickOffset , Destination ),
 
-	executeOneway( StatusState , addSpontaneousTick, TotalTime ).
+	executeOneway( PositionState , addSpontaneousTick, TotalTime ).
 
 -spec bus_go( wooper:state(), value(), pid() ) -> class_Actor:actor_oneway_return().
 bus_go( State, _PositionTime , _GraphPID ) ->
@@ -218,13 +211,11 @@ bus_go( State, _PositionTime , _GraphPID ) ->
 
 	Destination = element( 6 , Trip ), 
 
-	PositionState = setAttribute( State , car_position, list_to_atom( Destination ) ),
-
-	StatusState = setAttribute( PositionState , pt_status , finish ),
+	PositionState = setAttributes( State , [ { car_position, list_to_atom( Destination ) } , { pt_status , finish } ] ),
 
 	%FinalState = write_movement_bus_message( StatusState , CurrentTickOffset , CarId , LastPosition , Destination , CarId , Type ),
 
-	executeOneway( StatusState , addSpontaneousTick, CurrentTickOffset + 1 ).
+	executeOneway( PositionState , addSpontaneousTick, CurrentTickOffset + 1 ).
 
 
 
@@ -259,11 +250,9 @@ request_position( State , Trip ) ->
 			
 			NewTrips = list_utils:remove_element_at( Trips , 1 ),
 
-			NewState = setAttribute( State , trips , NewTrips ),
-			
-			FinalState = setAttribute( NewState, path, ok ),
+			NewState = setAttributes( State , [ { trips , NewTrips } , { path, ok } ] ),
 
-			executeOneway( FinalState , addSpontaneousTick , CurrentTickOffset + 1 );	
+			executeOneway( NewState , addSpontaneousTick , CurrentTickOffset + 1 );	
 	
 		false ->
 
@@ -321,9 +310,7 @@ go( State, PositionTime , _GraphPID ) ->
 
 	% Calculate the total distance that the person moved until now.
 	TotalLength = getAttribute( State , distance ) + element( 3 , PositionTime),
-	LengthState = setAttribute( State, distance , TotalLength ),
-	
-	NewState = setAttribute( LengthState , car_position , element( 1 , PositionTime ) ),
+	LengthState = setAttributes( State,  [ { distance , TotalLength } , { car_position , element( 1 , PositionTime ) } ] ),
 		
 %	TripIndex = getAttribute( State , trip_index ), 
 
@@ -348,7 +335,7 @@ go( State, PositionTime , _GraphPID ) ->
 
 	%end,
 
-	executeOneway( NewState , addSpontaneousTick , TotalTime ).
+	executeOneway( LengthState , addSpontaneousTick , TotalTime ).
 
 
 % Simply schedules this just created actor at the next tick (diasca 0).

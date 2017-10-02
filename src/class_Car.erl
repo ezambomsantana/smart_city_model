@@ -134,11 +134,9 @@ request_position( State , Trip ) ->
 			
 			NewTrips = list_utils:remove_element_at( Trips , 1 ),
 
-			NewState = setAttribute( State , trips , NewTrips ),
-			
-			FinalState = setAttribute( NewState, path, ok ),
+			NewState = setAttributes( State , [ { trips , NewTrips } , { path, ok} ] ),
 
-			executeOneway( FinalState , addSpontaneousTick , CurrentTickOffset + 1 );	
+			executeOneway( NewState , addSpontaneousTick , CurrentTickOffset + 1 );	
 	
 		false ->
 
@@ -275,17 +273,13 @@ set_new_path( State , NewPath , _CityPID ) ->
 
 	DictNewVertices = dict:from_list( element( 2 , NewPath ) ),
 
-	StateDict = setAttribute( State , dict , DictNewVertices ),
+	StateDict = setAttributes( State , [ { dict , DictNewVertices } , { path , Path } , { park_status , finish } ] ),
 
-	NewState = setAttribute( StateDict , path , Path ),
-
-	NewNewState = setAttribute( NewState , park_status , finish ),
-
-	Trips = getAttribute( NewNewState , trips ), 
+	Trips = getAttribute( StateDict , trips ), 
 
 	CurrentTrip = list_utils:get_element_at( Trips , 1 ),
 
-        request_position( NewNewState , CurrentTrip ).
+        request_position( StateDict , CurrentTrip ).
 
 -spec go( wooper:state(), car_position() , parameter() ) -> class_Actor:actor_oneway_return().
 go( State, PositionTime , _GraphPID) ->
@@ -294,9 +288,7 @@ go( State, PositionTime , _GraphPID) ->
 
 	% Calculate the total distance that the person moved until now.
 	TotalLength = getAttribute( State , distance ) + element( 3 , PositionTime),
-	LengthState = setAttribute( State, distance , TotalLength ),
-	
-	NewState = setAttribute( LengthState , car_position , element( 1 , PositionTime ) ),
+	LengthState = setAttributes( State , [ { distance , TotalLength } , { car_position , element( 1 , PositionTime ) } ] ),
 		
 %	TripIndex = getAttribute( State , trip_index ), 
 
@@ -321,7 +313,7 @@ go( State, PositionTime , _GraphPID) ->
 
 	%end,
 
-	executeOneway( NewState , addSpontaneousTick , TotalTime ).
+	executeOneway( LengthState , addSpontaneousTick , TotalTime ).
 
 
 % Simply schedules this just created actor at the next tick (diasca 0).
