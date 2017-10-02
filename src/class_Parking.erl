@@ -77,20 +77,26 @@ actSpontaneous( State ) ->
 
     CurrentTick = class_Actor:get_current_tick_offset( State ),
 
-    FreeSpots = fun( SpotUUID, { NodeGraphId, Tick }) ->
-                    case ( ( Tick - CurrentTick ) < 1200 ) of
-                        true -> true;
-                        false ->
-                            setAttribute( State, availableSpots, dict:append( SpotUUID, NodeGraphId, AvailableParkingSpots ) ),
-                            false
-                    end
-                end,
+    { NewAPS , NewUPS } = update_spots( dict:to_list( AvailableParkingSpots ) , { AvailableParkingSpots , UnavailableParkingSpots } , CurrentTick ),
 
-    setAttribute( State, unavailableSpots, dict:filter( FreeSpots, UnavailableParkingSpots )),
+    NewState = setAttribute( State, unavailableSpots , NewUPS ),
+    FinalState = setAttribute( NewState, unavailableSpots , NewAPS ),
 
-    executeOneway( State , addSpontaneousTick, CurrentTick + 600 ),
+    executeOneway( FinalState , addSpontaneousTick, CurrentTick + 600 ).
 
-	State.
+
+update_spots( [] , { AvailableParkingSpots , UnavailableParkingSpots } , _CurrentTick ) ->
+   
+    { AvailableParkingSpots , UnavailableParkingSpots };
+
+update_spots( [ Spot | List ] , { AvailableParkingSpots , UnavailableParkingSpots } , CurrentTick ) ->
+
+    { NewAPS , NewUPS } = case ( element( 4 , Spot ) - CurrentTick ) < 1200 of
+        true -> { AvailableParkingSpots , UnavailableParkingSpots };
+        false -> { dict:append( element( 1 , Spot ) , { element( 2 , Spot ) , element( 3 , Spot) } , AvailableParkingSpots ),
+		   dict:erase( element( 1 , Spot ) , UnavailableParkingSpots ) }
+    end,
+    update_spots( List , { NewAPS , NewUPS } , CurrentTick ).
 
 % Simply schedules this just created actor at the next tick (diasca 0).
 %
@@ -114,7 +120,9 @@ spot_available( State , SpotUUID , PersonPID ) ->
         { ok, GraphNodeID } ->
             class_Actor:send_actor_message( PersonPID, { get_parking_spot, { element( 1 , GraphNodeID ) } }, State );
         error ->
-            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { nok } }, State )
+    	    NotAvailableParkingSpots = getAttribute( State, unavailableSpots ),
+	    CurrentLocation = dict:fetch( element( 1 , SpotUUID ) , NotAvailableParkingSpots ),    
+            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { nok , element( 2 , CurrentLocation ) } }, State )
     end.
 
 
@@ -132,7 +140,7 @@ spot_in_use( State, SpotUUID, _PersonID ) ->
 
 	GraphNodeID = dict:fetch( UUID , AvailableParkingSpots ),
 	NewState = setAttribute( State, availableSpots, dict:erase( UUID, AvailableParkingSpots ) ),
-	NewNewState = setAttribute( NewState , unavailableSpots, dict:append( UUID, { GraphNodeID, CurrentTick }, UnavailableParkingSpots ) ),
+	NewNewState = setAttribute( NewState , unavailableSpots, dict:append( UUID, { element ( 1 , GraphNodeID ) , element( 2 , GraphNodeID ) , CurrentTick }, UnavailableParkingSpots ) ),
 
 	change_spot_state( NewNewState , UUID, false, LogPID ).
 
