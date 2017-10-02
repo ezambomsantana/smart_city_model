@@ -18,8 +18,7 @@
 		 construct/5, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2,
-         spot_available/3, spot_in_use/3 ).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, spot_available/3 ).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -77,12 +76,13 @@ actSpontaneous( State ) ->
 
     CurrentTick = class_Actor:get_current_tick_offset( State ),
 
-    { NewAPS , NewUPS } = update_spots( dict:to_list( AvailableParkingSpots ) , { AvailableParkingSpots , UnavailableParkingSpots } , CurrentTick ),
+    { NewAPS , NewUPS } = update_spots( dict:to_list( UnavailableParkingSpots ) , { AvailableParkingSpots , UnavailableParkingSpots } , CurrentTick ),
 
     NewState = setAttribute( State, unavailableSpots , NewUPS ),
-    FinalState = setAttribute( NewState, unavailableSpots , NewAPS ),
+    FinalState = setAttribute( NewState, availableSpots , NewAPS ),
 
     executeOneway( FinalState , addSpontaneousTick, CurrentTick + 600 ).
+
 
 
 update_spots( [] , { AvailableParkingSpots , UnavailableParkingSpots } , _CurrentTick ) ->
@@ -91,7 +91,8 @@ update_spots( [] , { AvailableParkingSpots , UnavailableParkingSpots } , _Curren
 
 update_spots( [ Spot | List ] , { AvailableParkingSpots , UnavailableParkingSpots } , CurrentTick ) ->
 
-    { NewAPS , NewUPS } = case ( element( 4 , Spot ) - CurrentTick ) < 1200 of
+    Elemento = list_utils:get_element_at( element( 2 , Spot ) , 1 ),
+    { NewAPS , NewUPS } = case ( element( 3 , Elemento ) - CurrentTick ) < 1200 of
         true -> { AvailableParkingSpots , UnavailableParkingSpots };
         false -> { dict:append( element( 1 , Spot ) , { element( 2 , Spot ) , element( 3 , Spot) } , AvailableParkingSpots ),
 		   dict:erase( element( 1 , Spot ) , UnavailableParkingSpots ) }
@@ -114,34 +115,30 @@ onFirstDiasca( State, _SendingActorPid ) ->
 -spec spot_available( wooper:state(), parameter(), pid() ) -> class_Actor:actor_oneway_return().
 spot_available( State , SpotUUID , PersonPID ) ->
 	
+
     AvailableParkingSpots = getAttribute( State, availableSpots ),
-
-    case dict:find( element( 1 , SpotUUID ) , AvailableParkingSpots ) of
-        { ok, GraphNodeID } ->
-            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { element( 1 , GraphNodeID ) } }, State );
-        error ->
-    	    NotAvailableParkingSpots = getAttribute( State, unavailableSpots ),
-	    CurrentLocation = dict:fetch( element( 1 , SpotUUID ) , NotAvailableParkingSpots ),    
-            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { nok , element( 2 , CurrentLocation ) } }, State )
-    end.
-
-
--spec spot_in_use( wooper:state(), parameter(), pid() ) -> class_Actor:actor_oneway_return().
-spot_in_use( State, SpotUUID, _PersonID ) ->
-
-	LogPID = getAttribute( State, logPID ),
-	AvailableParkingSpots = getAttribute( State, availableSpots ),
-	UnavailableParkingSpots = getAttribute( State, unavailableSpots ),
-
-	CurrentTick = class_Actor:get_current_tick_offset( State ),
-
+    
 	UUID = element( 1 , SpotUUID ),
 
-	GraphNodeID = dict:fetch( UUID , AvailableParkingSpots ),
-	NewState = setAttribute( State, availableSpots, dict:erase( UUID, AvailableParkingSpots ) ),
-	NewNewState = setAttribute( NewState , unavailableSpots, dict:append( UUID, { element ( 1 , GraphNodeID ) , element( 2 , GraphNodeID ) , CurrentTick }, UnavailableParkingSpots ) ),
+    case dict:find( UUID , AvailableParkingSpots ) of
+        { ok, GraphNodeID } ->
 
-	change_spot_state( NewNewState , UUID, false, LogPID ).
+     	    LogPID = getAttribute( State, logPID ),
+	    UnavailableParkingSpots = getAttribute( State, unavailableSpots ),
+
+	    CurrentTick = class_Actor:get_current_tick_offset( State ),
+
+
+	    NewState = setAttribute( State, availableSpots, dict:erase( UUID, AvailableParkingSpots ) ),
+	    NewNewState = setAttribute( NewState , unavailableSpots, dict:append( UUID, { element ( 1 , GraphNodeID ) , element( 2 , GraphNodeID ) , CurrentTick }, UnavailableParkingSpots ) ),
+
+	    NewNewNewState = change_spot_state( NewNewState , UUID, false, LogPID ),
+            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { element( 1 , GraphNodeID ) } }, NewNewNewState  );
+        error ->
+    	    NotAvailableParkingSpots = getAttribute( State, unavailableSpots ),
+	    CurrentLocation = dict:fetch( UUID , NotAvailableParkingSpots ),    
+            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { nok , element( 2 , CurrentLocation ) } }, State )
+    end.
 
 
 change_spot_state( State , SpotUUID, Available, LogPID ) ->
@@ -159,6 +156,5 @@ change_spot_state( State , SpotUUID, Available, LogPID ) ->
                   {\"available\": \"" ++ SpotState ++ "\"," ++
                    "\"timestamp\": \"" ++ Timestamp ++ "\"}]}",
 
-    Data = { Topic, RoutingKey, Message },
-    class_Actor:send_actor_message( LogPID, { publish_data, { Data } }, State ).
+    class_Actor:send_actor_message( LogPID, { publish_data, { Topic, RoutingKey, Message } }, State ).
 

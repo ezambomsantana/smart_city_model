@@ -139,4 +139,6 @@ publish_data( State , Data , _Pid ) ->
 
 	amqp_channel:cast( Channel,
 					   Publish,
-					   #amqp_msg{ payload = list_to_binary( Message ) }).
+					   #amqp_msg{ payload = list_to_binary( Message ) }),
+
+        State.

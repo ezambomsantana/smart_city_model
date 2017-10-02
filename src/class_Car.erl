@@ -38,10 +38,12 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	ParkStatus = case Park of
 		ok ->
-			finish;
+			find;
 		_ ->
 			find
 	end,
+
+	inets:start(),
 
 	setAttributes( ActorState, [
 		{ car_name, CarName },
@@ -195,29 +197,25 @@ request_position( State , Trip ) ->
 
 							ParkStatus = getAttribute( State , park_status ),
 
-							Parking = getAttribute( State , parking ),
-
 							case ParkStatus of
 
 								finish ->
-
-									Park = getAttribute( State , park ),
-
-            								NewState = class_Actor:send_actor_message( Parking, { spot_in_use , { Park } } , State ),
 											
-									FinalState = setAttribute( NewState , path , finish ),
+									FinalState = setAttribute( State , path , finish ),
 
 									executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
 
 								find ->
+
+									Parking = getAttribute( State , parking ),
 									
 									Coordinates = getAttribute( State , coordinates ),
 
 									Park = platform_request:call_parking_service( Coordinates ),	
 
-									FinalState = setAttribute( State, park , Park ),											
+									io:format("park ~s " , [ Park ] ),
 
-            								class_Actor:send_actor_message( Parking, { spot_available, { Park } } , FinalState )
+            								class_Actor:send_actor_message( Parking, { spot_available, { Park } } , State )
 
 							end
 
