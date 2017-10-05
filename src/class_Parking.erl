@@ -115,7 +115,6 @@ onFirstDiasca( State, _SendingActorPid ) ->
 -spec spot_available( wooper:state(), parameter(), pid() ) -> class_Actor:actor_oneway_return().
 spot_available( State , SpotUUID , PersonPID ) ->
 	
-
     AvailableParkingSpots = getAttribute( State, availableSpots ),
     
 	UUID = element( 1 , SpotUUID ),
@@ -134,10 +133,8 @@ spot_available( State , SpotUUID , PersonPID ) ->
 
 	    NewNewNewState = change_spot_state( NewNewState , UUID, false, LogPID ),
             class_Actor:send_actor_message( PersonPID, { get_parking_spot, { element( 1 , GraphNodeID ) } }, NewNewNewState  );
-        error ->
-    	    NotAvailableParkingSpots = getAttribute( State, unavailableSpots ),
-	    CurrentLocation = dict:fetch( UUID , NotAvailableParkingSpots ),    
-            class_Actor:send_actor_message( PersonPID, { get_parking_spot, { nok , element( 2 , CurrentLocation ) } }, State )
+        error -> 
+            class_Actor:send_actor_message( PersonPID , { get_parking_spot, { nok } }, State )
     end.
 
 

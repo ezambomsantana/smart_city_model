@@ -213,8 +213,6 @@ request_position( State , Trip ) ->
 
 									Park = platform_request:call_parking_service( Coordinates ),	
 
-									io:format("park ~s " , [ Park ] ),
-
             								class_Actor:send_actor_message( Parking, { spot_available, { Park } } , State )
 
 							end
