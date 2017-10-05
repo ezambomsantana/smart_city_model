@@ -149,9 +149,8 @@ change_spot_state( State , SpotUUID, Available, LogPID ) ->
 
     SpotState = lists:flatten( io_lib:format( "~p", [ Available ] ) ),
 
-    Message = "{\"parking_monitoring\": [
-                  {\"available\": \"" ++ SpotState ++ "\"," ++
-                   "\"timestamp\": \"" ++ Timestamp ++ "\"}]}",
+    Message = "{\"available\": \"" ++ SpotState ++ "\"," ++
+                   "\"timestamp\": \"" ++ Timestamp ++ "\"}",
 
     class_Actor:send_actor_message( LogPID, { publish_data, { Topic, RoutingKey, Message } }, State ).
 

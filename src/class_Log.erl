@@ -37,7 +37,7 @@ construct( State, ?wooper_construct_parameters ) ->
 
     code:add_pathsa( Paths ),
 
-	{ ok, Connection } = amqp_connection:start( #amqp_params_network{} ),
+	{ ok, Connection } = amqp_connection:start( #amqp_params_network{host="172.19.66.212"} ),
 	{ ok, Channel } = amqp_connection:open_channel( Connection ),
 
 	Exchange = #'exchange.declare'{ exchange = <<"simulator_exchange">>,
