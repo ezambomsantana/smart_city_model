@@ -1,5 +1,5 @@
 <scsimulator_matrix>
-<trip name="1" origin="2599490841" link_origin="4056" destination="1962733051" count="2" start="395" type="work" mode="car" park="37bee50f-9c84-4d39-981f-7d6fd272ef21"/>
+<trip name="1" origin="2599490841" link_origin="4056" destination="1962733051" count="2" start="395" type="work" mode="car" />
 <trip name="2" origin="60624626" link_origin="1178" destination="303561714" count="1" start="367" type="work" mode="car"/>
 <trip name="3" origin="389063023" link_origin="6030" destination="935043774" count="1" start="36" type="work" mode="car"/>
 <trip name="4" origin="465994696" link_origin="3145" destination="4485312007" count="1" start="125" type="work" mode="car"/>

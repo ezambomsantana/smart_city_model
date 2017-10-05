@@ -54,7 +54,7 @@ construct( State, ?wooper_construct_parameters ) ->
 	ActorState = class_Actor:construct( State, ActorSettings, LogName ),
 
 	filelib:ensure_dir( LogName ),
-	InitFile = file_utils:open( LogName , _Opts=[ append, delayed_write ] ),
+	InitFile = file_utils:open( LogName , _Opts=[ write , delayed_write ] ),
 
 	file_utils:write( InitFile, "<events version=\"1.0\">\n" ),
 
