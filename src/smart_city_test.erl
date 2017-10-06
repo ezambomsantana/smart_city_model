@@ -219,7 +219,12 @@ run() ->
 
 	MetroActor = class_Actor:create_initial_actor( class_Metro, [ "MetroCity" , string:concat( OutputPath, MetroFile ) ] ), 
 
-	CityActor = class_Actor:create_initial_actor( class_City, [ "City" , { string:concat( OutputPath, element( 3 , Config ) ), ListVertex } ] ),
+	CityActor = case element( 8 , Config ) of
+		"true" ->
+			 class_Actor:create_initial_actor( class_City, [ "City" , { string:concat( OutputPath, element( 3 , Config ) ), ListVertex } ] );
+		_ ->
+			ok
+	end,
 
 	ParkActor = case ParkSpots of
 

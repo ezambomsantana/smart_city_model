@@ -67,7 +67,8 @@ extract_node(Node) ->
 			MetroFile = children( Attributes , metro_file ),
 			BusFile = children( Attributes , bus_file ),
 			ParkFile = children( Attributes , park_file ),
-			{ OutputFile , SimulationTime , MapFile , TripFile , MetroFile , BusFile , ParkFile };
+			GenerateGraph = children( Attributes , generate_graph ),
+			{ OutputFile , SimulationTime , MapFile , TripFile , MetroFile , BusFile , ParkFile , GenerateGraph };
 
 		_ ->
 			ok
