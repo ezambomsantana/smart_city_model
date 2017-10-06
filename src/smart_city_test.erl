@@ -219,7 +219,7 @@ run() ->
 
 	MetroActor = class_Actor:create_initial_actor( class_Metro, [ "MetroCity" , string:concat( OutputPath, MetroFile ) ] ), 
 
-	CityActor = case element( 8 , Config ) of
+	CityActor = case element( 8 , Config ) of % verify if it is necessary to generate the city graph actor
 		"true" ->
 			 class_Actor:create_initial_actor( class_City, [ "City" , { string:concat( OutputPath, element( 3 , Config ) ), ListVertex } ] );
 		_ ->
