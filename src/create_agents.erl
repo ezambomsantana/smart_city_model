@@ -1,45 +1,35 @@
 -module(create_agents).
 
-% usage:
-%
-% l(osm_parser).
-% osm_parser:show("map.osm").
-
 -export([
-         iterate_list/8,
+         iterate_list/7,
 	 get_path_nodes/3
         ]).
 
 
 % Init the XML processing
 
-iterate_list( _ListCount, _ListVertex , [] , _Graph , _LogPID , Name , _MetroActor , MainPID ) ->
-	MainPID ! { Name };
-
-iterate_list( ListCount, ListVertex , [ Car | MoreCars] , Graph , LogPID , Name , MetroActor , MainPID ) ->
+iterate_list( _ListCount, _ListVertex , [] , _Graph , Name , _CityActors , MainPID ) -> MainPID ! { Name };
+iterate_list( ListCount, ListVertex , [ Car | MoreCars] , Graph , Name , CityActors , MainPID ) ->
 
 	Count = element ( 3 , Car ),
 
 	case size( Car ) == 9 of
 
 		true ->
-			create_person( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , false , LogPID , MetroActor );
+			create_person( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , false , CityActors );
 
 		false ->			
-			create_person_multi_trip( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , LogPID , MetroActor )
+			create_person_multi_trip( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , CityActors )
 
 	end,
 			
 
-	iterate_list( ListCount + 1, ListVertex , MoreCars , Graph , LogPID , Name , MetroActor , MainPID ).
+	iterate_list( ListCount + 1, ListVertex , MoreCars , Graph , Name , CityActors , MainPID ).
 
 
 
-create_person( _CarCount = 0 , _ListVertex ,  _Car , _Graph , _Path , _LogPID , _MetroActor ) ->
-	
-	ok;
-
-create_person( CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor ) ->
+create_person( _CarCount = 0 , _ListVertex ,  _Car , _Graph , _Path , _CityActors ) -> ok;
+create_person( CarCount , ListVertex ,  Car , Graph , Path , CityActors ) ->
 
 	Origin = element ( 1 , Car ),
 	Destination = element ( 2 , Car ),
@@ -70,9 +60,9 @@ create_person( CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor
 			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , NewPath , Park } ],
 
 			class_Actor:create_initial_actor( class_Car,
-				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , Park , ModeFinal , MetroActor ] ),
+				[ CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Park , ModeFinal , CityActors ] ),
 
-			create_person( CarCount - 1 , ListVertex ,  Car , Graph , NewPath , LogPID , MetroActor );
+			create_person( CarCount - 1 , ListVertex ,  Car , Graph , NewPath , CityActors );
 
 		_ ->
 
@@ -81,17 +71,15 @@ create_person( CarCount , ListVertex ,  Car , Graph , Path , LogPID , MetroActor
 			ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , Path , Park } ],
 
 			class_Actor:create_initial_actor( class_Car,
-				[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , Park , ModeFinal , MetroActor ] ),
+				[ CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Park , ModeFinal , CityActors ] ),
 
-			create_person( CarCount - 1 , ListVertex ,  Car , Graph , Path , LogPID , MetroActor  )
+			create_person( CarCount - 1 , ListVertex ,  Car , Graph , Path , CityActors  )
 
 	end.
 
-create_person_multi_trip( _CarCount = 0 , _ListVertex ,  _Car , _Graph , _LogPID , _MetroActor ) ->
-	
-	ok;
+create_person_multi_trip( _CarCount = 0 , _ListVertex ,  _Car , _Graph , _CityActors ) -> ok;
 
-create_person_multi_trip( CarCount , ListVertex ,  Car , Graph , LogPID  , MetroActor ) ->
+create_person_multi_trip( CarCount , ListVertex ,  Car , Graph  , CityActors ) ->
 
 	StartTime = element( 1 , string:to_integer( element ( 1 , Car ) ) ) + class_RandomManager:get_uniform_value( 600 ),
 	Type = element ( 2 , Car ),
@@ -104,9 +92,9 @@ create_person_multi_trip( CarCount , ListVertex ,  Car , Graph , LogPID  , Metro
 	{ ListTripsFinal , ListVertexPath } = create_single_trip( ListTrips , [] , Graph , [] , ListVertex ),
 
 	class_Actor:create_initial_actor( class_Person,
-		[ CarName , ListVertexPath , ListTripsFinal , StartTime , LogPID , Type , Mode , MetroActor ] ),
+		[ CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Mode , CityActors ] ),
 
-	create_person_multi_trip( CarCount - 1 , ListVertex , Car , Graph , LogPID , MetroActor ).
+	create_person_multi_trip( CarCount - 1 , ListVertex , Car , Graph , CityActors ).
 
 create_single_trip( [] , ListTripsFinal , _Graph , ListVertexPath , _ListVertex ) ->
 

@@ -2,8 +2,6 @@
 
 -module(smart_city_test).
 
-
-
 % For all facilities common to all tests:
 -include("test_constructs.hrl").
 
@@ -35,9 +33,7 @@ create_street_list( Graph ) ->
 
 	create_street_list( Vertices , [] , Graph ).
 
-create_street_list([] , List , _Graph ) ->
-	List;
-
+create_street_list([] , List , _Graph ) -> List;
 create_street_list([Element | MoreElements] , List , Graph) ->
 
 	Edges = digraph:out_edges( Graph , Element ),
@@ -52,9 +48,7 @@ create_street_list([Element | MoreElements] , List , Graph) ->
 	create_street_list( MoreElements , List ++ NewElement , Graph ).
 
 
-create_buses( [] , _ListVertex , _CityGraph , _LogPID  ) -> 
-	ok;
-
+create_buses( [] , _ListVertex , _CityGraph , _LogPID  ) -> ok;
 create_buses( [ Bus | Buses ] , ListVertex , CityGraph , LogPID  ) -> 
 
 	Id = element( 1 , Bus ),
@@ -102,16 +96,16 @@ calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 	
 
 
-spaw_proccess( [] , _ListVertex , _CityGraph , _LogPID , _MetroActor  ) -> 
+spaw_proccess( [] , _ListVertex , _CityGraph , _MetroActor  ) -> 
 	ok;
 
-spaw_proccess( [ List | MoreLists ] , ListVertex , CityGraph , LogPID , MetroActor ) ->
+spaw_proccess( [ List | MoreLists ] , ListVertex , CityGraph , CityActors ) ->
 
 	Name = element( 1 , List ),
 	ListTrips = element( 2 , List ),
 
-	spawn(create_agents, iterate_list , [ 1 , dict:from_list( ListVertex ) , ListTrips , CityGraph , LogPID , Name , MetroActor , self() ]),
-	spaw_proccess( MoreLists  , ListVertex , CityGraph , LogPID , MetroActor ).
+	spawn(create_agents, iterate_list , [ 1 , dict:from_list( ListVertex ) , ListTrips , CityGraph , Name , CityActors , self() ]),
+	spaw_proccess( MoreLists  , ListVertex , CityGraph , CityActors ).
 
 
 
@@ -127,13 +121,13 @@ split_list( [ Name | Names ] , NumberLists , ListSplit , ListReturn ) ->
 	split_list( Names , length ( Names ) , ListCars , ListReturn ++ Element ).
   
 
-collectResults([]) -> ok;
-collectResults(Trains) ->
+collectResults( [] ) -> ok;
+collectResults( ListNames ) ->
   receive
     { Name } ->
-      collectResults(Trains -- [Name]);
+      collectResults( ListNames -- [Name] );
     _ ->
-      collectResults(Trains)
+      collectResults( ListNames )
   end.
 
 readConfigPath() ->
@@ -154,7 +148,6 @@ run() ->
 
 							simulation_name = "Sim-Diasca Smart City Integration Test",
 
-							% Using 100Hz here:
 							tick_duration = 1
 
 							% We leave it to the default specification (all_outputs):
@@ -185,12 +178,11 @@ run() ->
 	LoadBalancingSettings = #load_balancing_settings{},
 
 	% A deployment manager is created directly on the user node:
-	DeploymentManagerPid = sim_diasca:init( SimulationSettings,
-											DeploymentSettings, LoadBalancingSettings ),
+	DeploymentManagerPid = sim_diasca:init( SimulationSettings, DeploymentSettings, LoadBalancingSettings ),
 
 	ConfigPath = readConfigPath(),
 
-	Config = config_parser:show(ConfigPath),
+	Config = config_parser:show( ConfigPath ),
 
 	ListCars = trip_parser:show( element( 4 , Config ) ), % Read the cars from the trips.xml file
 
@@ -227,22 +219,17 @@ run() ->
 	end,
 
 	ParkActor = case ParkSpots of
-
 	    ok ->
-
-		ok; 
-
-	    _ ->
-			
+		ok;
+	    _ ->		
 		class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots , LogPID ] )
-
 	end,
 
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
-	spaw_proccess( List , ListVertex , CityGraph , LogPID , { MetroActor , ParkActor , CityActor } ),
+	spaw_proccess( List , ListVertex , CityGraph , { LogPID , MetroActor , ParkActor , CityActor } ),
 
 	ok = collectResults(Names),
 
