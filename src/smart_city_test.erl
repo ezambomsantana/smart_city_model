@@ -233,22 +233,14 @@ run() ->
 		class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots , LogPID ] )
 
 	end,
-
-
-
-    	code:add_pathsa( [ AmqpClientPath , string:concat( AmqpClientPath, "/ebin" ), 
-				string:concat( AmqpClientPath, "/include/rabbit_common/ebin" ) ] ),
-
-    {ok, Connection} =
-        amqp_connection:start(#amqp_params_network{host = "localhost"}),
-    {ok, Channel} = amqp_connection:open_channel(Connection),
-
+	
+	ParkServerPID = spawn(platform_request, start_server , [  ]),
 
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
-	spaw_proccess( List , ListVertex , CityGraph , LogPID , { MetroActor , ParkActor , CityActor , Channel } ),
+	spaw_proccess( List , ListVertex , CityGraph , LogPID , { MetroActor , ParkActor , CityActor , ParkServerPID } ),
 
 	ok = collectResults(Names),
 

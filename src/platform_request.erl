@@ -3,61 +3,37 @@
 -include_lib("../deps/amqp_client/include/amqp_client.hrl").
 
 -export([
-         start_service/3, get_data_park/0
+         start_server/0, make_call/2, receive_park/2, verify_park_by_actor_name/2, call_parking_service/3
         ]).
 
+start_server( ) ->
 
-start_service ( ActorName , CarCoordinates , Channel ) ->
+	receive
+		{ make_call , ActorName , Coordinates } -> make_call( ActorName , Coordinates );
+		{ receive_park, ActorName , Park } -> receive_park( ActorName , Park );
+		{ verify_park_by_actor_name , ActorName , PID } -> verify_park_by_actor_name( ActorName , PID )
+	end,
+	start_server().
 
-	inets:start(),
+make_call( ActorName , Coordinates ) ->
+	spawn(platform_request, call_parking_service , [ ActorName , Coordinates , self() ]).
 
-	{ _ , Pwd } = file:get_cwd(),
-	AmqpClientPath = string:concat( Pwd, "/../deps/amqp_client"),
+receive_park( ActorName , Park ) ->
+        put (ActorName , Park ).
 
-    	code:add_pathsa( [ AmqpClientPath , string:concat( AmqpClientPath, "/ebin" ), 
-				string:concat( AmqpClientPath, "/include/rabbit_common/ebin" ) ] ),
-	Park = call_parking_service( CarCoordinates , 5000 ),
-
-
-	publish_data( ActorName , Park , "data_stream" , Channel ).
-
-publish_data( ActorName , Park , _Topic , Channel ) ->
-
-	Exchange = #'exchange.declare'{ exchange = <<"simulator_exchange">>,
-                                    type = <<"topic">> },
-
-	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
-
-	Publish = #'basic.publish'{ exchange = <<"simulator_exchange">>,
-                                routing_key = list_to_binary( ActorName ) },
-
-	amqp_channel:cast( Channel,
-					   Publish,
-					   #amqp_msg{ payload = list_to_binary( Park ) }).
-
+verify_park_by_actor_name( ActorName , PID ) ->
+       Park = get( ActorName ),
+       case Park of
+	    undefined -> PID ! { nok };
+	    _ -> erase( ActorName ), PID !  { ok , ActorName , Park }
+       end.
 
 		
-call_parking_service( Coordinates , Radius ) ->
-    URL = "http://172.19.66.212:8000/discovery/resources?capability=parking_monitoring;lat=" ++ element( 1 , Coordinates ) ++ ";lon=" ++ element( 2 , Coordinates ) ++ ";radius=" ++ integer_to_list( Radius ) ++ ";available.eq=true",
+call_parking_service( ActorName , _Coordinates , PID ) ->
+	PID ! { receive_park , ActorName , "teste" }.
+%    URL = "http://172.19.66.212:8000/discovery/resources?capability=parking_monitoring;lat=" ++ element( 1 , Coordinates ) ++ ";lon=" ++ element( 2 , Coordinates ) ++ ";radius=5000;available.eq=true",
 
-    {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} =
-      httpc:request(get, {URL, []}, [], []),
+ %   {ok, {{_Version, 200, _ReasonPhrase}, _Headers, Body}} =
+  %    httpc:request(get, {URL, []}, [], []),
 
-   case length( Body ) < 30 of
-	true -> call_parking_service( Coordinates , Radius * 2 );
-	false -> string:sub_string(Body, 24, 59)
-   end.
-
-
-
-
-
-get_data_park( ) ->
-
-    receive
-        {#'basic.deliver'{routing_key = _RoutingKey}, #amqp_msg{payload = Body}} ->
-            binary_to_list( Body );
-	_ ->
-            nok
-    end.
-
+   %string:sub_string(Body, 24, 59).

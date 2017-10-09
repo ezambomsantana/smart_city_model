@@ -46,23 +46,8 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	inets:start(),
 
-      Channel = element( 4 , PID ),
+        ParkServer = element( 4 , PID ),
 
- amqp_channel:call(Channel, #'exchange.declare'{exchange = <<"simulator_exchange">>,
-                                                   type = <<"topic">>}),
-
-    #'queue.declare_ok'{queue = Queue} =
-        amqp_channel:call(Channel, #'queue.declare'{exclusive = true}),
-
-    amqp_channel:call(Channel, #'queue.bind'{exchange = <<"simulator_exchange">>,
-                                              routing_key = list_to_binary( CarName ),
-                                              queue = Queue}),
-
-    amqp_channel:subscribe(Channel, #'basic.consume'{queue = Queue,
-                                                     no_ack = true}, self()),
-    receive
-          #'basic.consume_ok'{} -> ok
-    end,
 
 	setAttributes( ActorState, [
 		{ car_name, CarName },
@@ -80,7 +65,7 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ park_status , ParkStatus },
 		{ mode , Mode },
 		{ coordinates , Coordinates },
-		{ channel , Channel }
+		{ park_server , ParkServer }
 						] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
@@ -97,51 +82,58 @@ actSpontaneous( State ) ->
 
 		waiting ->
 			Park = platform_request:get_data_park( ),
-			case Park of
+
+			ParkServer = getAttribute( State , park_server ),
+
+			CarName = getAttribute( State , car_name ),
+
+			ParkServer ! { verify_park_by_actor_name , CarName , self() },
+			receive
 				nok ->
 					CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 	
 
 					executeOneway( State , addSpontaneousTick, CurrentTickOffset + 1 );
-				_ ->
+				
+				{ ok , _ActorName , Park } ->
 					find_park( State , Park )
 			end;
 	
 		_ -> 
 
 
-	Trips = getAttribute( State , trips ), 
+			Trips = getAttribute( State , trips ), 
 	
-	case length( Trips ) > 0 of
+			case length( Trips ) > 0 of
 
-		false ->		
+				false ->		
 			
-			Path = getAttribute( State , path ), 
+					Path = getAttribute( State , path ), 
 
-			case Path of 
+					case Path of 
 
-				finish -> 
+						finish -> 
 					
-					executeOneway( State , declareTermination );
+							executeOneway( State , declareTermination );
 
-				_ ->
+						_ ->
 
-					NewState = setAttribute( State , path , finish ),
+							NewState = setAttribute( State , path , finish ),
 
-					FinalState = write_final_message( NewState ),
+							FinalState = write_final_message( NewState ),
 
-					executeOneway( FinalState, scheduleNextSpontaneousTick )
+							executeOneway( FinalState, scheduleNextSpontaneousTick )
 
-				end;
+						end;
 
 
-		true ->
+				true ->
 
-			CurrentTrip = list_utils:get_element_at( Trips , 1 ),		
+					CurrentTrip = list_utils:get_element_at( Trips , 1 ),		
 
-			NewState = request_position( State , CurrentTrip ),
-			?wooper_return_state_only( NewState )
+					NewState = request_position( State , CurrentTrip ),
+					?wooper_return_state_only( NewState )
 
-		end
+			end
 
 
 	end.
@@ -249,13 +241,13 @@ request_position( State , Trip ) ->
 
 								find ->
 
+									ParkServer = getAttribute( State , park_server ),
+
 									CarName = getAttribute( State , car_name ),
 
 									Coordinates = getAttribute( State , coordinates ),
 
-									Channel = getAttribute( State , channel ),
-
-									spawn(platform_request, start_service , [ CarName , Coordinates , Channel ]),
+									ParkServer ! { make_call , CarName , Coordinates },
 
 									FinalState = setAttribute( State , park_status , waiting ),
 			
