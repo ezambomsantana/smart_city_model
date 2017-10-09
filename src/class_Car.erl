@@ -1,6 +1,7 @@
 %Class that represents a person that can moves around the city graph on foot or by car
 -module(class_Car).
 
+-include_lib("../deps/amqp_client/include/amqp_client.hrl").
 % Determines what are the mother classes of this class (if any):
 -define( wooper_superclasses, [ class_Actor ] ).
 
@@ -45,6 +46,24 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	inets:start(),
 
+      Channel = element( 4 , PID ),
+
+ amqp_channel:call(Channel, #'exchange.declare'{exchange = <<"simulator_exchange">>,
+                                                   type = <<"topic">>}),
+
+    #'queue.declare_ok'{queue = Queue} =
+        amqp_channel:call(Channel, #'queue.declare'{exclusive = true}),
+
+    amqp_channel:call(Channel, #'queue.bind'{exchange = <<"simulator_exchange">>,
+                                              routing_key = list_to_binary( CarName ),
+                                              queue = Queue}),
+
+    amqp_channel:subscribe(Channel, #'basic.consume'{queue = Queue,
+                                                     no_ack = true}, self()),
+    receive
+          #'basic.consume_ok'{} -> ok
+    end,
+
 	setAttributes( ActorState, [
 		{ car_name, CarName },
 		{ dict , DictVertices },
@@ -60,7 +79,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ park , Park },
 		{ park_status , ParkStatus },
 		{ mode , Mode },
-		{ coordinates , Coordinates }
+		{ coordinates , Coordinates },
+		{ channel , Channel }
 						] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
@@ -70,7 +90,25 @@ destruct( State ) ->
 
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
 actSpontaneous( State ) ->
+
+	ParkStatus = getAttribute( State , park_status ),
+
+	case ParkStatus of 
+
+		waiting ->
+			Park = platform_request:get_data_park( ),
+			case Park of
+				nok ->
+					CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 	
+
+					executeOneway( State , addSpontaneousTick, CurrentTickOffset + 1 );
+				_ ->
+					find_park( State , Park )
+			end;
 	
+		_ -> 
+
+
 	Trips = getAttribute( State , trips ), 
 	
 	case length( Trips ) > 0 of
@@ -103,8 +141,12 @@ actSpontaneous( State ) ->
 			NewState = request_position( State , CurrentTrip ),
 			?wooper_return_state_only( NewState )
 
-	end.
+		end
 
+
+	end.
+	
+	
 -spec request_position( wooper:state() , parameter() ) -> wooper:state().
 request_position( State , Trip ) ->
 	
@@ -207,13 +249,17 @@ request_position( State , Trip ) ->
 
 								find ->
 
-									Parking = getAttribute( State , parking ),
-									
+									CarName = getAttribute( State , car_name ),
+
 									Coordinates = getAttribute( State , coordinates ),
 
-									Park = platform_request:call_parking_service( Coordinates ),	
+									Channel = getAttribute( State , channel ),
 
-            								class_Actor:send_actor_message( Parking, { spot_available, { Park } } , State )
+									spawn(platform_request, start_service , [ CarName , Coordinates , Channel ]),
+
+									FinalState = setAttribute( State , park_status , waiting ),
+			
+									executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 )
 
 							end
 
@@ -224,21 +270,35 @@ request_position( State , Trip ) ->
 
 	end.
 
-get_parking_spot( State , IdNodeCoordinates , ParkingPID ) ->
+
+find_park( State , Park ) ->
+	
+	Parking = getAttribute( State , parking ),
+																	
+	class_Actor:send_actor_message( Parking, { spot_available, { Park } } , State ).
+
+
+get_parking_spot( State , IdNodeCoordinates , _ParkingPID ) ->
 
 	Node = element( 1 , IdNodeCoordinates ),
 
 	case Node of 
 
 	     nok ->
+		
+		CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 	
+
+		CarName = getAttribute( State , car_name ),
 
 		Coordinates = getAttribute( State , coordinates ),
 
-		Park = platform_request:call_parking_service( Coordinates ),	
+		Channel = getAttribute( State , channel ),
 
-		FinalState = setAttribute( State , park , Park ),											
+		spawn(platform_request, start_service , [ CarName , Coordinates , Channel ]),
 
-            	class_Actor:send_actor_message( ParkingPID, { spot_available, { Park } } , FinalState );
+		FinalState = setAttribute( State , park_status , waiting ),
+			
+		executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
 
     	     _ ->
 

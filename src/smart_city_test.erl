@@ -1,6 +1,7 @@
 % Author: Eduardo Santana (efzambom@ime.usp.br)
 
 -module(smart_city_test).
+-include_lib("../deps/amqp_client/include/amqp_client.hrl").
 
 
 
@@ -233,11 +234,21 @@ run() ->
 
 	end,
 
+
+
+    	code:add_pathsa( [ AmqpClientPath , string:concat( AmqpClientPath, "/ebin" ), 
+				string:concat( AmqpClientPath, "/include/rabbit_common/ebin" ) ] ),
+
+    {ok, Connection} =
+        amqp_connection:start(#amqp_params_network{host = "localhost"}),
+    {ok, Channel} = amqp_connection:open_channel(Connection),
+
+
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
-	spaw_proccess( List , ListVertex , CityGraph , LogPID , { MetroActor , ParkActor , CityActor } ),
+	spaw_proccess( List , ListVertex , CityGraph , LogPID , { MetroActor , ParkActor , CityActor , Channel } ),
 
 	ok = collectResults(Names),
 
