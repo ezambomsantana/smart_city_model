@@ -44,7 +44,7 @@ construct( State, ?wooper_construct_parameters ) ->
 			find
 	end,
 
-	inets:start(),
+	
 
         ParkServer = element( 4 , PID ),
 
@@ -81,7 +81,6 @@ actSpontaneous( State ) ->
 	case ParkStatus of 
 
 		waiting ->
-			Park = platform_request:get_data_park( ),
 
 			ParkServer = getAttribute( State , park_server ),
 
@@ -89,7 +88,8 @@ actSpontaneous( State ) ->
 
 			ParkServer ! { verify_park_by_actor_name , CarName , self() },
 			receive
-				nok ->
+				{ nok } ->
+
 					CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 	
 
 					executeOneway( State , addSpontaneousTick, CurrentTickOffset + 1 );
@@ -279,14 +279,14 @@ get_parking_spot( State , IdNodeCoordinates , _ParkingPID ) ->
 	     nok ->
 		
 		CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 	
+		
+		ParkServer = getAttribute( State , park_server ),
 
 		CarName = getAttribute( State , car_name ),
 
 		Coordinates = getAttribute( State , coordinates ),
 
-		Channel = getAttribute( State , channel ),
-
-		spawn(platform_request, start_service , [ CarName , Coordinates , Channel ]),
+		ParkServer ! { make_call , CarName , Coordinates },
 
 		FinalState = setAttribute( State , park_status , waiting ),
 			
