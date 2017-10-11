@@ -76,29 +76,36 @@ actSpontaneous( State ) ->
 
     CurrentTick = class_Actor:get_current_tick_offset( State ),
 
-    { NewAPS , NewUPS } = update_spots( dict:to_list( UnavailableParkingSpots ) , { AvailableParkingSpots , UnavailableParkingSpots } , CurrentTick ),
+    { NewAPS , NewUPS , ReturnState } = update_spots( dict:to_list( UnavailableParkingSpots ) , { AvailableParkingSpots , UnavailableParkingSpots } , CurrentTick , State ),
 
-    NewState = setAttribute( State, unavailableSpots , NewUPS ),
+    NewState = setAttribute( ReturnState, unavailableSpots , NewUPS ),
     FinalState = setAttribute( NewState, availableSpots , NewAPS ),
 
-    executeOneway( FinalState , addSpontaneousTick, CurrentTick + 600 ).
+    executeOneway( FinalState , addSpontaneousTick, CurrentTick + 60 ).
 
 
 
-update_spots( [] , { AvailableParkingSpots , UnavailableParkingSpots } , _CurrentTick ) ->
-   
-    { AvailableParkingSpots , UnavailableParkingSpots };
+update_spots( [] , { AvailableParkingSpots , UnavailableParkingSpots } , _CurrentTick , State ) ->
+    { AvailableParkingSpots , UnavailableParkingSpots , State };
 
-update_spots( [ Spot | List ] , { AvailableParkingSpots , UnavailableParkingSpots } , CurrentTick ) ->
+update_spots( [ Spot | List ] , { AvailableParkingSpots , UnavailableParkingSpots } , CurrentTick , State ) ->
 
     Elemento = list_utils:get_element_at( element( 2 , Spot ) , 1 ),
-    { NewAPS , NewUPS } = case ( element( 3 , Elemento ) - CurrentTick ) < 1200 of
-        true -> { AvailableParkingSpots , UnavailableParkingSpots };
-        false -> { dict:append( element( 1 , Spot ) , { element( 2 , Spot ) , element( 3 , Spot) } , AvailableParkingSpots ),
-		   dict:erase( element( 1 , Spot ) , UnavailableParkingSpots ) }
-    end,
-    update_spots( List , { NewAPS , NewUPS } , CurrentTick ).
 
+     case ( CurrentTick - element( 3 , Elemento ) ) < 120 of
+        true -> 
+		update_spots( List , { AvailableParkingSpots , UnavailableParkingSpots } , CurrentTick , State );
+        false -> 
+    		UUID = element( 1 , Spot ),
+		LogPID = getAttribute( State , logPID ),
+		Tupla = { element(1 , Elemento) , element( 2 , Elemento ) },
+		{ NewAPS , NewUPS } = { dict:store( UUID , Tupla , AvailableParkingSpots ),
+		   dict:erase( UUID , UnavailableParkingSpots ) },
+
+		NewState = change_spot_state( State , UUID, true , LogPID ),
+		
+    		update_spots( List , { NewAPS , NewUPS } , CurrentTick , NewState )
+    end.
 % Simply schedules this just created actor at the next tick (diasca 0).
 %
 % (actor oneway)
