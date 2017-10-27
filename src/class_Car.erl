@@ -169,13 +169,13 @@ request_position( State , Trip ) ->
 						"walk" ->
 							
 							class_Actor:send_actor_message( element( 2 , VertexPID ) ,
-								{ getSpeedWalk, { Vertices } }, FinalState );
+								{ get_speed_walk, { Vertices } }, FinalState );
 
 						_ ->
 
 							
 							class_Actor:send_actor_message( element( 2 , VertexPID ) ,
-								{ getSpeedCar, { Vertices } }, FinalState )
+								{ get_speed_car, { Vertices } }, FinalState )
 
 					end;
 

@@ -278,7 +278,7 @@ request_position( State , Trip ) ->
 					FinalState = setAttribute( PathState , path, list_utils:remove_element_at( Path , 1 ) ), % remove the current element of the path
 			
 					class_Actor:send_actor_message( element( 2 , VertexPID ) ,
-						{ getSpeedWalk, { Vertices } }, FinalState );
+						{ get_speed_walk, { Vertices } }, FinalState );
 
 				false ->							
 

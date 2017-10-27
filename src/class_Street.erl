@@ -118,7 +118,7 @@ load_people( State , LineBus , BusPID ) ->
 
 	
 	
-getSpeedBus( State , Data , CarPID ) ->
+get_speed_bus( State , Data , CarPID ) ->
 
 	LinkId = element( 1 , Data ),
 	BusId = element( 2 , Data ),
@@ -160,7 +160,7 @@ getSpeedBus( State , Data , CarPID ) ->
 	class_Actor:send_actor_message( CarPID,
 	 	{ go, { Id , round( Time ) , BusId } }, NewState ).
 
-getSpeedCar( State , Data , CarPID ) ->
+get_speed_car( State , Data , CarPID ) ->
 
 	LinkId = element( 1 , Data ),
 
@@ -202,7 +202,7 @@ getSpeedCar( State , Data , CarPID ) ->
 	 	{ go, { Id , round( Time ) , round ( Length ) } }, NewState ).
 
 
-getSpeedWalk( State , Data , CarPID ) ->
+get_speed_walk( State , Data , CarPID ) ->
 
 	LinkId = element( 1 , Data ),
 
