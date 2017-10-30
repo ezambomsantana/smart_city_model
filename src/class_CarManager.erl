@@ -91,22 +91,59 @@ init_cars( [ Car | Cars ] , State ) ->
 	Type = element( 5 , Car ),
 	Park = element( 6 , Car ),
 	Mode = element( 7 , Car ),
-	CityActors = element( 8 , Car ),	
+	CityActors = element( 8 , Car ),
+	Count = element( 9 , Car ),	
 
 	NewState = case Mode of
 
 		"car" ->
-			class_Actor:create_actor( class_Car,
-				[ CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Park , Mode , CityActors ] , State );
+
+			create_person_car( Count , State , { CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Park , Mode , CityActors } );
+
 		"walk" ->	
-			class_Actor:create_actor( class_Car,
-				[ CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Park , Mode , CityActors ] , State  );
+			create_person_car( Count , State , { CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Park , Mode , CityActors } );
 		_ ->
-			class_Actor:create_actor( class_Person,
-				[ CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Mode , CityActors ]  , State )
+
+			create_person_public( Count , State , { CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Mode , CityActors } )
+	
 	end,
 
 	init_cars( Cars , NewState ).
+
+
+create_person_car( _Count = 0 , State , _Data ) -> State;
+create_person_car( Count , State , Data ) ->
+
+	CarName = io_lib:format( "~s_~B", [ element( 1 , Data ) , Count ] ),
+	ListVertexPath = element( 2 , Data ),
+	ListTripsFinal = element( 3 , Data ),
+	StartTime = class_RandomManager:get_uniform_value( 600 ),
+	Type = element( 5 , Data ),
+	Park = element( 6 , Data ),
+	Mode = element( 7 , Data ),
+	CityActors = element( 8 , Data ),
+
+	NewState = class_Actor:create_actor( class_Car,
+		[ CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Park , Mode , CityActors ] , State ),
+
+	create_person_car( Count - 1 , NewState , Data ).
+
+
+create_person_public( _Count = 0 , State , _Data ) -> State;
+create_person_public( Count , State , Data ) ->
+
+	CarName = io_lib:format( "~s_~B", [ element( 1 , Data ) , Count ] ),
+	ListVertexPath = element( 2 , Data ),
+	ListTripsFinal = element( 3 , Data ),
+	StartTime = class_RandomManager:get_uniform_value( 600 ),
+	Type = element( 5 , Data ),
+	Mode = element( 6 , Data ),
+	CityActors = element( 7 , Data ),
+
+	NewState = class_Actor:create_actor( class_Person,
+		[ CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Mode , CityActors ]  , State ),
+
+	create_person_public( Count - 1 , NewState , Data ).
 
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->

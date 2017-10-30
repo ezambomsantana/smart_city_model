@@ -323,9 +323,14 @@ go( State, PositionTime , _GraphPID) ->
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
 
-    	FirstActionTime = class_Actor:get_current_tick_offset( State ) + 1,   	
 
-	executeOneway( State , addSpontaneousTick , FirstActionTime ).
+	StartTime = getAttribute( State , start_time ),
+
+    	FirstActionTime = class_Actor:get_current_tick_offset( State ) + StartTime,   	
+
+	NewState = setAttribute( State , start_time , FirstActionTime ),
+
+	executeOneway( NewState , addSpontaneousTick , FirstActionTime ).
 
 
 
