@@ -1,0 +1,364 @@
+<metro>
+  <stations>
+    <station name="Vila Prudente" idNode="252018920" />
+    <station name="Oratorio" idNode="2378322735" />
+    <station name="Jabaquara" idNode="247909491" />
+    <station name="Conceição" idNode="660766755" />
+    <station name="São Judas" idNode="431359341" />
+    <station name="Saúde" idNode="467923960" />
+    <station name="Praça Da Árvore" idNode="431359354" />
+    <station name="Santa Cruz" idNode="2466637938" />
+    <station name="Vila Mariana" idNode="246651720" />
+    <station name="Ana Rosa" idNode="467744160" />
+    <station name="Paraíso" idNode="459347687" />
+    <station name="Vergueiro" idNode="2627719093" />
+    <station name="São Joaquim" idNode="172004070" />
+    <station name="Liberdade" idNode="60641149" />
+    <station name="Sé" idNode="60685351" />
+    <station name="São Bento" idNode="599043066" />
+    <station name="Luz" idNode="457055058" />
+    <station name="Tiradentes" idNode="246650423" />
+    <station name="Armênia" idNode="4230266390" />
+    <station name="Portuguesa-tietê" idNode="2826764632" />
+    <station name="Carandiru" idNode="462038002" />
+    <station name="Santana" idNode="2368193058" />
+    <station name="Jardim São Paulo-ayrton Senna" idNode="507969878" />
+    <station name="Parada Inglesa" idNode="511971628" />
+    <station name="Tucuruvi" idNode="396034640" />
+    <station name="Tamanduatei" idNode="674412889" />
+    <station name="Sacoma" idNode="2533391001" />
+    <station name="Alto Do Ipiranga" idNode="4443113954" />
+    <station name="Santos-imigrantes" idNode="1484829870" />
+    <station name="Chácara Klabin" idNode="922094745" />
+    <station name="Brigadeiro" idNode="856727276" />
+    <station name="Trianon-masp" idNode="2021000708" />
+    <station name="Consolação" idNode="1819616337" />
+    <station name="Clínicas" idNode="1952545109" />
+    <station name="S. N. Sra. De Fátima-sumaré" idNode="466808387" />
+    <station name="Vila Madalena" idNode="1415720983" />
+    <station name="Palmeiras - Barra Funda" idNode="1825091877" />
+    <station name="Marechal Deodoro" idNode="1955792528" />
+    <station name="Santa Cecília" idNode="158844652" />
+    <station name="República" idNode="60685761" />
+    <station name="Anhangabaú" idNode="4251881419" />
+    <station name="Pedro II" idNode="130010440" />
+    <station name="Brás" idNode="445042814" />
+    <station name="Bresser-mooca" idNode="151236995" />
+    <station name="Belem" idNode="462003751" />
+    <station name="Tatuape" idNode="135613865" />
+    <station name="Carrão" idNode="2413894424" />
+    <station name="Penha" idNode="1706350616" />
+    <station name="Vila Matilde" idNode="1706349612" />
+    <station name="Guilhermina Esperança" idNode="3895547999" />
+    <station name="Patriarca" idNode="1650371046" />
+    <station name="Artur Alvim" idNode="1650371046" />
+    <station name="Paulista" idNode="4236712716" />
+    <station name="Fradique Coutinho" idNode="167403202" />
+    <station name="Faria Lima" idNode="173361748" />
+    <station name="Pinheiros" idNode="2367473602" />
+    <station name="Butanta" idNode="1664142142" />
+    <station name="Adolfo Pinheiro" idNode="302563666" />
+    <station name="Largo Treze" idNode="2552447863" />
+    <station name="Santo Amaro" idNode="25675254" />
+    <station name="Giovanni Gronchi" idNode="3508714270" />
+    <station name="Vila Das Belezas" idNode="1699011854" />
+    <station name="Campo Limpo" idNode="1697017197" />
+    <station name="Capão Redondo" idNode="4191831477" />
+    <station name="Água Branca" idNode="1707836311" />
+    <station name="Lapa" idNode="293820191" />
+    <station name="Piqueri" idNode="453601428" />
+    <station name="Pirituba" idNode="2109902387" />
+    <station name="Vila Clarice" idNode="2448473366" />
+    <station name="Jaraguá" idNode="2448473366" />
+    <station name="Vila Aurora" idNode="832264854" />
+    <station name="Perus" idNode="832264854" />
+    <station name="Caieiras" idNode="1758396031" />
+    <station name="Franco Da Rocha" idNode="2109902387" />
+    <station name="Baltazar Fidélis" idNode="2109902387" />
+    <station name="Francisco Morato" idNode="2448473366" />
+    <station name="Botujuru" idNode="1758396031" />
+    <station name="Campo Limpo Paulista" idNode="1758396031" />
+    <station name="Várzea Paulista" idNode="1758396031" />
+    <station name="Jundiai" idNode="1757866669" />
+    <station name="Júlio Prestes" idNode="60734229" />
+    <station name="Domingos De Moraes" idNode="408864658" />
+    <station name="Imperatriz Leopoldina" idNode="408935012" />
+    <station name="Presidente Altino" idNode="1657874428" />
+    <station name="Osasco" idNode="1671355080" />
+    <station name="Comandante Sampaio" idNode="768230640" />
+    <station name="Quitaúna" idNode="467722214" />
+    <station name="General Miguel Costa" idNode="1602163765" />
+    <station name="Carapicuiba" idNode="1602163765" />
+    <station name="Santa Terezinha" idNode="1602163765" />
+    <station name="Antonio João" idNode="1602163765" />
+    <station name="Barueri" idNode="1602163765" />
+    <station name="Jardim Belval" idNode="1602163765" />
+    <station name="Jardim Silveira" idNode="1602163765" />
+    <station name="Jandira" idNode="1602163765" />
+    <station name="Sagrado Coração" idNode="1602163765" />
+    <station name="Engenheiro Cardoso" idNode="1602163765" />
+    <station name="Itapevi" idNode="1602163765" />
+    <station name="Santa Rita" idNode="1602163765" />
+    <station name="Cimenrita" idNode="1602163765" />
+    <station name="Ambuitá" idNode="1602163765" />
+    <station name="Amador Bueno" idNode="1602163765" />
+    <station name="Ceasa" idNode="292425868" />
+    <station name="Villa Lobos- Jaguaré" idNode="4385186165" />
+    <station name="Cidade Universitária" idNode="1986757988" />
+    <station name="Hebraica - Rebouças" idNode="2384667562" />
+    <station name="Cidade Jardim" idNode="1389167286" />
+    <station name="Vila Olímpia" idNode="25718011" />
+    <station name="Berrini" idNode="25629443" />
+    <station name="Morumbi" idNode="25641395" />
+    <station name="Granja Julieta" idNode="4411605848" />
+    <station name="Socorro" idNode="2552447863" />
+    <station name="Jurubatuba" idNode="302563666" />
+    <station name="Autódromo" idNode="305664158" />
+    <station name="Primavera-interlagos" idNode="305664158" />
+    <station name="Grajaú" idNode="305664158" />
+    <station name="Moóca" idNode="1417145825" />
+    <station name="Ipiranga" idNode="1417380880" />
+    <station name="Tamanduateí" idNode="674412889" />
+    <station name="São Caetano" idNode="831543346" />
+    <station name="Utinga" idNode="3987051159" />
+    <station name="Prefeito Saladino" idNode="1828170716" />
+    <station name="Prefeito Celso Daniel - Santo André" idNode="1576355418" />
+    <station name="Capuava" idNode="1576355001" />
+    <station name="Mauá" idNode="1576355001" />
+    <station name="Guapituba" idNode="1576355001" />
+    <station name="Ribeirão Pires" idNode="1576355001" />
+    <station name="Rio Grande Da Serra" idNode="1576355001" />
+    <station name="Tatuapé" idNode="135613865" />
+    <station name="Corinthians-itaquera" idNode="1650371046" />
+    <station name="Dom Bosco" idNode="1650371046" />
+    <station name="José Bonifácio" idNode="909285688" />
+    <station name="Guaianazes" idNode="909285688" />
+    <station name="Antonio Gianetti Neto" idNode="663049652" />
+    <station name="Ferraz De Vasconcelos" idNode="909285688" />
+    <station name="Poá" idNode="909285688" />
+    <station name="Calmon Viana" idNode="909285688" />
+    <station name="Suzano" idNode="909285688" />
+    <station name="Jundiapeba" idNode="909285688" />
+    <station name="Brás Cubas" idNode="909285688" />
+    <station name="Mogi Das Cruzes" idNode="909285688" />
+    <station name="Estudantes" idNode="909285688" />
+    <station name="Eng. Goulart" idNode="2086999035" />
+    <station name="USP Leste" idNode="909285688" />
+    <station name="Comendador Ermelino" idNode="909285688" />
+    <station name="São Miguel Paulista" idNode="909285688" />
+    <station name="Jardim Helena - Vila Mara" idNode="909285688" />
+    <station name="Itaim Paulista" idNode="909285688" />
+    <station name="Jardim Romano" idNode="909285688" />
+    <station name="Eng Manoel Feio" idNode="909285688" />
+    <station name="Itaquaquecetuba" idNode="909285688" />
+    <station name="Aracaré" idNode="909285688" />
+    <station name="Hospital Saboia" idNode="247909491" />
+    <station name="Cidade Leonor" idNode="1111783726" />
+    <station name="Vila Babilônia" idNode="679639448" />
+    <station name="Vila Paulista" idNode="679639448" />
+    <station name="Jardim Aeroporto" idNode="304960487" />
+    <station name="Brooklin Paulista" idNode="297300411" />
+    <station name="José Diniz" idNode="302731524" />
+    <station name="Campo Belo" idNode="2578181865" />
+    <station name="Vila Cordeiro" idNode="1111669129" />
+    <station name="Chucri Zaidan" idNode="1107272690" />
+    <station name="Panamby" idNode="4411605851" />
+    <station name="Paraisópolis" idNode="2951364448" />
+    <station name="Américo Maurano" idNode="3358127152" />
+    <station name="Estádio Morumbi" idNode="1986730595" />
+    <station name="São Paulo - Morumbi" idNode="1741005300" />
+
+  </stations>
+  <links>
+
+    <link nameOrigin="Oratorio" nameDestination="Vila Prudente" idOrigin="2378322735" idDestination="252018920" />
+
+    <link nameOrigin="Conceição" nameDestination="Jabaquara" idOrigin="660766755" idDestination="247909491" />
+    <link nameOrigin="São Judas" nameDestination="Conceição" idOrigin="431359341" idDestination="660766755" />
+    <link nameOrigin="Saúde" nameDestination="São Judas" idOrigin="467923960" idDestination="431359341" />
+    <link nameOrigin="Praça Da Árvore" nameDestination="Saúde" idOrigin="431359354" idDestination="467923960" />
+    <link nameOrigin="Santa Cruz" nameDestination="Praça Da Árvore" idOrigin="2466637938" idDestination="431359354" />
+    <link nameOrigin="Vila Mariana" nameDestination="Santa Cruz" idOrigin="246651720" idDestination="2466637938" />
+    <link nameOrigin="Ana Rosa" nameDestination="Vila Mariana" idOrigin="467744160" idDestination="246651720" />
+    <link nameOrigin="Paraíso" nameDestination="Ana Rosa" idOrigin="459347687" idDestination="467744160" />
+    <link nameOrigin="Vergueiro" nameDestination="Paraíso" idOrigin="2627719093" idDestination="459347687" />
+    <link nameOrigin="São Joaquim" nameDestination="Vergueiro" idOrigin="172004070" idDestination="2627719093" />
+    <link nameOrigin="Liberdade" nameDestination="São Joaquim" idOrigin="60641149" idDestination="172004070" />
+    <link nameOrigin="Sé" nameDestination="Liberdade" idOrigin="60685351" idDestination="60641149" />
+    <link nameOrigin="São Bento" nameDestination="Sé" idOrigin="599043066" idDestination="60685351" />
+    <link nameOrigin="Luz" nameDestination="São Bento" idOrigin="457055058" idDestination="599043066" />
+    <link nameOrigin="Tiradentes" nameDestination="Luz" idOrigin="246650423" idDestination="457055058" />
+    <link nameOrigin="Armênia" nameDestination="Tiradentes" idOrigin="4230266390" idDestination="246650423" />
+    <link nameOrigin="Portuguesa-tietê" nameDestination="Armênia" idOrigin="2826764632" idDestination="4230266390" />
+    <link nameOrigin="Carandiru" nameDestination="Portuguesa-tietê" idOrigin="462038002" idDestination="2826764632" />
+    <link nameOrigin="Santana" nameDestination="Carandiru" idOrigin="2368193058" idDestination="462038002" />
+    <link nameOrigin="Jardim São Paulo-ayrton Senna" nameDestination="Santana" idOrigin="507969878" idDestination="2368193058" />
+    <link nameOrigin="Parada Inglesa" nameDestination="Jardim São Paulo-ayrton Senna" idOrigin="511971628" idDestination="507969878" />
+    <link nameOrigin="Tucuruvi" nameDestination="Parada Inglesa" idOrigin="396034640" idDestination="511971628" />
+
+    <link nameOrigin="Tamanduatei" nameDestination="Vila Prudente" idOrigin="674412889" idDestination="252018920" />
+    <link nameOrigin="Sacoma" nameDestination="Tamanduatei" idOrigin="2533391001" idDestination="674412889" />
+    <link nameOrigin="Alto Do Ipiranga" nameDestination="Sacoma" idOrigin="4443113954" idDestination="2533391001" />
+    <link nameOrigin="Santos-imigrantes" nameDestination="Alto Do Ipiranga" idOrigin="1484829870" idDestination="4443113954" />
+    <link nameOrigin="Chácara Klabin" nameDestination="Santos-imigrantes" idOrigin="922094745" idDestination="1484829870" />
+    <link nameOrigin="Ana Rosa" nameDestination="Chácara Klabin" idOrigin="467744160" idDestination="922094745" />
+    <link nameOrigin="Paraíso" nameDestination="Ana Rosa" idOrigin="459347687" idDestination="467744160" />
+    <link nameOrigin="Brigadeiro" nameDestination="Paraíso" idOrigin="856727276" idDestination="459347687" />
+    <link nameOrigin="Trianon-masp" nameDestination="Brigadeiro" idOrigin="2021000708" idDestination="856727276" />
+    <link nameOrigin="Consolação" nameDestination="Trianon-masp" idOrigin="1819616337" idDestination="2021000708" />
+    <link nameOrigin="Clínicas" nameDestination="Consolação" idOrigin="1952545109" idDestination="1819616337" />
+    <link nameOrigin="S. N. Sra. De Fátima-sumaré" nameDestination="Clínicas" idOrigin="466808387" idDestination="1952545109" />
+    <link nameOrigin="Vila Madalena" nameDestination="S. N. Sra. De Fátima-sumaré" idOrigin="1415720983" idDestination="466808387" />
+
+    <link nameOrigin="Marechal Deodoro" nameDestination="Palmeiras - Barra Funda" idOrigin="1955792528" idDestination="1825091877" />
+    <link nameOrigin="Santa Cecília" nameDestination="Marechal Deodoro" idOrigin="158844652" idDestination="1955792528" />
+    <link nameOrigin="República" nameDestination="Santa Cecília" idOrigin="60685761" idDestination="158844652" />
+    <link nameOrigin="Anhangabaú" nameDestination="República" idOrigin="4251881419" idDestination="60685761" />
+    <link nameOrigin="Sé" nameDestination="Anhangabaú" idOrigin="60685351" idDestination="4251881419" />
+    <link nameOrigin="Pedro II" nameDestination="Sé" idOrigin="130010440" idDestination="60685351" />
+    <link nameOrigin="Brás" nameDestination="Pedro II" idOrigin="445042814" idDestination="130010440" />
+    <link nameOrigin="Bresser-mooca" nameDestination="Brás" idOrigin="151236995" idDestination="445042814" />
+    <link nameOrigin="Belem" nameDestination="Bresser-mooca" idOrigin="462003751" idDestination="151236995" />
+    <link nameOrigin="Tatuape" nameDestination="Belem" idOrigin="135613865" idDestination="462003751" />
+    <link nameOrigin="Carrão" nameDestination="Tatuape" idOrigin="2413894424" idDestination="135613865" />
+    <link nameOrigin="Penha" nameDestination="Carrão" idOrigin="1706350616" idDestination="2413894424" />
+    <link nameOrigin="Vila Matilde" nameDestination="Penha" idOrigin="1706349612" idDestination="1706350616" />
+    <link nameOrigin="Guilhermina Esperança" nameDestination="Vila Matilde" idOrigin="3895547999" idDestination="1706349612" />
+    <link nameOrigin="Patriarca" nameDestination="Guilhermina Esperança" idOrigin="1650371046" idDestination="3895547999" />
+    <link nameOrigin="Artur Alvim" nameDestination="Patriarca" idOrigin="1650371046" idDestination="1650371046" />
+
+    <link nameOrigin="República" nameDestination="Luz" idOrigin="60685761" idDestination="457055058" />
+    <link nameOrigin="Paulista" nameDestination="República" idOrigin="4236712716" idDestination="60685761" />
+    <link nameOrigin="Fradique Coutinho" nameDestination="Paulista" idOrigin="167403202" idDestination="4236712716" />
+    <link nameOrigin="Faria Lima" nameDestination="Fradique Coutinho" idOrigin="173361748" idDestination="167403202" />
+    <link nameOrigin="Pinheiros" nameDestination="Faria Lima" idOrigin="2367473602" idDestination="173361748" />
+    <link nameOrigin="Butanta" nameDestination="Pinheiros" idOrigin="1664142142" idDestination="2367473602" />
+
+    <link nameOrigin="Largo Treze" nameDestination="Adolfo Pinheiro" idOrigin="2552447863" idDestination="302563666" />
+    <link nameOrigin="Santo Amaro" nameDestination="Largo Treze" idOrigin="25675254" idDestination="2552447863" />
+    <link nameOrigin="Giovanni Gronchi" nameDestination="Santo Amaro" idOrigin="3508714270" idDestination="25675254" />
+    <link nameOrigin="Vila Das Belezas" nameDestination="Giovanni Gronchi" idOrigin="1699011854" idDestination="3508714270" />
+    <link nameOrigin="Campo Limpo" nameDestination="Vila Das Belezas" idOrigin="1697017197" idDestination="1699011854" />
+    <link nameOrigin="Capão Redondo" nameDestination="Campo Limpo" idOrigin="4191831477" idDestination="1697017197" />
+
+    <link nameOrigin="Palmeiras - Barra Funda" nameDestination="Luz" idOrigin="1825091877" idDestination="457055058" />
+    <link nameOrigin="Água Branca" nameDestination="Palmeiras - Barra Funda" idOrigin="1707836311" idDestination="1825091877" />
+    <link nameOrigin="Lapa" nameDestination="Água Branca" idOrigin="293820191" idDestination="1707836311" />
+    <link nameOrigin="Piqueri" nameDestination="Lapa" idOrigin="453601428" idDestination="293820191" />
+    <link nameOrigin="Pirituba" nameDestination="Piqueri" idOrigin="2109902387" idDestination="453601428" />
+    <link nameOrigin="Vila Clarice" nameDestination="Pirituba" idOrigin="2448473366" idDestination="2109902387" />
+    <link nameOrigin="Jaraguá" nameDestination="Vila Clarice" idOrigin="2448473366" idDestination="2448473366" />
+    <link nameOrigin="Vila Aurora" nameDestination="Jaraguá" idOrigin="832264854" idDestination="2448473366" />
+    <link nameOrigin="Perus" nameDestination="Vila Aurora" idOrigin="832264854" idDestination="832264854" />
+    <link nameOrigin="Caieiras" nameDestination="Perus" idOrigin="1758396031" idDestination="832264854" />
+    <link nameOrigin="Franco Da Rocha" nameDestination="Caieiras" idOrigin="2109902387" idDestination="1758396031" />
+    <link nameOrigin="Baltazar Fidélis" nameDestination="Franco Da Rocha" idOrigin="2109902387" idDestination="2109902387" />
+    <link nameOrigin="Francisco Morato" nameDestination="Baltazar Fidélis" idOrigin="2448473366" idDestination="2109902387" />
+    <link nameOrigin="Botujuru" nameDestination="Francisco Morato" idOrigin="1758396031" idDestination="2448473366" />
+    <link nameOrigin="Campo Limpo Paulista" nameDestination="Botujuru" idOrigin="1758396031" idDestination="1758396031" />
+    <link nameOrigin="Várzea Paulista" nameDestination="Campo Limpo Paulista" idOrigin="1758396031" idDestination="1758396031" />
+    <link nameOrigin="Jundiai" nameDestination="Várzea Paulista" idOrigin="1757866669" idDestination="1758396031" />
+
+    <link nameOrigin="Palmeiras - Barra Funda" nameDestination="Júlio Prestes" idOrigin="1825091877" idDestination="60734229" />
+    <link nameOrigin="Lapa" nameDestination="Palmeiras - Barra Funda" idOrigin="293820191" idDestination="1825091877" />
+    <link nameOrigin="Domingos De Moraes" nameDestination="Lapa" idOrigin="408864658" idDestination="293820191" />
+    <link nameOrigin="Imperatriz Leopoldina" nameDestination="Domingos De Moraes" idOrigin="408935012" idDestination="408864658" />
+    <link nameOrigin="Presidente Altino" nameDestination="Imperatriz Leopoldina" idOrigin="1657874428" idDestination="408935012" />
+    <link nameOrigin="Osasco" nameDestination="Presidente Altino" idOrigin="1671355080" idDestination="1657874428" />
+    <link nameOrigin="Comandante Sampaio" nameDestination="Osasco" idOrigin="768230640" idDestination="1671355080" />
+    <link nameOrigin="Quitaúna" nameDestination="Comandante Sampaio" idOrigin="467722214" idDestination="768230640" />
+    <link nameOrigin="General Miguel Costa" nameDestination="Quitaúna" idOrigin="1602163765" idDestination="467722214" />
+    <link nameOrigin="Carapicuiba" nameDestination="General Miguel Costa" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Santa Terezinha" nameDestination="Carapicuiba" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Antonio João" nameDestination="Santa Terezinha" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Barueri" nameDestination="Antonio João" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Jardim Belval" nameDestination="Barueri" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Jardim Silveira" nameDestination="Jardim Belval" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Jandira" nameDestination="Jardim Silveira" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Sagrado Coração" nameDestination="Jandira" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Engenheiro Cardoso" nameDestination="Sagrado Coração" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Itapevi" nameDestination="Engenheiro Cardoso" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Santa Rita" nameDestination="Itapevi" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Cimenrita" nameDestination="Santa Rita" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Ambuitá" nameDestination="Cimenrita" idOrigin="1602163765" idDestination="1602163765" />
+    <link nameOrigin="Amador Bueno" nameDestination="Ambuitá" idOrigin="1602163765" idDestination="1602163765" />
+
+    <link nameOrigin="Presidente Altino" nameDestination="Osasco" idOrigin="1657874428" idDestination="1671355080" />
+    <link nameOrigin="Ceasa" nameDestination="Presidente Altino" idOrigin="292425868" idDestination="1657874428" />
+    <link nameOrigin="Villa Lobos- Jaguaré" nameDestination="Ceasa" idOrigin="4385186165" idDestination="292425868" />
+    <link nameOrigin="Cidade Universitária" nameDestination="Villa Lobos- Jaguaré" idOrigin="1986757988" idDestination="4385186165" />
+    <link nameOrigin="Pinheiros" nameDestination="Cidade Universitária" idOrigin="2367473602" idDestination="1986757988" />
+    <link nameOrigin="Hebraica - Rebouças" nameDestination="Pinheiros" idOrigin="2384667562" idDestination="2367473602" />
+    <link nameOrigin="Cidade Jardim" nameDestination="Hebraica - Rebouças" idOrigin="1389167286" idDestination="2384667562" />
+    <link nameOrigin="Vila Olímpia" nameDestination="Cidade Jardim" idOrigin="25718011" idDestination="1389167286" />
+    <link nameOrigin="Berrini" nameDestination="Vila Olímpia" idOrigin="25629443" idDestination="25718011" />
+    <link nameOrigin="Morumbi" nameDestination="Berrini" idOrigin="25641395" idDestination="25629443" />
+    <link nameOrigin="Granja Julieta" nameDestination="Morumbi" idOrigin="4411605848" idDestination="25641395" />
+    <link nameOrigin="Santo Amaro" nameDestination="Granja Julieta" idOrigin="25675254" idDestination="4411605848" />
+    <link nameOrigin="Socorro" nameDestination="Santo Amaro" idOrigin="2552447863" idDestination="25675254" />
+    <link nameOrigin="Jurubatuba" nameDestination="Socorro" idOrigin="302563666" idDestination="2552447863" />
+    <link nameOrigin="Autódromo" nameDestination="Jurubatuba" idOrigin="305664158" idDestination="302563666" />
+    <link nameOrigin="Primavera-interlagos" nameDestination="Autódromo" idOrigin="305664158" idDestination="305664158" />
+    <link nameOrigin="Grajaú" nameDestination="Primavera-interlagos" idOrigin="305664158" idDestination="305664158" />
+
+    <link nameOrigin="Moóca" nameDestination="Brás" idOrigin="1417145825" idDestination="445042814" />
+    <link nameOrigin="Ipiranga" nameDestination="Moóca" idOrigin="1417380880" idDestination="1417145825" />
+    <link nameOrigin="Tamanduateí" nameDestination="Ipiranga" idOrigin="674412889" idDestination="1417380880" />
+    <link nameOrigin="São Caetano" nameDestination="Tamanduateí" idOrigin="831543346" idDestination="674412889" />
+    <link nameOrigin="Utinga" nameDestination="São Caetano" idOrigin="3987051159" idDestination="831543346" />
+    <link nameOrigin="Prefeito Saladino" nameDestination="Utinga" idOrigin="1828170716" idDestination="3987051159" />
+    <link nameOrigin="Prefeito Celso Daniel - Santo André" nameDestination="Prefeito Saladino" idOrigin="1576355418" idDestination="1828170716" />
+    <link nameOrigin="Capuava" nameDestination="Prefeito Celso Daniel - Santo André" idOrigin="1576355001" idDestination="1576355418" />
+    <link nameOrigin="Mauá" nameDestination="Capuava" idOrigin="1576355001" idDestination="1576355001" />
+    <link nameOrigin="Guapituba" nameDestination="Mauá" idOrigin="1576355001" idDestination="1576355001" />
+    <link nameOrigin="Ribeirão Pires" nameDestination="Guapituba" idOrigin="1576355001" idDestination="1576355001" />
+    <link nameOrigin="Rio Grande Da Serra" nameDestination="Ribeirão Pires" idOrigin="1576355001" idDestination="1576355001" />
+
+    <link nameOrigin="Brás" nameDestination="Luz" idOrigin="445042814" idDestination="457055058" />
+    <link nameOrigin="Tatuapé" nameDestination="Brás" idOrigin="135613865" idDestination="445042814" />
+    <link nameOrigin="Corinthians-itaquera" nameDestination="Tatuapé" idOrigin="1650371046" idDestination="135613865" />
+    <link nameOrigin="Dom Bosco" nameDestination="Corinthians-itaquera" idOrigin="1650371046" idDestination="1650371046" />
+    <link nameOrigin="José Bonifácio" nameDestination="Dom Bosco" idOrigin="909285688" idDestination="1650371046" />
+    <link nameOrigin="Guaianazes" nameDestination="José Bonifácio" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Antonio Gianetti Neto" nameDestination="Guaianazes" idOrigin="663049652" idDestination="909285688" />
+    <link nameOrigin="Ferraz De Vasconcelos" nameDestination="Antonio Gianetti Neto" idOrigin="909285688" idDestination="663049652" />
+    <link nameOrigin="Poá" nameDestination="Ferraz De Vasconcelos" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Calmon Viana" nameDestination="Poá" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Suzano" nameDestination="Calmon Viana" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Jundiapeba" nameDestination="Suzano" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Brás Cubas" nameDestination="Jundiapeba" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Mogi Das Cruzes" nameDestination="Brás Cubas" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Estudantes" nameDestination="Mogi Das Cruzes" idOrigin="909285688" idDestination="909285688" />
+
+    <link nameOrigin="Tatuapé" nameDestination="Brás" idOrigin="135613865" idDestination="445042814" />
+    <link nameOrigin="Eng. Goulart" nameDestination="Tatuapé" idOrigin="2086999035" idDestination="135613865" />
+    <link nameOrigin="USP Leste" nameDestination="Eng. Goulart" idOrigin="909285688" idDestination="2086999035" />
+    <link nameOrigin="Comendador Ermelino" nameDestination="USP Leste" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="São Miguel Paulista" nameDestination="Comendador Ermelino" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Jardim Helena - Vila Mara" nameDestination="São Miguel Paulista" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Itaim Paulista" nameDestination="Jardim Helena - Vila Mara" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Jardim Romano" nameDestination="Itaim Paulista" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Eng Manoel Feio" nameDestination="Jardim Romano" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Itaquaquecetuba" nameDestination="Eng Manoel Feio" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Aracaré" nameDestination="Itaquaquecetuba" idOrigin="909285688" idDestination="909285688" />
+    <link nameOrigin="Calmon Viana" nameDestination="Aracaré" idOrigin="909285688" idDestination="909285688" />
+
+    <link nameOrigin="Hospital Saboia" nameDestination="Jabaquara" idOrigin="247909491" idDestination="247909491" />
+    <link nameOrigin="Cidade Leonor" nameDestination="Hospital Saboia" idOrigin="1111783726" idDestination="247909491" />
+    <link nameOrigin="Vila Babilônia" nameDestination="Cidade Leonor" idOrigin="679639448" idDestination="1111783726" />
+    <link nameOrigin="Vila Paulista" nameDestination="Vila Babilônia" idOrigin="679639448" idDestination="679639448" />
+    <link nameOrigin="Jardim Aeroporto" nameDestination="Vila Paulista" idOrigin="304960487" idDestination="679639448" />
+    <link nameOrigin="Brooklin Paulista" nameDestination="Jardim Aeroporto" idOrigin="297300411" idDestination="304960487" />
+    <link nameOrigin="José Diniz" nameDestination="Brooklin Paulista" idOrigin="302731524" idDestination="297300411" />
+    <link nameOrigin="Campo Belo" nameDestination="José Diniz" idOrigin="2578181865" idDestination="302731524" />
+    <link nameOrigin="Vila Cordeiro" nameDestination="Campo Belo" idOrigin="1111669129" idDestination="2578181865" />
+    <link nameOrigin="Chucri Zaidan" nameDestination="Vila Cordeiro" idOrigin="1107272690" idDestination="1111669129" />
+    <link nameOrigin="Morumbi" nameDestination="Chucri Zaidan" idOrigin="25641395" idDestination="1107272690" />
+    <link nameOrigin="Panamby" nameDestination="Morumbi" idOrigin="4411605851" idDestination="25641395" />
+    <link nameOrigin="Paraisópolis" nameDestination="Panamby" idOrigin="2951364448" idDestination="4411605851" />
+    <link nameOrigin="Américo Maurano" nameDestination="Paraisópolis" idOrigin="3358127152" idDestination="2951364448" />
+    <link nameOrigin="Estádio Morumbi" nameDestination="Américo Maurano" idOrigin="1986730595" idDestination="3358127152" />
+    <link nameOrigin="São Paulo - Morumbi" nameDestination="Estádio Morumbi" idOrigin="1741005300" idDestination="1986730595" />
+
+  </links>
+</metro>
