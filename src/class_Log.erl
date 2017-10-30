@@ -51,7 +51,7 @@ construct( State, ?wooper_construct_parameters ) ->
 					   Publish,
 					   #amqp_msg{ payload = <<"<events version=\"1.0\">\n">> }),
 
-	ActorState = class_Actor:construct( State, ActorSettings, LogName ),
+	ActorState = class_Actor:construct( State, ActorSettings, "log" ),
 
 	filelib:ensure_dir( LogName ),
 	InitFile = file_utils:open( LogName , _Opts=[ write , delayed_write ] ),
