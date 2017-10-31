@@ -5,6 +5,7 @@
 % For all facilities common to all tests:
 -include("test_constructs.hrl").
 
+
 % for each vertex is necessary to save its out links
 create_map_list([] , _Graph , List) ->
 	List;
@@ -230,13 +231,11 @@ run() ->
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
 	spaw_proccess( List , ListVertex , CityGraph , { LogPID , MetroActor , ParkActor , CityActor } ),
-
-	ok = collectResults(Names),
+ 
+	ok = collectResults( Names ),
 
 	create_buses( ListBuses , dict:from_list( ListVertex ) , CityGraph , LogPID  ),
 
-	% We want this test to end once a specified virtual duration elapsed, in
-	% seconds:
 	SimulationDuration = element( 1 , string:to_integer(element( 2 , Config ) ) ),
 
 	DeploymentManagerPid ! { getRootTimeManager, [], self() },
@@ -265,5 +264,3 @@ run() ->
 	sim_diasca:shutdown(),
 
 	?test_stop.
-
-

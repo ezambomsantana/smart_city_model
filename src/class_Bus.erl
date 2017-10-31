@@ -216,7 +216,7 @@ move( State , Path , Position , IdBus , InitialVertice , _Bus , _CurrentTickOffs
 			VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
 				
 			class_Actor:send_actor_message( VertexPID ,
-				{ getSpeedBus, { Vertices , IdBus } }, State );
+				{ get_speed_bus, { Vertices , IdBus } }, State );
 
 		false ->							
 					

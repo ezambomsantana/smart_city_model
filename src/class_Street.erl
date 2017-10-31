@@ -18,7 +18,7 @@
 		 construct/4, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, wait_bus/3, load_people/3 , getSpeedBus/3 , getSpeedCar/3 , getSpeedWalk/3 ).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, wait_bus/3, load_people/3 , get_speed_bus/3 , get_speed_car/3 , get_speed_walk/3, decrement_vertex_count/3 ).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -118,7 +118,7 @@ load_people( State , LineBus , BusPID ) ->
 
 	
 	
-getSpeedBus( State , Data , CarPID ) ->
+get_speed_bus( State , Data , CarPID ) ->
 
 	LinkId = element( 1 , Data ),
 	BusId = element( 2 , Data ),
@@ -160,7 +160,7 @@ getSpeedBus( State , Data , CarPID ) ->
 	class_Actor:send_actor_message( CarPID,
 	 	{ go, { Id , round( Time ) , BusId } }, NewState ).
 
-getSpeedCar( State , Data , CarPID ) ->
+get_speed_car( State , Data , CarPID ) ->
 
 	LinkId = element( 1 , Data ),
 
@@ -173,7 +173,7 @@ getSpeedCar( State , Data , CarPID ) ->
 	Freespeed = element( 4 , Element ), 	
 	NumberCars = element( 5 , Element ), 
 
-	NewDict = dict:store(LinkId , { Id , Length , Capacity , Freespeed , NumberCars  + 1 } , Dict ),
+	NewDict = dict:store( LinkId , { Id , Length , Capacity , Freespeed , NumberCars  + 1 } , Dict ),
 
 	% Calculate car speed
 	Density = (NumberCars + 1) / Length ,
@@ -202,7 +202,7 @@ getSpeedCar( State , Data , CarPID ) ->
 	 	{ go, { Id , round( Time ) , round ( Length ) } }, NewState ).
 
 
-getSpeedWalk( State , Data , CarPID ) ->
+get_speed_walk( State , Data , CarPID ) ->
 
 	LinkId = element( 1 , Data ),
 
@@ -216,6 +216,26 @@ getSpeedWalk( State , Data , CarPID ) ->
 
 	class_Actor:send_actor_message( CarPID,
 	 	{ go, { Id , round( Time ) , round ( Length ) } }, State ).
+
+decrement_vertex_count( State , Data , _CarPID ) ->
+
+
+	LinkId = element( 1 , Data ),
+
+	Dict = getAttribute( State, dict ),
+
+	Element = element ( 2 , dict:find( LinkId , Dict )),
+	Id = element( 1 , Element ), % Link Id
+	Length = element( 2 , Element ), % Link Length	
+	Capacity = element( 3 , Element ),
+	Freespeed = element( 4 , Element ), 	
+	NumberCars = element( 5 , Element ), 
+
+	NewDict = dict:store( LinkId , { Id , Length , Capacity , Freespeed , NumberCars  - 1 } , Dict ),
+
+	setAttribute( State , dict , NewDict ).
+
+
 
 
 % Simply schedules this just created actor at the next tick (diasca 0).

@@ -155,27 +155,26 @@ request_position( State , Trip ) ->
 
 					DictVertices = getAttribute( PathState , dict ),
 
-					%the mode that the person will make the trip, walking or by car
 					Mode = element( 1 , Trip ),
 
 					VertexPID = dict:find( InitialVertice , DictVertices),
 					
 					Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] )),
 
-					FinalState = setAttribute( PathState , path, list_utils:remove_element_at( Path , 1 ) ), % remove the current element of the path
+					FinalState = setAttributes( PathState , [ { path, list_utils:remove_element_at( Path , 1 ) } , {last_vertex_pid , { element( 2 , VertexPID ) , Vertices } } ]  ), % remove the current element of the path
 
 					case Mode  of
 
 						"walk" ->
 							
 							class_Actor:send_actor_message( element( 2 , VertexPID ) ,
-								{ getSpeedWalk, { Vertices } }, FinalState );
+								{ get_speed_walk, { Vertices } }, FinalState );
 
 						_ ->
 
 							
 							class_Actor:send_actor_message( element( 2 , VertexPID ) ,
-								{ getSpeedCar, { Vertices } }, FinalState )
+								{ get_speed_car, { Vertices } }, FinalState )
 
 					end;
 
@@ -211,25 +210,7 @@ request_position( State , Trip ) ->
 
 									end,
 									
-									TotalLength = getAttribute( NewState , distance ),
-
-									Mode = element( 1 , Trip ),	
-
-									CostState = case Mode of
-
-										"car" ->
-					
-											Cost = TotalLength / 1000 * 0.70, 
-
-											setAttribute( NewState , cost , Cost );	
-
-										_ ->
-	
-											NewState
-
-									end,			
-		
-									FinalState = setAttribute( CostState, path, finish ),
+									FinalState = setAttribute( NewState, path, finish ),
 
 									executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
 								find ->
@@ -288,11 +269,19 @@ go( State, PositionTime , _GraphPID) ->
 
 	% Calculate the total distance that the person moved until now.
 	TotalLength = getAttribute( State , distance ) + element( 3 , PositionTime),
-	LengthState = setAttributes( State , [ { distance , TotalLength } , { car_position , element( 1 , PositionTime ) } ] ),
-		
-%	TripIndex = getAttribute( State , trip_index ), 
+	LengthState = setAttributes( State , [ { distance , TotalLength } , { car_position , element( 1 , PositionTime ) } ] ), 
 
-%	Trips = getAttribute( State , trips ), 
+	Mode = getAttribute( LengthState , mode ),
+
+	NewState = case Mode  of
+
+		"car" ->
+			VertexPID = getAttribute( LengthState , last_vertex_pid ),
+			class_Actor:send_actor_message( element( 1 , VertexPID ) ,
+								{ decrement_vertex_count, { element( 2 , VertexPID) } }, LengthState );
+		_ ->
+			LengthState
+	end,
 	
 %	CurrentTrip = list_utils:get_element_at( Trips , TripIndex ),
 
@@ -313,7 +302,7 @@ go( State, PositionTime , _GraphPID) ->
 
 	%end,
 
-	executeOneway( LengthState , addSpontaneousTick , TotalTime ).
+	executeOneway( NewState , addSpontaneousTick , TotalTime ).
 
 
 % Simply schedules this just created actor at the next tick (diasca 0).
