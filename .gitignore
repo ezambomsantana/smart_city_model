@@ -1,3 +1,4 @@
+src/launch-erl-input-command*
 src/*.beam
 src/*.trace
 src/*.swp
