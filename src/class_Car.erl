@@ -162,54 +162,60 @@ request_position( State , Trip ) ->
 
 						false ->
 
-							NewState = case element( 1 , Trip ) of % mode
-
-								"car" ->							
-		
-		
-									RemovePID = getAttribute( State , last_vertex_pid ),
-									class_Actor:send_actor_message( element( 1 , RemovePID ) ,
-									 { decrement_vertex_count, { element( 2 , RemovePID) } }, State );
-								_ ->		
-									State
-
-							end,	
-
-							Park = getAttribute( NewState , park ),
-
-							ParkStatus = getAttribute( NewState , park_status ),
-
-							Parking = getAttribute( NewState , parking ),
-
-							case ParkStatus of
-
-								finish ->
-
-									NewNewState = case Park of
-
-										ok ->
-		
-											NewState;
-
-										_ -> class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , NewState )
-
-									end,
-									
-									FinalState = setAttribute( NewNewState, path, finish ),
-
-									executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
-								find ->
-
-            								class_Actor:send_actor_message( Parking, { spot_available, { Park } } , NewState )
-
-							end
-
-
+							verify_park( PathState , Trip , CurrentTickOffset )
+					
 					end
 
 			end
 
 	end.
+
+verify_park( State , Trip , CurrentTickOffset ) ->
+
+	NewState = case element( 1 , Trip ) of % mode
+
+		"car" ->							
+		
+			RemovePID = getAttribute( State , last_vertex_pid ),
+	
+			class_Actor:send_actor_message( element( 1 , RemovePID ) ,
+				 { decrement_vertex_count, { element( 2 , RemovePID) } }, State );
+		_ ->		
+			State
+
+	end,	
+
+	Park = getAttribute( NewState , park ),
+
+	ParkStatus = getAttribute( NewState , park_status ),
+
+	Parking = getAttribute( NewState , parking ),
+
+	case ParkStatus of
+
+		finish ->
+
+			NewNewState = case Park of
+
+				ok ->
+		
+					NewState;
+
+				_ -> class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , NewState )
+	
+			end,
+									
+			FinalState = setAttribute( NewNewState, path, finish ),
+
+			executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
+		find ->
+
+			class_Actor:send_actor_message( Parking, { spot_available, { Park } } , NewState )
+
+	end.
+
+
+
 
 get_next_vertex( State , Path , Trip ) ->
 
