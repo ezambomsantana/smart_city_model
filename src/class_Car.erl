@@ -237,8 +237,10 @@ get_next_vertex( State , Path , Trip ) ->
 	case Mode  of
 
 		"walk" ->							
+
 			class_Actor:send_actor_message( element( 2 , VertexPID ) ,
 				{ get_speed_walk, { Vertices } }, FinalState );
+
 		_ ->		
 
 			RemovePID = getAttribute( FinalState , last_vertex_pid ),

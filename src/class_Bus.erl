@@ -53,7 +53,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ buses_time , dict:new() },
 		{ people_bus_stop , dict:new() },
 		{ already_passed_bus_stop , dict:new() },
-		{ stops , DictStops }
+		{ stops , DictStops },
+		{ last_vertex_pid , ok }
 						] ).
 create_dict_stops( [] , Dict ) ->
 
@@ -182,8 +183,17 @@ request_position( State , Bus ) ->
 
 					VertexPID = element( 2 , dict:find( InitialVertice , DictVertices )),	
 				
+					RemovePID = getAttribute( NewState , last_vertex_pid ),
+					FinalState = case RemovePID of
+						ok ->
+							NewState;
+						_ ->
+							class_Actor:send_actor_message( element( 1 , RemovePID ) ,
+									{ decrement_vertex_count, { element( 2 , RemovePID) } }, NewState )
+					end,
+
 					class_Actor:send_actor_message( VertexPID ,
-						{ load_people , { BusLine , IdBus } }, NewState );
+						{ load_people , { BusLine , IdBus } }, FinalState );
 
 				true ->
 
