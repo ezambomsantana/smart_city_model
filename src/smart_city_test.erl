@@ -105,7 +105,7 @@ spaw_proccess( [ List | MoreLists ] , ListVertex , CityGraph , CityActors ) ->
 	Name = element( 1 , List ),
 	ListTrips = element( 2 , List ),
 
-	spawn(create_agents, iterate_list , [ 1 , dict:from_list( ListVertex ) , ListTrips , CityGraph , Name , CityActors , self() ]),
+	spawn(create_agents, iterate_list , [ 1 , dict:from_list( ListVertex ) , ListTrips , CityGraph , Name , CityActors , self() , [] ]),
 	spaw_proccess( MoreLists  , ListVertex , CityGraph , CityActors ).
 
 
@@ -226,7 +226,7 @@ run() ->
 		class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots , LogPID ] )
 	end,
 
-	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" ],
+	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" , "car7" , "car8" , "car9" , "car10" , "car11"  ],
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 

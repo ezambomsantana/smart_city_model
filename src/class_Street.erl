@@ -145,7 +145,7 @@ get_speed_bus( State , Data , CarPID ) ->
 
 		true ->
 
-			Freespeed * (math:pow ( 1 - math:pow((Density) / MaximumDensity , 0.05), 1) + 1);
+			(Freespeed * (math:pow ( 1 - math:pow((Density) / MaximumDensity , 0.05), 1) + 1));
 
 		false ->
 		
@@ -169,25 +169,37 @@ get_speed_car( State , Data , CarPID ) ->
 	Element = element ( 2 , dict:find( LinkId , Dict )),
 	Id = element( 1 , Element ), % Link Id
 	Length = element( 2 , Element ), % Link Length	
-	Capacity = element( 3 , Element ),
+	Capacity = element( 3 , Element )  / 2,
 	Freespeed = element( 4 , Element ), 	
 	NumberCars = element( 5 , Element ), 
 
-	NewDict = dict:store( LinkId , { Id , Length , Capacity , Freespeed , NumberCars  + 1 } , Dict ),
+	NewDict = dict:store( LinkId , { Id , Length , element( 3 , Element ) , Freespeed , NumberCars  + 1 } , Dict ),
 
 	% Calculate car speed
-	Density = (NumberCars + 1) / Length ,
+	Density = (NumberCars + 1) ,
 
-	MaximumDensity = Capacity / Length ,
+	MaximumDensity = Capacity ,
 
-	MinimumDensity = (Capacity / 2) / Length ,
+	MinimumDensity = (Capacity / 2) 	 ,
 
 	Speed = case Density > MinimumDensity of
 
 		true ->
 
-			Freespeed * (math:pow ( 1 - math:pow((Density) / MaximumDensity , 0.05), 1) + 1);
+			case Density >= MaximumDensity of
 
+				true ->
+					1.2;
+				false ->
+			
+					Number = math:pow(Density / MaximumDensity , 1),
+					Number2 = math:pow ( 1 - Number, 0.3),
+
+					SP = Freespeed * (Number2),
+
+					SP
+			end;
+			
 		false ->
 		
 			Freespeed 
@@ -218,7 +230,6 @@ get_speed_walk( State , Data , CarPID ) ->
 	 	{ go, { Id , round( Time ) , round ( Length ) } }, State ).
 
 decrement_vertex_count( State , Data , _CarPID ) ->
-
 
 	LinkId = element( 1 , Data ),
 
