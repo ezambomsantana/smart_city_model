@@ -58,7 +58,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ city , element ( 4 , PID ) },
 		{ park , Park },
 		{ park_status , ParkStatus },
-		{ mode , Mode }
+		{ mode , Mode },
+		{ last_vertex_pid , ok }
 						] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
@@ -92,7 +93,6 @@ actSpontaneous( State ) ->
 					executeOneway( FinalState, scheduleNextSpontaneousTick )
 
 				end;
-
 
 		true ->
 
@@ -148,35 +148,7 @@ request_position( State , Trip ) ->
 
 				true ->	
 
-					% get the current and the next vertex in the path	
-					InitialVertice = list_utils:get_element_at( Path , 1 ),
-
-					FinalVertice = list_utils:get_element_at( Path , 2 ),
-
-					DictVertices = getAttribute( PathState , dict ),
-
-					Mode = element( 1 , Trip ),
-
-					VertexPID = dict:find( InitialVertice , DictVertices),
-					
-					Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] )),
-
-					FinalState = setAttributes( PathState , [ { path, list_utils:remove_element_at( Path , 1 ) } , {last_vertex_pid , { element( 2 , VertexPID ) , Vertices } } ]  ), % remove the current element of the path
-
-					case Mode  of
-
-						"walk" ->
-							
-							class_Actor:send_actor_message( element( 2 , VertexPID ) ,
-								{ get_speed_walk, { Vertices } }, FinalState );
-
-						_ ->
-
-							
-							class_Actor:send_actor_message( element( 2 , VertexPID ) ,
-								{ get_speed_car, { Vertices } }, FinalState )
-
-					end;
+					get_next_vertex( PathState , Path , Trip );
 
 				false ->							
 
@@ -188,34 +160,47 @@ request_position( State , Trip ) ->
 							
 							executeOneway( PathState , declareTermination );	
 
-						false ->	
+						false ->
 
-							Park = getAttribute( State , park ),
+							NewState = case element( 1 , Trip ) of % mode
 
-							ParkStatus = getAttribute( State , park_status ),
+								"car" ->							
+		
+		
+									RemovePID = getAttribute( State , last_vertex_pid ),
+									class_Actor:send_actor_message( element( 1 , RemovePID ) ,
+									 { decrement_vertex_count, { element( 2 , RemovePID) } }, State );
+								_ ->		
+									State
 
-							Parking = getAttribute( State , parking ),
+							end,	
+
+							Park = getAttribute( NewState , park ),
+
+							ParkStatus = getAttribute( NewState , park_status ),
+
+							Parking = getAttribute( NewState , parking ),
 
 							case ParkStatus of
 
 								finish ->
 
-									NewState = case Park of
+									NewNewState = case Park of
 
 										ok ->
 		
-											State;
+											NewState;
 
-										_ -> class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , State )
+										_ -> class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , NewState )
 
 									end,
 									
-									FinalState = setAttribute( NewState, path, finish ),
+									FinalState = setAttribute( NewNewState, path, finish ),
 
 									executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
 								find ->
 
-            								class_Actor:send_actor_message( Parking, { spot_available, { Park } } , State )
+            								class_Actor:send_actor_message( Parking, { spot_available, { Park } } , NewState )
 
 							end
 
@@ -224,6 +209,45 @@ request_position( State , Trip ) ->
 
 			end
 
+	end.
+
+get_next_vertex( State , Path , Trip ) ->
+
+	% get the current and the next vertex in the path	
+	InitialVertice = list_utils:get_element_at( Path , 1 ),
+
+	FinalVertice = list_utils:get_element_at( Path , 2 ),
+
+	DictVertices = getAttribute( State , dict ),
+
+	Mode = element( 1 , Trip ),
+
+	VertexPID = dict:find( InitialVertice , DictVertices),
+					
+	Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] )),
+
+	FinalState = setAttribute( State , path , list_utils:remove_element_at( Path , 1 ) ),
+
+	case Mode  of
+
+		"walk" ->							
+			class_Actor:send_actor_message( element( 2 , VertexPID ) ,
+				{ get_speed_walk, { Vertices } }, FinalState );
+		_ ->		
+
+			RemovePID = getAttribute( FinalState , last_vertex_pid ),
+			FinalState2 = case RemovePID of
+				ok ->
+					FinalState;
+				_ ->
+					class_Actor:send_actor_message( element( 1 , RemovePID ) ,
+							{ decrement_vertex_count, { element( 2 , RemovePID) } }, FinalState )
+			end,
+
+			FinalStateCar = setAttribute( FinalState2 , last_vertex_pid , { element( 2 , VertexPID ) , Vertices } ),
+					
+			class_Actor:send_actor_message( element( 2 , VertexPID ) ,
+				{ get_speed_car, { Vertices } }, FinalStateCar )
 	end.
 
 get_parking_spot( State , IdNode , _ParkingPID ) ->
@@ -263,7 +287,7 @@ set_new_path( State , NewPath , _CityPID ) ->
         request_position( StateDict , CurrentTrip ).
 
 -spec go( wooper:state(), car_position() , parameter() ) -> class_Actor:actor_oneway_return().
-go( State, PositionTime , _GraphPID) ->
+go( State, PositionTime , _GraphPID ) ->
 
 	TotalTime = class_Actor:get_current_tick_offset( State ) + element( 2 , PositionTime ), % CurrentTime + Time to pass the link
 
@@ -271,18 +295,6 @@ go( State, PositionTime , _GraphPID) ->
 	TotalLength = getAttribute( State , distance ) + element( 3 , PositionTime),
 	LengthState = setAttributes( State , [ { distance , TotalLength } , { car_position , element( 1 , PositionTime ) } ] ), 
 
-	Mode = getAttribute( LengthState , mode ),
-
-	NewState = case Mode  of
-
-		"car" ->
-			VertexPID = getAttribute( LengthState , last_vertex_pid ),
-			class_Actor:send_actor_message( element( 1 , VertexPID ) ,
-								{ decrement_vertex_count, { element( 2 , VertexPID) } }, LengthState );
-		_ ->
-			LengthState
-	end,
-	
 %	CurrentTrip = list_utils:get_element_at( Trips , TripIndex ),
 
 	%FinalState = case LastPosition == -1 of
@@ -302,7 +314,7 @@ go( State, PositionTime , _GraphPID) ->
 
 	%end,
 
-	executeOneway( NewState , addSpontaneousTick , TotalTime ).
+	executeOneway( LengthState , addSpontaneousTick , TotalTime ).
 
 
 % Simply schedules this just created actor at the next tick (diasca 0).
