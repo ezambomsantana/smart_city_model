@@ -127,7 +127,7 @@ request_position( State , Trip ) ->
 
 		ok -> 
 			
-			PathTrip = element( 5 , Trip ),
+			PathTrip = element( 2 , Trip ),
 			setAttribute( State, path, PathTrip );
 
 		_ ->
@@ -327,7 +327,7 @@ go( State, PositionTime , _GraphPID ) ->
 
 	%	true -> 
 
-	%		LinkOrigin = element( 3 , CurrentTrip ),
+	%		LinkOrigin = element( 3 , CurrentTrip ), if it return, it is necessary to change the create_agents.erl
 
 	%		write_initial_message( NewState , CurrentTickOffset , CarId , LinkOrigin , NewPosition , Type )
 	   

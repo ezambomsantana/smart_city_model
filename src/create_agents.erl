@@ -37,7 +37,7 @@ create_person( CarCount , ListVertex ,  Car , Graph , _Path ) ->
 	Origin = element ( 1 , Car ),
 	Destination = element ( 2 , Car ),
 	StartTime = element( 1 , string:to_integer( element ( 4 , Car ) ) ) +  class_RandomManager:get_uniform_value( 200 ),
-	LinkOrigin = element ( 5 , Car ),
+	% LinkOrigin = element ( 5 , Car ),
 	Type = element ( 6 , Car ),
 	Mode = element ( 7 , Car ),
 	NameFile = element ( 8 , Car ),
@@ -55,7 +55,9 @@ create_person( CarCount , ListVertex ,  Car , Graph , _Path ) ->
 
 	ListVertexPath = get_path_nodes( NewPath , ListVertex , [] ),
 
-	ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , NewPath , Park } ],
+	%ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , NewPath } ],
+
+	ListTripsFinal = [ { ModeFinal , NewPath } ],
 
 	[ { StartTime , [ { NameFile , ListVertexPath , ListTripsFinal , StartTime , Type , Park , ModeFinal , CarCount } ] } ].
 
