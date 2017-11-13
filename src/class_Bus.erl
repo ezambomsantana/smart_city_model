@@ -233,11 +233,6 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 			NewDictBuses = dict:store( IdBus , NewBus , Buses ),
 
 			FinalBusState = setAttribute( FinalState , buses , NewDictBuses ),
-
-
-
-
-
 				
 			class_Actor:send_actor_message( VertexPID ,
 				{ get_speed_bus, { Vertices , IdBus } }, FinalBusState );
@@ -248,7 +243,16 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 
 			StartTime = list_utils:get_element_at( Bus , 3 ),
 
-			print:write_final_message_bus( State , CurrentTickOffset , IdBus , LastPosition , StartTime , ?getAttr(log_pid) , csv )
+			RemovePID = list_utils:get_element_at( Bus , 5 ),
+			FinalState = case RemovePID of
+				ok ->
+					State;
+				_ ->
+					class_Actor:send_actor_message( element( 1 , RemovePID ) ,
+									{ decrement_vertex_count, { element( 2 , RemovePID) } }, State )
+			end,
+
+			print:write_final_message_bus( FinalState , CurrentTickOffset , IdBus , LastPosition , StartTime , ?getAttr(log_pid) , csv )
 
 	end.
 

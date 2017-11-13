@@ -8,33 +8,31 @@
 
 % Init the XML processing
 
-iterate_list( _ListCount, _ListVertex , [] , _Graph , Name , _CityActors , MainPID , FinalList ) -> 
+iterate_list( _ListCount, _ListVertex , [] , _Graph , Name , CityActors , MainPID , FinalList ) -> 
 
 	class_Actor:create_initial_actor( class_CarManager,
-		[ Name , FinalList ] ),
-
-
+		[ Name , FinalList , CityActors ] ),
 
 	MainPID ! { Name };
 
-iterate_list( ListCount, ListVertex , [ Car | MoreCars] , Graph , Name , CityActors , MainPID , FinalList ) ->
+iterate_list( ListCount, ListVertex , [ Car | MoreCars] , Graph , Name , _CityActors , MainPID , FinalList ) ->
 
 	Count = element ( 3 , Car ),
 
 	Element = case size( Car ) == 9 of
 
 		true ->
-			create_person( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , false , CityActors );
+			create_person( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , false );
 
 		false ->			
-			create_person_multi_trip( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , CityActors )
+			create_person_multi_trip( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph )
 
 	end,
 
-	iterate_list( ListCount + 1, ListVertex , MoreCars , Graph , Name , CityActors , MainPID , FinalList ++ Element ).
+	iterate_list( ListCount + 1, ListVertex , MoreCars , Graph , Name , _CityActors , MainPID , FinalList ++ Element ).
 
 
-create_person( CarCount , ListVertex ,  Car , Graph , _Path , CityActors ) ->
+create_person( CarCount , ListVertex ,  Car , Graph , _Path ) ->
 
 	Origin = element ( 1 , Car ),
 	Destination = element ( 2 , Car ),
@@ -59,11 +57,11 @@ create_person( CarCount , ListVertex ,  Car , Graph , _Path , CityActors ) ->
 
 	ListTripsFinal = [ { ModeFinal , Origin , LinkOrigin , Destination , NewPath , Park } ],
 
-	[ { StartTime , [ { NameFile , ListVertexPath , ListTripsFinal , StartTime , Type , Park , ModeFinal , CityActors , CarCount } ] } ].
+	[ { StartTime , [ { NameFile , ListVertexPath , ListTripsFinal , StartTime , Type , Park , ModeFinal , CarCount } ] } ].
 
 
 
-create_person_multi_trip( CarCount , ListVertex ,  Car , Graph  , CityActors ) ->
+create_person_multi_trip( CarCount , ListVertex ,  Car , Graph  ) ->
 
 	StartTime = element( 1 , string:to_integer( element ( 1 , Car ) ) ) + class_RandomManager:get_uniform_value( 200 ),
 	Type = element ( 2 , Car ),
@@ -73,7 +71,7 @@ create_person_multi_trip( CarCount , ListVertex ,  Car , Graph  , CityActors ) -
 	
 	{ ListTripsFinal , ListVertexPath } = create_single_trip( ListTrips , [] , Graph , [] , ListVertex ),
 
-	[ { StartTime , [ { NameFile , ListVertexPath , ListTripsFinal , StartTime , Type , ok , Mode , CityActors , CarCount } ] } ].
+	[ { StartTime , [ { NameFile , ListVertexPath , ListTripsFinal , StartTime , Type , ok , Mode , CarCount } ] } ].
 
 
 

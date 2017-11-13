@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName , CarList ).
+-define( wooper_construct_parameters, ActorSettings, CarName , CarList , CityActors ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/3, new_link/3,
-		 synchronous_new/3, synchronous_new_link/3,
-		 synchronous_timed_new/3, synchronous_timed_new_link/3,
-		 remote_new/4, remote_new_link/4, remote_synchronous_new/4,
-		 remote_synchronous_new_link/4, remote_synchronisable_new_link/4,
-		 remote_synchronous_timed_new/4, remote_synchronous_timed_new_link/4,
-		 construct/4, destruct/1 ).
+-define( wooper_construct_export, new/4, new_link/4,
+		 synchronous_new/4, synchronous_new_link/4,
+		 synchronous_timed_new/4, synchronous_timed_new_link/4,
+		 remote_new/5, remote_new_link/5, remote_synchronous_new/5,
+		 remote_synchronous_new_link/5, remote_synchronisable_new_link/5,
+		 remote_synchronous_timed_new/5, remote_synchronous_timed_new_link/5,
+		 construct/5, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2 ).
@@ -29,7 +29,7 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), parameter() ) -> wooper:state().
+				class_Actor:name() , parameter() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
@@ -37,7 +37,8 @@ construct( State, ?wooper_construct_parameters ) ->
         DictCars = create_dict( dict:new() , CarList ),
 
 	setAttributes( ActorState, [
-		{ car_list, DictCars }
+		{ car_list, DictCars },
+		{ city_actors, CityActors }
 						] ).
 
 create_dict( Dict , [] ) ->
@@ -91,8 +92,8 @@ init_cars( [ Car | Cars ] , State ) ->
 	Type = element( 5 , Car ),
 	Park = element( 6 , Car ),
 	Mode = element( 7 , Car ),
-	CityActors = element( 8 , Car ),
-	Count = element( 9 , Car ),	
+	CityActors = getAttribute( State , city_actors ),
+	Count = element( 8 , Car ),	
 
 	NewState = case Mode of
 
