@@ -91,7 +91,7 @@ actSpontaneous( State ) ->
 		
 			NewState = setAttribute( State, next_bus , { CurrentTickOffset + Interval , element( 2 , NextBus ) + 1 } ),
 
-			Bus = [ 1 , Id , CurrentTickOffset , -1 ], % Current Position, Id, Start_time, Last Position
+			Bus = [ 1 , Id , CurrentTickOffset , -1 , ok ], % Current Position, Id, Start_time, Last Position
 
 			NewDict = dict:store( Id , Bus , Buses ),
 
@@ -182,18 +182,9 @@ request_position( State , Bus ) ->
 					DictVertices = getAttribute( NewState , dict ),
 
 					VertexPID = element( 2 , dict:find( InitialVertice , DictVertices )),	
-				
-					RemovePID = getAttribute( NewState , last_vertex_pid ),
-					FinalState = case RemovePID of
-						ok ->
-							NewState;
-						_ ->
-							class_Actor:send_actor_message( element( 1 , RemovePID ) ,
-									{ decrement_vertex_count, { element( 2 , RemovePID) } }, NewState )
-					end,
 
 					class_Actor:send_actor_message( VertexPID ,
-						{ load_people , { BusLine , IdBus } }, FinalState );
+						{ load_people , { BusLine , IdBus } }, NewState );
 
 				true ->
 
@@ -224,9 +215,32 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 			Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] ) ),
 
 			VertexPID = element( 2 , dict:find( InitialVertice , DictVertices)),	
+
+
+			RemovePID = list_utils:get_element_at( Bus , 5 ),
+			FinalState = case RemovePID of
+				ok ->
+					State;
+				_ ->
+					class_Actor:send_actor_message( element( 1 , RemovePID ) ,
+									{ decrement_vertex_count, { element( 2 , RemovePID) } }, State )
+			end,
+
+			Buses = getAttribute( FinalState , buses ),
+
+			NewBus = [ list_utils:get_element_at( Bus , 1 ) , list_utils:get_element_at( Bus , 2 ) , list_utils:get_element_at( Bus , 3 ), list_utils:get_element_at( Bus , 4 ) , { VertexPID , Vertices } ],
+	
+			NewDictBuses = dict:store( IdBus , NewBus , Buses ),
+
+			FinalBusState = setAttribute( FinalState , buses , NewDictBuses ),
+
+
+
+
+
 				
 			class_Actor:send_actor_message( VertexPID ,
-				{ get_speed_bus, { Vertices , IdBus } }, State );
+				{ get_speed_bus, { Vertices , IdBus } }, FinalBusState );
 
 		false ->							
 				
@@ -382,7 +396,7 @@ go( State, PositionTime , _GraphPID ) ->
 
 	end,
 
-	NewBus = [ list_utils:get_element_at( Bus , 1 ) + 1 , list_utils:get_element_at( Bus , 2 ) , list_utils:get_element_at( Bus , 3 ), NewPosition ],
+	NewBus = [ list_utils:get_element_at( Bus , 1 ) + 1 , list_utils:get_element_at( Bus , 2 ) , list_utils:get_element_at( Bus , 3 ), NewPosition , list_utils:get_element_at( Bus , 5 ) ],
 	
 	NewDictBuses = dict:store( BusId , NewBus , Buses ),
 

@@ -6,11 +6,13 @@
         ]).
 
 
-write_final_message( State , Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , LogPID , Mode , csv ) ->
+write_final_message( State , _Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , LogPID , _Mode , csv ) ->
 
 	TotalTime =   CurrentTickOffset - StartTime, 	
 
-	Arrival = io_lib:format( "~w;arrival;~s;~s;~s;~w;~w;~s\n", [ CurrentTickOffset , CarId ,  LastPosition, Mode , TotalTime , TotalLength , Type ] ),
+%	Arrival = io_lib:format( "~w;arrival;~s;~s;~s;~w;~w;~s\n", [ CurrentTickOffset , CarId ,  LastPosition, Mode , TotalTime , TotalLength , Type ] ),
+
+	Arrival = io_lib:format( "~w;arrival;~s;~s;~w;~w\n", [ CurrentTickOffset , CarId ,  LastPosition, TotalTime , TotalLength ] ),
 
 	class_Actor:send_actor_message( LogPID , { receive_action, { Arrival } }, State );
 
@@ -138,7 +140,7 @@ write_final_message_bus( State , CurrentTickOffset , BusId , LastPosition , Star
 
 	TotalTime =   CurrentTickOffset - StartTime, 	
 
-	Arrival = io_lib:format( "~w;arrival;~s;~s;~w\n", [ CurrentTickOffset , BusId ,  LastPosition , TotalTime ] ),
+	Arrival = io_lib:format( "~w;arrival;~s;~s;~w;0\n", [ CurrentTickOffset , BusId ,  LastPosition , TotalTime ] ),
 
 	class_Actor:send_actor_message( LogPID , { receive_action, { Arrival } }, State ).
 
