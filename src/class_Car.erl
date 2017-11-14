@@ -36,14 +36,7 @@ construct( State, ?wooper_construct_parameters ) ->
 
         DictVertices = dict:from_list( ListVertex ),
 
-	ParkStatus = case Park of
-		ok ->
-			finish;
-		_ ->
-			find
-	end,
-
-	setAttributes( ActorState, [
+	NewState = setAttributes( ActorState, [
 		{ car_name, CarName },
 		{ dict , DictVertices },
 		{ trips , ListTripsFinal },
@@ -53,13 +46,21 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ car_position, -1 },
 		{ start_time , StartTime },
 		{ path , ok },
-		{ parking , element ( 3 , PID ) },
-		{ city , element ( 4 , PID ) },
 		{ park , Park },
-		{ park_status , ParkStatus },
 		{ mode , Mode },
 		{ last_vertex_pid , ok }
-						] ).
+						] ),
+
+	case Park of
+		ok ->
+			setAttribute( NewState , park_status , finish );
+		_ ->
+			setAttributes( NewState , [
+				{ parking , element ( 3 , PID ) },
+				{ city , element ( 4 , PID ) },
+				{ park_status , find }
+						])
+	end.
 
 -spec destruct( wooper:state() ) -> wooper:state().
 destruct( State ) ->
@@ -202,8 +203,6 @@ verify_park( State , Trip , CurrentTickOffset ) ->
 
 	ParkStatus = getAttribute( NewState , park_status ),
 
-	Parking = getAttribute( NewState , parking ),
-
 	case ParkStatus of
 
 		finish ->
@@ -214,7 +213,10 @@ verify_park( State , Trip , CurrentTickOffset ) ->
 		
 					NewState;
 
-				_ -> class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , NewState )
+				_ ->
+					
+					Parking = getAttribute( NewState , parking ),
+					class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , NewState )
 	
 			end,
 									
@@ -223,6 +225,7 @@ verify_park( State , Trip , CurrentTickOffset ) ->
 			executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
 		find ->
 
+			Parking = getAttribute( NewState , parking ),
 			class_Actor:send_actor_message( Parking, { spot_available, { Park } } , NewState )
 
 	end.
