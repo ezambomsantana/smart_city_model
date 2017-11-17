@@ -12,7 +12,7 @@ create_map_list([] , _Graph , List) ->
 
 create_map_list([Element | MoreElements] , Graph , List) ->
 	
-	{_E, _V1, _V2, _Label} = digraph:edge( Graph , Element ),
+	{_, _V1, _V2, _Label} = digraph:edge( Graph , Element ),
 
 	Id = element( 1 , _Label),
 	Length = element( 1 , string:to_float(element( 2 , _Label))), % Link Length	
@@ -141,9 +141,8 @@ readConfigPath() ->
 -spec run() -> no_return().
 run() ->	
 
-
 	?test_start,
-
+	
 	% Use default simulation settings (50Hz, batch reproducible):
 	SimulationSettings = #simulation_settings{
 
@@ -249,6 +248,8 @@ run() ->
 	?test_info( "Waiting for the simulation to end, "
 				"since having been declared as a simulation listener." ),
 
+
+
 	receive
 
 		simulation_stopped ->
@@ -261,6 +262,8 @@ run() ->
 	?test_info( "Browsing the report results, if in batch mode." ),
 	class_ResultManager:browse_reports(),
 
-	sim_diasca:shutdown(),
+
+
+
 
 	?test_stop.

@@ -151,9 +151,8 @@ get_speed_bus( State , Data , CarPID ) ->
 					1.2;
 				false ->
 			
-					Number = math:pow(Density / MaximumDensity , 1),
-					Number2 = math:pow ( 1 - Number, 0.3),
-					Freespeed * (Number2)
+					Number = math:pow ( 1 - ( Density / MaximumDensity ) , 0.5),
+					Freespeed * (Number)
 	
 			end;
 			
@@ -202,9 +201,8 @@ get_speed_car( State , Data , CarPID ) ->
 					1.2;
 				false ->
 			
-					Number = math:pow(Density / MaximumDensity , 1),
-					Number2 = math:pow ( 1 - Number, 0.3),
-					Freespeed * (Number2)
+					Number = math:pow ( 1 - ( Density / MaximumDensity ) , 0.5),
+					Freespeed * (Number)
 	
 			end;
 			
