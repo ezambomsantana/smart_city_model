@@ -61,8 +61,10 @@ create_buses( [ Bus | Buses ] , ListVertex , CityGraph , LogPID  ) ->
 
 	ListVertexPath = create_agents:get_path_nodes( Path , ListVertex , [] ),
 
+	FinalStartTime = string:to_integer( StartTime ) - 600 + class_RandomManager:get_uniform_value( 1200 ),
+
 	class_Actor:create_initial_actor( class_Bus,
-		[ Id , ListVertexPath , Path , element( 1 , string:to_integer( StartTime )) , Interval , LogPID , Stops ] ),
+		[ Id , ListVertexPath , Path , FinalStartTime , Interval , LogPID , Stops ] ),
 
 	create_buses( Buses , ListVertex , CityGraph , LogPID  ).
 

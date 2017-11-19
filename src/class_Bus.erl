@@ -90,19 +90,16 @@ actSpontaneous( State ) ->
 			NewInterval = case Time1 and Time2 of
 				true -> trunc( Interval / 2 );
 				false -> 
-					Time3 = CurrentTickOffset > 21600,
-					Time4 = CurrentTickOffset < 32400,	
+					Time3 = CurrentTickOffset > 61200,
+					Time4 = CurrentTickOffset < 72000,	
 					case Time3 and Time4 of
 						true -> trunc( Interval / 2 );
 						false -> Interval
 					end
 			end,
 
-			io:format("Current Time ~w Interval ~w" , [CurrentTickOffset , NewInterval ] ),
-
 			Id = io_lib:format( "~s~B", [ getAttribute( State , bus_name ) , element( 2 , NextBus ) ] ),
 			
-
 			Buses = getAttribute( State , buses ), 
 		
 			NewState = setAttribute( State, next_bus , { CurrentTickOffset + NewInterval , element( 2 , NextBus ) + 1 } ),
