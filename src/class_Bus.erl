@@ -82,14 +82,30 @@ actSpontaneous( State ) ->
 	BusState = case CurrentTickOffset == element( 1 , NextBus ) of
 
 		true ->
-
-			Id = io_lib:format( "~s~B", [ getAttribute( State , bus_name ) , element( 2 , NextBus ) ] ),
 			
 			Interval = getAttribute( State , interval ), 
 
+			Time1 = CurrentTickOffset > 21600,
+			Time2 = CurrentTickOffset < 32400,
+			NewInterval = case Time1 and Time2 of
+				true -> trunc( Interval / 2 );
+				false -> 
+					Time3 = CurrentTickOffset > 21600,
+					Time4 = CurrentTickOffset < 32400,	
+					case Time3 and Time4 of
+						true -> trunc( Interval / 2 );
+						false -> Interval
+					end
+			end,
+
+			io:format("Current Time ~w Interval ~w" , [CurrentTickOffset , NewInterval ] ),
+
+			Id = io_lib:format( "~s~B", [ getAttribute( State , bus_name ) , element( 2 , NextBus ) ] ),
+			
+
 			Buses = getAttribute( State , buses ), 
 		
-			NewState = setAttribute( State, next_bus , { CurrentTickOffset + Interval , element( 2 , NextBus ) + 1 } ),
+			NewState = setAttribute( State, next_bus , { CurrentTickOffset + NewInterval , element( 2 , NextBus ) + 1 } ),
 
 			Bus = [ 1 , Id , CurrentTickOffset , -1 , ok ], % Current Position, Id, Start_time, Last Position
 
@@ -99,7 +115,7 @@ actSpontaneous( State ) ->
 
 			FinalState = request_position( NewDictState , Bus ),
 			
-			executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + Interval );	
+			executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + NewInterval );	
 
 		_ ->
 
@@ -223,7 +239,7 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 					State;
 				_ ->
 					class_Actor:send_actor_message( element( 1 , RemovePID ) ,
-									{ decrement_vertex_count, { element( 2 , RemovePID) } }, State )
+									{ decrement_vertex_count, { element( 2 , RemovePID) , bus } }, State )
 			end,
 
 			Buses = getAttribute( FinalState , buses ),
@@ -249,7 +265,7 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 					State;
 				_ ->
 					class_Actor:send_actor_message( element( 1 , RemovePID ) ,
-									{ decrement_vertex_count, { element( 2 , RemovePID) } }, State )
+									{ decrement_vertex_count, { element( 2 , RemovePID) , bus } }, State )
 			end,
 
 			print:write_final_message_bus( FinalState , CurrentTickOffset , IdBus , LastPosition , StartTime , ?getAttr(log_pid) , csv )

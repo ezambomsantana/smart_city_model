@@ -193,7 +193,7 @@ verify_park( State , Trip , CurrentTickOffset ) ->
 			RemovePID = getAttribute( State , last_vertex_pid ),
 	
 			class_Actor:send_actor_message( element( 1 , RemovePID ) ,
-				 { decrement_vertex_count, { element( 2 , RemovePID) } }, State );
+				 { decrement_vertex_count, { element( 2 , RemovePID) , car } }, State );
 		_ ->		
 			State
 
@@ -265,7 +265,7 @@ get_next_vertex( State , Path , Trip ) ->
 					FinalState;
 				_ ->
 					class_Actor:send_actor_message( element( 1 , RemovePID ) ,
-							{ decrement_vertex_count, { element( 2 , RemovePID) } }, FinalState )
+							{ decrement_vertex_count, { element( 2 , RemovePID) , car } }, FinalState )
 			end,
 
 			FinalStateCar = setAttribute( FinalState2 , last_vertex_pid , { element( 2 , VertexPID ) , Vertices } ),

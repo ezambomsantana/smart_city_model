@@ -132,14 +132,14 @@ get_speed_bus( State , Data , CarPID ) ->
 	Freespeed = element( 4 , Element ), 	
 	NumberCars = element( 5 , Element ), 
 
-	NewDict = dict:store(LinkId , { Id , Length , Capacity , Freespeed , NumberCars  + 1 } , Dict ),
+	NewDict = dict:store(LinkId , { Id , Length , Capacity , Freespeed , NumberCars  + 3 } , Dict ),
 
 	% Calculate car speed
-	Density = (NumberCars + 1) / Length ,
+	Density = ( NumberCars + 3 ),
 
-	MaximumDensity = Capacity / Length ,
+	MaximumDensity = Capacity,
 
-	MinimumDensity = (Capacity / 2) / Length ,
+	MinimumDensity = (Capacity * 0.3) ,
 
 	Speed = case Density > MinimumDensity of
 
@@ -148,10 +148,10 @@ get_speed_bus( State , Data , CarPID ) ->
 			case Density >= MaximumDensity of
 
 				true ->
-					1.2;
+					0.8;
 				false ->
 			
-					Number = math:pow ( 1 - ( Density / MaximumDensity ) , 0.5),
+					Number = math:pow ( 1 - ( Density / MaximumDensity ) , 0.7),
 					Freespeed * (Number)
 	
 			end;
@@ -185,11 +185,11 @@ get_speed_car( State , Data , CarPID ) ->
 	NewDict = dict:store( LinkId , { Id , Length , element( 3 , Element ) , Freespeed , NumberCars  + 1 } , Dict ),
 
 	% Calculate car speed
-	Density = (NumberCars + 1) ,
+	Density = ( NumberCars + 1 ) ,
 
 	MaximumDensity = Capacity ,
 
-	MinimumDensity = (Capacity / 2) 	 ,
+	MinimumDensity = (Capacity * 0.3) 	 ,
 
 	Speed = case Density > MinimumDensity of
 
@@ -198,10 +198,10 @@ get_speed_car( State , Data , CarPID ) ->
 			case Density >= MaximumDensity of
 
 				true ->
-					1.2;
+					0.8;
 				false ->
 			
-					Number = math:pow ( 1 - ( Density / MaximumDensity ) , 0.5),
+					Number = math:pow ( 1 - ( Density / MaximumDensity ) , 0.6),
 					Freespeed * (Number)
 	
 			end;
@@ -238,6 +238,7 @@ get_speed_walk( State , Data , CarPID ) ->
 decrement_vertex_count( State , Data , _CarPID ) ->
 
 	LinkId = element( 1 , Data ),
+	Vehicle = element( 2 , Data ),
 
 	Dict = getAttribute( State, dict ),
 
@@ -246,13 +247,14 @@ decrement_vertex_count( State , Data , _CarPID ) ->
 	Length = element( 2 , Element ), % Link Length	
 	Capacity = element( 3 , Element ),
 	Freespeed = element( 4 , Element ), 	
-	NumberCars = element( 5 , Element ), 
+	NumberCars = element( 5 , Element ),
 
-	NewDict = dict:store( LinkId , { Id , Length , Capacity , Freespeed , NumberCars  - 1 } , Dict ),
+	NewDict = case Vehicle of
+		car -> dict:store( LinkId , { Id , Length , Capacity , Freespeed , NumberCars  - 1 } , Dict );
+		bus -> dict:store( LinkId , { Id , Length , Capacity , Freespeed , NumberCars  - 3 } , Dict )
+	end,
 
 	setAttribute( State , dict , NewDict ).
-
-
 
 
 % Simply schedules this just created actor at the next tick (diasca 0).
