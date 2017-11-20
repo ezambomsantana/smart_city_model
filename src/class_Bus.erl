@@ -90,8 +90,8 @@ actSpontaneous( State ) ->
 			NewInterval = case Time1 and Time2 of
 				true -> trunc( Interval / 2 );
 				false -> 
-					Time3 = CurrentTickOffset > 61200,
-					Time4 = CurrentTickOffset < 72000,	
+					Time3 = CurrentTickOffset > 59400,
+					Time4 = CurrentTickOffset < 70800,	
 					case Time3 and Time4 of
 						true -> trunc( Interval / 2 );
 						false -> Interval
