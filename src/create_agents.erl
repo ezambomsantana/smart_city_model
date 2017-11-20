@@ -36,7 +36,13 @@ create_person( CarCount , ListVertex ,  Car , Graph , _Path ) ->
 
 	Origin = element ( 1 , Car ),
 	Destination = element ( 2 , Car ),
-	StartTime = element( 1 , string:to_integer( element ( 4 , Car ) ) ) +  class_RandomManager:get_uniform_value( 200 ),
+	
+	ST = element( 1 , string:to_integer( element ( 4 , Car ) ) ),
+	StartTime = case ST > 600 of
+		true -> ST - 600;
+		false -> ST
+	end,
+
 	% LinkOrigin = element ( 5 , Car ),
 	Type = element ( 6 , Car ),
 	Mode = element ( 7 , Car ),
@@ -65,7 +71,11 @@ create_person( CarCount , ListVertex ,  Car , Graph , _Path ) ->
 
 create_person_multi_trip( CarCount , ListVertex ,  Car , Graph  ) ->
 
-	StartTime = element( 1 , string:to_integer( element ( 1 , Car ) ) ) + class_RandomManager:get_uniform_value( 200 ),
+	ST = element( 1 , string:to_integer( element ( 4 , Car ) ) ),
+	StartTime = case ST > 600 of
+		true -> ST - 600;
+		false -> ST
+	end,
 	Type = element ( 2 , Car ),
 	ListTrips = element ( 4 , Car ),
 	NameFile = element ( 5 , Car ),
