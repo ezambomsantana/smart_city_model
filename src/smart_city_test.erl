@@ -227,7 +227,7 @@ run() ->
 		class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots , LogPID ] )
 	end,
 
-	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" , "car7" , "car8" , "car9" , "car10" , "car11"  ],
+	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" , "car7" , "car8"  ],
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
@@ -250,8 +250,6 @@ run() ->
 	?test_info( "Waiting for the simulation to end, "
 				"since having been declared as a simulation listener." ),
 
-
-
 	receive
 
 		simulation_stopped ->
@@ -263,9 +261,5 @@ run() ->
 
 	?test_info( "Browsing the report results, if in batch mode." ),
 	class_ResultManager:browse_reports(),
-
-
-
-
 
 	?test_stop.
