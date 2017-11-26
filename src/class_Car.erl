@@ -129,7 +129,7 @@ request_position( State , Trip ) ->
 		ok -> 
 			
 			PathTrip = element( 2 , Trip ),
-			setAttribute( State, path, PathTrip );
+			setAttribute( State, path , PathTrip );
 
 		_ ->
 
@@ -220,7 +220,7 @@ verify_park( State , Trip , CurrentTickOffset ) ->
 	
 			end,
 									
-			FinalState = setAttribute( NewNewState, path, finish ),
+			FinalState = setAttribute( NewNewState, path , finish ),
 
 			executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
 		find ->

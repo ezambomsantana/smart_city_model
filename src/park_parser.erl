@@ -7,11 +7,11 @@
 % osm_parser:show("map.osm").
 
 -export([
-         show/1
+         read_xml/1, read_csv/1
         ]).
 
 % Init the XML processing
-show(Infilename) ->
+read_xml( Infilename ) ->
     {Doc, _Misc} = xmerl_scan:file(Infilename),
     init(Doc).
 
@@ -105,3 +105,22 @@ extract_children( Node , Type ) ->
 	    end;
             _ -> ok
     end.
+
+read_csv( FileName ) ->
+    { ok , Device } = file:open( FileName , read),
+    read_line( file:read_line(Device) , Device , [] ).
+
+
+read_line( eof , _Device , List ) ->
+   List;
+
+read_line( {ok, Data} , Device , List ) ->
+
+   Text = string:chomp(Data),
+   TextSplit = string:split( Text ,  ";" , all ),
+   Element = [ { 
+	lists:nth( 1 , TextSplit ) , 
+	lists:nth( 2 , TextSplit )
+   } ], 
+
+   read_line( file:read_line(Device) , Device , List ++ Element ).
