@@ -107,20 +107,23 @@ extract_children( Node , Type ) ->
     end.
 
 read_csv( FileName ) ->
-    { ok , Device } = file:open( FileName , read),
-    read_line( file:read_line(Device) , Device , [] ).
+
+    {ok, Bin} = file:open(FileName, [ read , raw , { read_ahead , 40000 } ]),
+    read_line( 1 , Bin , [] ).
 
 
-read_line( eof , _Device , List ) ->
-   List;
+read_line( Count , File , List ) ->
+    case file:read_line(File) of
+        {ok, Data} -> 
+            Text = string:chomp(Data),
+            TextSplit = string:split( Text ,  ";" , all ),
+            Element = [ { 
+        	lists:nth( 1 , TextSplit ) , 
+	        lists:nth( 2 , TextSplit )
+            } ], 
 
-read_line( {ok, Data} , Device , List ) ->
+            read_line( Count +1 , File , List ++ Element );
 
-   Text = string:chomp(Data),
-   TextSplit = string:split( Text ,  ";" , all ),
-   Element = [ { 
-	lists:nth( 1 , TextSplit ) , 
-	lists:nth( 2 , TextSplit )
-   } ], 
+        eof        -> List
+    end.
 
-   read_line( file:read_line(Device) , Device , List ++ Element ).

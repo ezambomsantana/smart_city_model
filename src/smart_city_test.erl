@@ -194,7 +194,10 @@ run() ->
 
 	ListBuses = bus_parser:show( element( 6 , Config ) ), % Read the list of buses. TODO: verify if this configurition does not exist.
 
-	ParkSpots = park_parser:read_xml( element( 7 , Config ) ), 
+	io:format("read parks"),
+	ParkSpots = park_parser:read_csv( element( 7 , Config ) ), 
+	io:format("spots ~w", [ ParkSpots ] ),
+
 
 	% create the vertices actors
 	ListVertex  = create_street_list( CityGraph ),
