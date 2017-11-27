@@ -3,7 +3,7 @@
 -module(smart_city_test).
 
 % For all facilities common to all tests:
--include("test_constructs.hrl").
+-include("test_constructs.hrl").	
 
 
 % for each vertex is necessary to save its out links
@@ -194,7 +194,7 @@ run() ->
 
 	ListBuses = bus_parser:show( element( 6 , Config ) ), % Read the list of buses. TODO: verify if this configurition does not exist.
 
-	ParkSpots = park_parser:show( element( 7 , Config ) ), 
+	ParkSpots = park_parser:read_xml( element( 7 , Config ) ), 
 
 	% create the vertices actors
 	ListVertex  = create_street_list( CityGraph ),
