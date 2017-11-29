@@ -107,7 +107,7 @@ spaw_proccess( [ List | MoreLists ] , ListVertex , CityGraph , CityActors ) ->
 	Name = element( 1 , List ),
 	ListTrips = element( 2 , List ),
 
-	spawn(create_agents, iterate_list , [ 1 , dict:from_list( ListVertex ) , ListTrips , CityGraph , Name , CityActors , self() , [] ]),
+	spawn( create_agents, iterate_list , [ 1 , dict:from_list( ListVertex ) , ListTrips , CityGraph , Name , CityActors , self() , [] ]),
 	spaw_proccess( MoreLists  , ListVertex , CityGraph , CityActors ).
 
 
@@ -196,8 +196,6 @@ run() ->
 
 	io:format("read parks"),
 	ParkSpots = park_parser:read_csv( element( 7 , Config ) ), 
-	io:format("spots ~w", [ ParkSpots ] ),
-
 
 	% create the vertices actors
 	ListVertex  = create_street_list( CityGraph ),
