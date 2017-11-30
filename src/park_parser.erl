@@ -108,8 +108,12 @@ extract_children( Node , Type ) ->
 
 read_csv( FileName ) ->
 
-    {ok, Bin} = file:open(FileName, [ read , raw , { read_ahead , 40000 } ]),
-    read_line( 1 , Bin , [] ).
+    case file:open(FileName, [ read , raw , { read_ahead , 40000 } ]) of
+	{ ok , Bin } -> read_line( 1 , Bin , [] );
+	{ error , _ } -> ok
+    end.
+
+    
 
 
 read_line( Count , File , List ) ->

@@ -315,30 +315,38 @@ go( State, PositionTime , _GraphPID ) ->
 
 	TotalTime = class_Actor:get_current_tick_offset( State ) + element( 2 , PositionTime ), % CurrentTime + Time to pass the link
 
+	LastPosition = getAttribute( State , car_position ),
 	% Calculate the total distance that the person moved until now.
 	TotalLength = getAttribute( State , distance ) + element( 3 , PositionTime),
 	LengthState = setAttributes( State , [ { distance , TotalLength } , { car_position , element( 1 , PositionTime ) } ] ), 
+	NewPosition = getAttribute( State , car_position ),
 
-%	CurrentTrip = list_utils:get_element_at( Trips , TripIndex ),
+	Trips = getAttribute( LengthState , trips ), 
 
-	%FinalState = case LastPosition == -1 of
+	CurrentTrip = list_utils:get_element_at( Trips , 1 ),
 
-	%	false ->
+	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 	
+	CarId = getAttribute( State , car_name ),
+  	Type = getAttribute( State , type ),
+
+	FinalState = case LastPosition == -1 of
+
+		false ->
 			
-	%		write_movement_car_message( NewState , CurrentTickOffset , CarId , LastPosition , NewPosition , Type );
+			print:write_movement_car_message( LengthState , CarId , LastPosition , Type , ?getAttr(log_pid) , CurrentTickOffset , NewPosition , csv  );
+ 
 
+		true -> 
 
-	%	true -> 
+			LinkOrigin = element( 3 , CurrentTrip ), % if it return, it is necessary to change the create_agents.erl
 
-	%		LinkOrigin = element( 3 , CurrentTrip ), if it return, it is necessary to change the create_agents.erl
-
-	%		write_initial_message( NewState , CurrentTickOffset , CarId , LinkOrigin , NewPosition , Type )
+			print:write_initial_message( LengthState , ?getAttr(log_pid) , CarId , Type , CurrentTickOffset , LinkOrigin , LastPosition , csv )
 	   
 
 
-	%end,
+	end,
 
-	executeOneway( LengthState , addSpontaneousTick , TotalTime ).
+	executeOneway( FinalState , addSpontaneousTick , TotalTime ).
 
 
 % Simply schedules this just created actor at the next tick (diasca 0).

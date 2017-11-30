@@ -42,9 +42,9 @@ write_final_message( State , Type , TotalLength , StartTime , CarId , CurrentTic
 
 
 %%%% START MESSAGE %%%%
-write_initial_message( State , LogPID , CarId , _Type , CurrentTickOffset , _LinkOrigin , NewPosition , csv ) ->
+write_initial_message( State , LogPID , CarId , _Type , CurrentTickOffset , LinkOrigin , _NewPosition , csv ) ->
 
-	Start = io_lib:format( "~w;start;~s;~s;\n", [ CurrentTickOffset , CarId ,  NewPosition ] ),
+	Start = io_lib:format( "~w;start;~s;~s\n", [ CurrentTickOffset , CarId ,  LinkOrigin 	 ] ),
 
 	class_Actor:send_actor_message( LogPID, { receive_action, { Start } }, State );
 
@@ -76,7 +76,7 @@ write_movement_car_message( State , CarId , LastPosition , Type , LogPID , Curre
 
 write_movement_car_message( State , CarId , _LastPosition , _Type , LogPID , CurrentTickOffset , NewPosition , csv ) ->
 
-	Move = io_lib:format( "~w;move;~s;~s;\n", [ CurrentTickOffset , CarId ,  NewPosition ] ),
+	Move = io_lib:format( "~w;move;~s;~s\n", [ CurrentTickOffset , CarId ,  atom_to_list( NewPosition ) ] ),
 
 	class_Actor:send_actor_message( LogPID,	{ receive_action, { Move } }, State ).
 
