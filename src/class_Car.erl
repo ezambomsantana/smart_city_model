@@ -319,7 +319,7 @@ go( State, PositionTime , _GraphPID ) ->
 	% Calculate the total distance that the person moved until now.
 	TotalLength = getAttribute( State , distance ) + element( 3 , PositionTime),
 	LengthState = setAttributes( State , [ { distance , TotalLength } , { car_position , element( 1 , PositionTime ) } ] ), 
-	NewPosition = getAttribute( State , car_position ),
+	NewPosition = getAttribute( LengthState , car_position ),
 
 	Trips = getAttribute( LengthState , trips ), 
 
