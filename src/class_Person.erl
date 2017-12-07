@@ -185,7 +185,9 @@ request_position_metro( State , Trip ) ->
 -spec metro_go( wooper:state(), value(), pid() ) -> class_Actor:actor_oneway_return().
 metro_go( State, PositionTime , _GraphPID ) ->
 
-	TotalTime = class_Actor:get_current_tick_offset( State ) + element( 1 , PositionTime ), % CurrentTime + Time to pass the link
+	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
+
+	TotalTime = CurrentTickOffset + element( 1 , PositionTime ), % CurrentTime + Time to pass the link
 
 	Trips = getAttribute( State , trips ), 
 	
@@ -195,9 +197,11 @@ metro_go( State, PositionTime , _GraphPID ) ->
 
 	PositionState = setAttributes( State , [ { car_position, list_to_atom( Destination ) } , { pt_status , finish } ] ),
 
-	% FinalState = write_movement_metro_message( StatusState , CurrentTickOffset , Destination ),
+	CarId = getAttribute( PositionState , car_name ),
+  	Type = getAttribute( PositionState , type ),
+	FinalState = print:write_movement_bus_metro_message( PositionState , CurrentTickOffset , 0 , CarId , Type , Destination , bus , ?getAttr(log_pid) , csv ),
 
-	executeOneway( PositionState , addSpontaneousTick, TotalTime ).
+	executeOneway( FinalState , addSpontaneousTick, TotalTime ).
 
 -spec bus_go( wooper:state(), value(), pid() ) -> class_Actor:actor_oneway_return().
 bus_go( State, _PositionTime , _GraphPID ) ->
@@ -213,9 +217,12 @@ bus_go( State, _PositionTime , _GraphPID ) ->
 
 	PositionState = setAttributes( State , [ { car_position, list_to_atom( Destination ) } , { pt_status , finish } ] ),
 
-	%FinalState = write_movement_bus_message( StatusState , CurrentTickOffset , CarId , LastPosition , Destination , CarId , Type ),
+	CarId = getAttribute( PositionState , car_name ),
+  	Type = getAttribute( PositionState , type ),
 
-	executeOneway( PositionState , addSpontaneousTick, CurrentTickOffset + 1 ).
+	FinalState = print:write_movement_bus_metro_message( PositionState , CurrentTickOffset , 0 , CarId , Type , Destination , bus , ?getAttr(log_pid) , csv ),
+
+	executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 ).
 
 
 
