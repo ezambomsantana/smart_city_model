@@ -71,7 +71,8 @@ create_person( CarCount , ListVertex ,  Car , Graph , _Path ) ->
 
 create_person_multi_trip( CarCount , ListVertex ,  Car , Graph  ) ->
 
-	ST = element( 1 , string:to_integer( element ( 4 , Car ) ) ),
+	io:format("teste ~w", [ element( 1 , Car ) ] ),
+	ST = element( 1 , string:to_integer( element ( 1 , Car ) ) ),
 	StartTime = case ST > 800 of
 		true -> ST - 800 + class_RandomManager:get_uniform_value( 200 );
 		false -> ST + class_RandomManager:get_uniform_value( 200 )

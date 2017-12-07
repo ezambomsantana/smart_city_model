@@ -338,7 +338,7 @@ go( State, PositionTime , _GraphPID ) ->
 
 		true -> 
 
-			LinkOrigin = element( 3 , CurrentTrip ), % if it return, it is necessary to change the create_agents.erl
+			LinkOrigin = element( 3 , CurrentTrip ), 
 
 			print:write_initial_message( LengthState , ?getAttr(log_pid) , CarId , Type , CurrentTickOffset , LinkOrigin , LastPosition , csv )
 	   
