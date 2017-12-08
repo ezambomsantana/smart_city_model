@@ -392,24 +392,21 @@ go( State, PositionTime , _GraphPID ) ->
 	Bus = element( 2 , dict:find( BusId , Buses ) ), % dict:find returns { ok , Object }
 
 	LastPosition = list_utils:get_element_at( Bus , 4 ),
-		
+
 	LogState = case LastPosition == -1 of
 
 		false ->
-
-			%write_movement_message( State , CurrentTickOffset , BusId , LastPosition , NewPosition , BusId );
-
-			State;
 			
+			print:write_movement_car_message( State , BusId , LastPosition , "bus" , ?getAttr(log_pid) , CurrentTickOffset , NewPosition , csv  );
+ 
 
 		true -> 
 
-			%LinkOrigin = "1", % getAttribute( State , link_origin ), 
+			LinkOrigin = "1", % getAttribute( State , link_origin ), 
 
-			%write_initial_message( State , CurrentTickOffset , BusId , LinkOrigin , NewPosition )	   
+			print:write_initial_message( State , ?getAttr(log_pid) , BusId , "bus" , CurrentTickOffset , LinkOrigin , LastPosition , csv )
+	   
 
-			State
-   			
 
 	end,
 
