@@ -66,7 +66,7 @@ get_path( State, Data , PersonPID ) ->
 
 	GraphPID = getAttribute( State , dict ),
 
-	Path = digraph:get_short_path( Graph , InitialVertice , list_to_atom( FinalVertice ) ),
+	Path = digraph:get_path( Graph , InitialVertice , list_to_atom( FinalVertice ) ),
 
 	PathNode = get_path_nodes( Path , GraphPID , [] ),
 

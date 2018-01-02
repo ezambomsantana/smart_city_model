@@ -199,9 +199,7 @@ verify_park( State , Trip , CurrentTickOffset ) ->
 
 	end,	
 
-	Park = getAttribute( NewState , park ),
-
-	ParkStatus = getAttribute( NewState , park_status ),
+	{ Park , ParkStatus } = { getAttribute( NewState , park ), getAttribute( NewState , park_status ) },
 
 	case ParkStatus of
 
@@ -236,9 +234,7 @@ verify_park( State , Trip , CurrentTickOffset ) ->
 get_next_vertex( State , Path , Trip ) ->
 
 	% get the current and the next vertex in the path	
-	InitialVertice = list_utils:get_element_at( Path , 1 ),
-
-	FinalVertice = list_utils:get_element_at( Path , 2 ),
+	{ InitialVertice , FinalVertice } = { lists:nth( 1 , Path ) , lists:nth( 2 , Path ) },
 
 	DictVertices = getAttribute( State , dict ),
 
@@ -286,11 +282,9 @@ get_parking_spot( State , IdNode , _ParkingPID ) ->
 
     	     _ ->
 
-		Path = getAttribute( State , path ),
+		{ Path , City } = { getAttribute( State , path ), getAttribute( State , city ) },
 
-		CurrentVertice = list_utils:get_element_at( Path , 1 ),
-
-		City = getAttribute( State , city ), 
+		CurrentVertice = lists:nth( 1 , Path ),
 
 		class_Actor:send_actor_message( City , { get_path, { CurrentVertice , Node } } , State )
 
@@ -319,15 +313,11 @@ go( State, PositionTime , _GraphPID ) ->
 	% Calculate the total distance that the person moved until now.
 	TotalLength = getAttribute( State , distance ) + element( 3 , PositionTime),
 	LengthState = setAttributes( State , [ { distance , TotalLength } , { car_position , element( 1 , PositionTime ) } ] ), 
-	NewPosition = getAttribute( LengthState , car_position ),
 
-	Trips = getAttribute( LengthState , trips ), 
-
-	CurrentTrip = list_utils:get_element_at( Trips , 1 ),
-
-	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 	
-	CarId = getAttribute( State , car_name ),
-  	Type = getAttribute( State , type ),
+	{ Trips , CurrentTickOffset , CarId , Type , NewPosition }
+             = { getAttribute( LengthState , trips ), class_Actor:get_current_tick_offset( State ) , 
+                 getAttribute( State , car_name ) , getAttribute( State , type ) , getAttribute( LengthState , car_position ) },
+	CurrentTrip =  lists:nth( 1 , Trips ),
 
 	FinalState = case LastPosition == -1 of
 
