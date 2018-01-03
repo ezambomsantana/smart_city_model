@@ -7,10 +7,10 @@
 
 
 % for each vertex is necessary to save its out links
-create_map_list([] , _Graph , List) ->
+create_map_list([] , _Graph , List ) ->
 	List;
 
-create_map_list([Element | MoreElements] , Graph , List) ->
+create_map_list([Element | MoreElements] , Graph , List ) ->
 	
 	{_, _V1, _V2, _Label} = digraph:edge( Graph , Element ),
 
@@ -172,9 +172,6 @@ run() ->
 							enable_performance_tracker = false
 
 						   },
-
-
-
 
 	% Default load balancing settings (round-robin placement heuristic):
 	LoadBalancingSettings = #load_balancing_settings{},

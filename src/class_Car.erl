@@ -5,7 +5,7 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName, ListVertex , ListTripsFinal , StartTime , Type , Park , Mode , PID ).
+-define( wooper_construct_parameters, ActorSettings, CarName, _ListVertex , ListTripsFinal , StartTime , Type , Park , Mode , PID ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
@@ -34,11 +34,8 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
 
-        DictVertices = dict:from_list( ListVertex ),
-
 	NewState = setAttributes( ActorState, [
 		{ car_name, CarName },
-		{ dict , DictVertices },
 		{ trips , ListTripsFinal },
 		{ log_pid, element ( 1 , PID ) },
 		{ type, Type },
@@ -236,11 +233,9 @@ get_next_vertex( State , Path , Trip ) ->
 	% get the current and the next vertex in the path	
 	{ InitialVertice , FinalVertice } = { lists:nth( 1 , Path ) , lists:nth( 2 , Path ) },
 
-	DictVertices = getAttribute( State , dict ),
-
 	Mode = element( 1 , Trip ),
-
-	VertexPID = dict:find( InitialVertice , DictVertices),
+	
+	VertexPID = ets:lookup_element(list_vertex, InitialVertice, 2 ),
 					
 	Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] )),
 
@@ -250,7 +245,7 @@ get_next_vertex( State , Path , Trip ) ->
 
 		"walk" ->							
 
-			class_Actor:send_actor_message( element( 2 , VertexPID ) ,
+			class_Actor:send_actor_message( VertexPID ,
 				{ get_speed_walk, { Vertices } }, FinalState );
 
 		_ ->		
@@ -264,9 +259,9 @@ get_next_vertex( State , Path , Trip ) ->
 							{ decrement_vertex_count, { element( 2 , RemovePID) , car } }, FinalState )
 			end,
 
-			FinalStateCar = setAttribute( FinalState2 , last_vertex_pid , { element( 2 , VertexPID ) , Vertices } ),
+			FinalStateCar = setAttribute( FinalState2 , last_vertex_pid , { VertexPID , Vertices } ),
 					
-			class_Actor:send_actor_message( element( 2 , VertexPID ) ,
+			class_Actor:send_actor_message( VertexPID ,
 				{ get_speed_car, { Vertices } }, FinalStateCar )
 	end.
 
@@ -294,9 +289,7 @@ set_new_path( State , NewPath , _CityPID ) ->
 
 	Path = element( 1 , NewPath ), 
 
-	DictNewVertices = dict:from_list( element( 2 , NewPath ) ),
-
-	StateDict = setAttributes( State , [ { dict , DictNewVertices } , { path , Path } , { park_status , finish } ] ),
+	StateDict = setAttributes( State , [ { path , Path } , { park_status , finish } ] ),
 
 	Trips = getAttribute( StateDict , trips ), 
 

@@ -34,6 +34,15 @@
 				class_Actor:name() , sensor_type() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
+
+
+	case ets:info(list_vertex) of
+		undefined -> ets:new(list_vertex, [public, set, named_table]);
+                _ -> ok
+        end,
+
+	ets:insert(list_vertex, {list_to_atom(StreetName), self() }),
+
         DictVertices = dict:from_list( ListVertex ),
 
 	ActorState = class_Actor:construct( State, ActorSettings, StreetName ),
