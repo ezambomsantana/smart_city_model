@@ -49,8 +49,8 @@ create_street_list([Element | MoreElements] , List , Graph) ->
 	create_street_list( MoreElements , List ++ NewElement , Graph ).
 
 
-create_buses( [] , _ListVertex , _CityGraph , _LogPID  ) -> ok;
-create_buses( [ Bus | Buses ] , ListVertex , CityGraph , LogPID  ) -> 
+create_buses( [] , _CityGraph , _LogPID  ) -> ok;
+create_buses( [ Bus | Buses ] , CityGraph , LogPID  ) -> 
 
 	Id = element( 1 , Bus ),
 	Interval = element( 2 , Bus ),
@@ -59,14 +59,12 @@ create_buses( [ Bus | Buses ] , ListVertex , CityGraph , LogPID  ) ->
 
 	Path = calculate_bus_path( Stops , CityGraph , [] ),
 
-	ListVertexPath = create_agents:get_path_nodes( Path , ListVertex , [] ),
-
 	FinalStartTime = element( 1 , string:to_integer( StartTime ) ) - 600 + class_RandomManager:get_uniform_value( 1200 ),
 
 	class_Actor:create_initial_actor( class_Bus,
-		[ Id , ListVertexPath , Path , FinalStartTime , Interval , LogPID , Stops ] ),
+		[ Id , Path , FinalStartTime , Interval , LogPID , Stops ] ),
 
-	create_buses( Buses , ListVertex , CityGraph , LogPID  ).
+	create_buses( Buses , CityGraph , LogPID  ).
 
 calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 
@@ -233,7 +231,7 @@ run() ->
  
 	ok = collectResults( Names ),
 
-	create_buses( ListBuses , dict:from_list( ListVertex ) , CityGraph , LogPID  ),
+	create_buses( ListBuses , CityGraph , LogPID  ),
 
 	SimulationDuration = element( 1 , string:to_integer(element( 2 , Config ) ) ),
 
