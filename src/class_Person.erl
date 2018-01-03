@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName, ListVertex , ListTripsFinal , StartTime , Type , Mode , PID ).
+-define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Mode , PID ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/8, new_link/8,
-		 synchronous_new/8, synchronous_new_link/8,
-		 synchronous_timed_new/8, synchronous_timed_new_link/8,
-		 remote_new/9, remote_new_link/9, remote_synchronous_new/9,
-		 remote_synchronous_new_link/9, remote_synchronisable_new_link/9,
-		 remote_synchronous_timed_new/9, remote_synchronous_timed_new_link/9,
-		 construct/9, destruct/1 ).
+-define( wooper_construct_export, new/7, new_link/7,
+		 synchronous_new/7, synchronous_new_link/7,
+		 synchronous_timed_new/7, synchronous_timed_new_link/7,
+		 remote_new/8, remote_new_link/8, remote_synchronous_new/8,
+		 remote_synchronous_new_link/8, remote_synchronisable_new_link/8,
+		 remote_synchronous_timed_new/8, remote_synchronous_timed_new_link/8,
+		 construct/8, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , metro_go/3 , bus_go/3 ).
@@ -29,16 +29,13 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() , parameter()  ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter()  ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
 
-        DictVertices = dict:from_list( ListVertex ),
-
 	setAttributes( ActorState, [
 		{ car_name, CarName },
-		{ dict , DictVertices },
 		{ trips , ListTripsFinal },
 		{ log_pid, element ( 1 , PID ) },
 		{ type, Type },
@@ -176,9 +173,7 @@ request_position_bus( State , Trip ) ->
 
 	Line = element( 4 , Trip ), 
 
-	DictVertices = getAttribute( State , dict ),
-
-	VertexPID = element( 2 , dict:find( list_to_atom( Origin ) , DictVertices) ),	% get the pid of the bus stop vertex
+	VertexPID = ets:lookup_element(list_vertex, Origin, 2 ),	% get the pid of the bus stop vertex
 
 	class_Actor:send_actor_message( VertexPID ,
 		{ wait_bus , { Destination , Line } }, State ).
@@ -290,9 +285,7 @@ request_position( State , Trip ) ->
 
 					FinalVertice = list_utils:get_element_at( Path , 2 ),
 
-					DictVertices = getAttribute( PathState , dict ),
-
-					VertexPID = dict:find( InitialVertice , DictVertices),
+					VertexPID = ets:lookup_element(list_vertex, InitialVertice, 2 ),
 					
 					Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] )),
 

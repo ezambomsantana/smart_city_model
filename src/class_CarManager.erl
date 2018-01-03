@@ -132,15 +132,14 @@ create_person_public( _Count = 0 , State , _Data ) -> State;
 create_person_public( Count , State , Data ) ->
 
 	CarName = io_lib:format( "~s_~B", [ element( 1 , Data ) , Count ] ),
-	ListVertexPath = element( 2 , Data ),
-	ListTripsFinal = element( 3 , Data ),
+	ListTripsFinal = element( 2 , Data ),
 	StartTime = class_RandomManager:get_uniform_value( 1200 ),
-	Type = element( 5 , Data ),
-	Mode = element( 6 , Data ),
-	CityActors = element( 7 , Data ),
+	Type = element( 4 , Data ),
+	Mode = element( 5 , Data ),
+	CityActors = element( 6 , Data ),
 
 	NewState = class_Actor:create_actor( class_Person,
-		[ CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Mode , CityActors ]  , State ),
+		[ CarName , ListTripsFinal , StartTime , Type , Mode , CityActors ]  , State ),
 
 	create_person_public( Count - 1 , NewState , Data ).
 
