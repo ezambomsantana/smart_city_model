@@ -1,38 +1,38 @@
 -module(create_agents).
 
 -export([
-         iterate_list/8,
+         iterate_list/7,
 	 get_path_nodes/3
         ]).
 
 
 % Init the XML processing
 
-iterate_list( _ListCount, _ListVertex , [] , _Graph , Name , CityActors , MainPID , FinalList ) -> 
+iterate_list( _ListCount , [] , _Graph , Name , CityActors , MainPID , FinalList ) -> 
 
 	class_Actor:create_initial_actor( class_CarManager,
 		[ Name , FinalList , CityActors ] ),
 
 	MainPID ! { Name };
 
-iterate_list( ListCount, ListVertex , [ Car | MoreCars] , Graph , Name , _CityActors , MainPID , FinalList ) ->
+iterate_list( ListCount , [ Car | MoreCars] , Graph , Name , _CityActors , MainPID , FinalList ) ->
 
 	Count = element ( 3 , Car ),
 
 	Element = case size( Car ) == 9 of
 
 		true ->
-			create_person( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph , false );
+			create_person( element (1 , string:to_integer(Count)) , Car , Graph , false );
 
 		false ->			
-			create_person_multi_trip( element (1 , string:to_integer(Count)) , ListVertex , Car , Graph )
+			create_person_multi_trip( element (1 , string:to_integer(Count)) , Car , Graph )
 
 	end,
 
-	iterate_list( ListCount + 1, ListVertex , MoreCars , Graph , Name , _CityActors , MainPID , FinalList ++ Element ).
+	iterate_list( ListCount + 1 , MoreCars , Graph , Name , _CityActors , MainPID , FinalList ++ Element ).
 
 
-create_person( CarCount , ListVertex ,  Car , Graph , _Path ) ->
+create_person( CarCount ,  Car , Graph , _Path ) ->
 
 	Origin = element ( 1 , Car ),
 	Destination = element ( 2 , Car ),
@@ -59,17 +59,15 @@ create_person( CarCount , ListVertex ,  Car , Graph , _Path ) ->
 	
 	NewPath = digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) ),
 
-	ListVertexPath = get_path_nodes( NewPath , ListVertex , [] ),
-
 	ListTripsFinal = [ { ModeFinal , NewPath , LinkOrigin } ],
 
 	% ListTripsFinal = [ { ModeFinal , NewPath } ],
 
-	[ { StartTime , [ { NameFile , ListVertexPath , ListTripsFinal , StartTime , Type , Park , ModeFinal , CarCount } ] } ].
+	[ { StartTime , [ { NameFile , ListTripsFinal , StartTime , Type , Park , ModeFinal , CarCount } ] } ].
 
 
 
-create_person_multi_trip( CarCount , ListVertex ,  Car , Graph  ) ->
+create_person_multi_trip( CarCount ,  Car , Graph  ) ->
 
 	io:format("teste ~w", [ element( 1 , Car ) ] ),
 	ST = element( 1 , string:to_integer( element ( 1 , Car ) ) ),
@@ -82,17 +80,17 @@ create_person_multi_trip( CarCount , ListVertex ,  Car , Graph  ) ->
 	NameFile = element ( 5 , Car ),
 	Mode = element ( 6 , Car ),
 	
-	{ ListTripsFinal , ListVertexPath } = create_single_trip( ListTrips , [] , Graph , [] , ListVertex ),
+	ListTripsFinal = create_single_trip( ListTrips , [] , Graph ),
 
-	[ { StartTime , [ { NameFile , ListVertexPath , ListTripsFinal , StartTime , Type , ok , Mode , CarCount } ] } ].
+	[ { StartTime , [ { NameFile , ListTripsFinal , StartTime , Type , ok , Mode , CarCount } ] } ].
 
 
 
-create_single_trip( [] , ListTripsFinal , _Graph , ListVertexPath , _ListVertex ) ->
+create_single_trip( [] , ListTripsFinal , _Graph ) ->
 
-	{ ListTripsFinal , ListVertexPath };
+	ListTripsFinal;
 
-create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexPath , ListVertex ) ->
+create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph ) ->
 
 	Origin = element ( 1 , Trip ),
 	Destination = element ( 2 , Trip ),
@@ -107,17 +105,13 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexP
 
 			TripCreated = [ { Mode , Origin , LinkOrigin , Destination , LinkDestination } ],
 			
-			create_single_trip( ListTrips , ListTripsFinal ++  TripCreated , Graph , ListVertexPath , ListVertex );
+			create_single_trip( ListTrips , ListTripsFinal ++  TripCreated , Graph );
 
 		"bus" ->
 		
 			TripCreated = [ { Mode , Origin , Destination , Line , LinkOrigin , LinkDestination } ],
 
-			NewListVertexPath = ListVertexPath ++ get_node( list_to_atom( Origin ) , ListVertex ),
-
-			NewNewListVertexPath = NewListVertexPath ++ get_node( list_to_atom( Destination ) , ListVertex ),
-			
-			create_single_trip( ListTrips , ListTripsFinal ++  TripCreated , Graph , NewNewListVertexPath , ListVertex );
+			create_single_trip( ListTrips , ListTripsFinal ++  TripCreated , Graph );
 
 		_ -> % car and walk have the same behaviour.
 
@@ -134,10 +128,8 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph , ListVertexP
 					[ { Mode , Origin , LinkOrigin , Destination , Path , ok } ] % Otherwise, car or walk.
 
 			end,
-
-			NewListVertexPath = ListVertexPath ++ get_path_nodes( Path , ListVertex , [] ),
 			
-			create_single_trip( ListTrips ,  ListTripsFinal ++  TripCreated , Graph , NewListVertexPath , ListVertex )
+			create_single_trip( ListTrips ,  ListTripsFinal ++  TripCreated , Graph )
 	
 
 	end.
@@ -153,14 +145,3 @@ get_path_nodes( [ Node | MoreNodes] , ListVertex , List ) ->
 	ElementList = [{ Node , element( 2 , Element) }],
 
 	get_path_nodes( MoreNodes , ListVertex , List ++ ElementList ).	
-
-
-
-get_node( Node , ListVertex ) ->
-
-
-	Element = dict:find( Node , ListVertex ),
-
-	ElementList = [{ Node , element( 2 , Element) }],
-	
-	ElementList.

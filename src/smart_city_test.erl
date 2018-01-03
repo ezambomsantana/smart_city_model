@@ -99,16 +99,16 @@ calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 	
 
 
-spaw_proccess( [] , _ListVertex , _CityGraph , _MetroActor  ) -> 
+spaw_proccess( [] , _CityGraph , _MetroActor  ) -> 
 	ok;
 
-spaw_proccess( [ List | MoreLists ] , ListVertex , CityGraph , CityActors ) ->
+spaw_proccess( [ List | MoreLists ] , CityGraph , CityActors ) ->
 
 	Name = element( 1 , List ),
 	ListTrips = element( 2 , List ),
 
-	spawn( create_agents, iterate_list , [ 1 , dict:from_list( ListVertex ) , ListTrips , CityGraph , Name , CityActors , self() , [] ]),
-	spaw_proccess( MoreLists  , ListVertex , CityGraph , CityActors ).
+	spawn( create_agents, iterate_list , [ 1 , ListTrips , CityGraph , Name , CityActors , self() , [] ]),
+	spaw_proccess( MoreLists , CityGraph , CityActors ).
 
 
 
@@ -229,7 +229,7 @@ run() ->
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
-	spaw_proccess( List , ListVertex , CityGraph , { LogPID , MetroActor , ParkActor , CityActor } ),
+	spaw_proccess( List , CityGraph , { LogPID , MetroActor , ParkActor , CityActor } ),
  
 	ok = collectResults( Names ),
 

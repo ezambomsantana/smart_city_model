@@ -86,26 +86,25 @@ init_cars( [] , State ) ->
 init_cars( [ Car | Cars ] , State ) ->
 
 	CarName = element( 1 , Car ),
-	ListVertexPath = element( 2 , Car ),
-	ListTripsFinal = element( 3 , Car ),
-	StartTime = element( 4 , Car ),
-	Type = element( 5 , Car ),
-	Park = element( 6 , Car ),
-	Mode = element( 7 , Car ),
+	ListTripsFinal = element( 2 , Car ),
+	StartTime = element( 3 , Car ),
+	Type = element( 4 , Car ),
+	Park = element( 5 , Car ),
+	Mode = element( 6 , Car ),
 	CityActors = getAttribute( State , city_actors ),
-	Count = element( 8 , Car ),	
+	Count = element( 7 , Car ),	
 
 	NewState = case Mode of
 
 		"car" ->
 
-			create_person_car( Count , State , { CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Park , Mode , CityActors } );
+			create_person_car( Count , State , { CarName , ListTripsFinal , StartTime , Type , Park , Mode , CityActors } );
 
 		"walk" ->	
-			create_person_car( Count , State , { CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Park , Mode , CityActors } );
+			create_person_car( Count , State , { CarName , ListTripsFinal , StartTime , Type , Park , Mode , CityActors } );
 		_ ->
 
-			create_person_public( Count , State , { CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Mode , CityActors } )
+			create_person_public( Count , State , { CarName , ListTripsFinal , StartTime , Type , Mode , CityActors } )
 	
 	end,
 
@@ -116,16 +115,15 @@ create_person_car( _Count = 0 , State , _Data ) -> State;
 create_person_car( Count , State , Data ) ->
 
 	CarName = io_lib:format( "~s_~B", [ element( 1 , Data ) , Count ] ),
-	ListVertexPath = element( 2 , Data ),
-	ListTripsFinal = element( 3 , Data ),
+	ListTripsFinal = element( 2 , Data ),
 	StartTime = class_RandomManager:get_uniform_value( 1200 ),
-	Type = element( 5 , Data ),
-	Park = element( 6 , Data ),
-	Mode = element( 7 , Data ),
-	CityActors = element( 8 , Data ),
+	Type = element( 4 , Data ),
+	Park = element( 5 , Data ),
+	Mode = element( 6 , Data ),
+	CityActors = element( 7 , Data ),
 
 	NewState = class_Actor:create_actor( class_Car,
-		[ CarName , ListVertexPath , ListTripsFinal , StartTime , Type , Park , Mode , CityActors ] , State ),
+		[ CarName , ListTripsFinal , StartTime , Type , Park , Mode , CityActors ] , State ),
 
 	create_person_car( Count - 1 , NewState , Data ).
 
