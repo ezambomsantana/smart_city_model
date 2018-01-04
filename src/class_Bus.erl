@@ -224,7 +224,7 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 				ok ->
 					State;
 				_ ->
-					ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
+					ets:update_counter( list_streets, DecrementVertex , { 6 , -3 })
 			end,
 
 			Buses = getAttribute( FinalState , buses ),
@@ -238,7 +238,7 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 			ets:update_counter( list_streets , Vertices , { 6 , 3 }),
 			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
 
-			StreetData = traffic_models:get_speed_bus( Data ),
+			StreetData = traffic_models:get_speed_car( Data ),
 
                         go( FinalBusState , StreetData , IdBus );
 
@@ -248,13 +248,12 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 
 			StartTime = list_utils:get_element_at( Bus , 3 ),
 
-			RemovePID = list_utils:get_element_at( Bus , 5 ),
-			FinalState = case RemovePID of
+			DecrementVertex = list_utils:get_element_at( Bus , 5 ),
+			FinalState = case DecrementVertex of
 				ok ->
 					State;
 				_ ->
-					class_Actor:send_actor_message( element( 1 , RemovePID ) ,
-									{ decrement_vertex_count, { element( 2 , RemovePID) , bus } }, State )
+					ets:update_counter( list_streets, DecrementVertex , { 6 , -3 })
 			end,
 
      	    		LogPID = ets:lookup_element(options, log_pid, 2 ),

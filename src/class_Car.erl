@@ -83,23 +83,23 @@ actSpontaneous( State ) ->
 
 					NewState = setAttribute( State , path , finish ),
 
-%					Type = getAttribute( NewState , type ),
+					Type = getAttribute( NewState , type ),
 						
-%					TotalLength = getAttribute( NewState , distance ),
+					TotalLength = getAttribute( NewState , distance ),
 
-%					StartTime = getAttribute( NewState , start_time ),
+					StartTime = getAttribute( NewState , start_time ),
 
-%					CarId = getAttribute( NewState , car_name ),	
+					CarId = getAttribute( NewState , car_name ),	
 
-%					CurrentTickOffset = class_Actor:get_current_tick_offset( NewState ), 
+					CurrentTickOffset = class_Actor:get_current_tick_offset( NewState ), 
 
-%					LastPosition = getAttribute( NewState , car_position ),
+					LastPosition = getAttribute( NewState , car_position ),
 
-%					Mode = getAttribute( NewState , mode ), 
+					Mode = getAttribute( NewState , mode ), 
 
-%					FinalState = print:write_final_message( NewState , Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , ets:lookup_element(options, log_pid, 2 ) , Mode , csv ),
+					FinalState = print:write_final_message( NewState , Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , ets:lookup_element(options, log_pid, 2 ) , Mode , csv ),
 
-					executeOneway( NewState , scheduleNextSpontaneousTick )
+					executeOneway( FinalState , scheduleNextSpontaneousTick )
 
 				end;
 
@@ -145,49 +145,28 @@ request_position( State , Trip ) ->
 		_ ->
 
 			case length( Path ) > 1 of
-
-				true ->	
-
-					get_next_vertex( State , Path , Trip );
-
-				false ->							
-
-					LastPosition = getAttribute( State , car_position ),
-
-					case LastPosition == -1 of
-
-						true ->
-							
-							executeOneway( State , declareTermination );	
-
-						false ->
-
-							verify_park( State , Trip )
-					
-					end
-
+				true ->	get_next_vertex( State , Path , Trip );
+				false -> verify_park( State , Trip )
 			end
-
 	end.
 
 verify_park( State , Trip ) ->
 
 	CurrentTickOffset = class_Actor:get_current_tick_offset( State ),
 
-	NewState = case element( 1 , Trip ) of % mode
+	case element( 1 , Trip ) of % mode
 
 		"car" ->							
 		
 			DecrementVertex = getAttribute( State , last_vertex_pid ),
 	
-			ets:update_counter( list_streets, DecrementVertex , { 6 , -1 }),
-			State;
+			ets:update_counter( list_streets, DecrementVertex , { 6 , -1 });
 		_ ->		
-			State
+			ok
 
 	end,	
 
-	{ Park , ParkStatus } = { getAttribute( NewState , park ), getAttribute( NewState , park_status ) },
+	{ Park , ParkStatus } = { getAttribute( State , park ), getAttribute( State , park_status ) },
 
 	case ParkStatus of
 
@@ -197,12 +176,12 @@ verify_park( State , Trip ) ->
 
 				ok ->
 		
-					NewState;
+					State;
 
 				_ ->
 					
 					Parking = ets:lookup_element(options, parking_pid, 2 ),
-					class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , NewState )
+					class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , State )
 	
 			end,
 									
@@ -212,7 +191,7 @@ verify_park( State , Trip ) ->
 		find ->
 
 			Parking = ets:lookup_element(options, parking_pid, 2 ),
-			class_Actor:send_actor_message( Parking, { spot_available, { Park } } , NewState )
+			class_Actor:send_actor_message( Parking, { spot_available, { Park } } , State )
 
 	end.
 
