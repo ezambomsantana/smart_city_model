@@ -39,7 +39,15 @@ construct( State, ?wooper_construct_parameters ) ->
                 _ -> ok
         end,
 
+
+	case ets:info(list_streets) of
+		undefined -> ets:new(list_streets, [public, set, named_table]);
+                _ -> ok
+        end,
+
 	ets:insert(list_vertex, {list_to_atom(StreetName), self() }),
+
+	iterate_list( ListVertex ),
 
         DictVertices = dict:from_list( ListVertex ),
 
@@ -48,6 +56,17 @@ construct( State, ?wooper_construct_parameters ) ->
 	setAttributes( ActorState, [
 		{ dict , DictVertices },
 		{ people_waiting , dict:new() }	] ).
+
+
+iterate_list([]) -> ok;
+iterate_list([ Element | List ]) ->
+	
+	Vertices = element( 1, Element),
+	{ Id , Length , Capacity , Freespeed , Count } = element(2, Element),
+
+	ets:insert(list_streets, {Vertices,  Id , Length , Capacity , Freespeed , Count }),
+
+	iterate_list( List ).
 
 % Overridden destructor.
 %

@@ -18,7 +18,7 @@
 		 construct/8, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , get_parking_spot/3 , set_new_path/3 ).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, get_parking_spot/3 , set_new_path/3 ).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -182,10 +182,10 @@ verify_park( State , Trip , CurrentTickOffset ) ->
 
 		"car" ->							
 		
-			RemovePID = getAttribute( State , last_vertex_pid ),
+			DecrementVertex = getAttribute( State , last_vertex_pid ),
 	
-			class_Actor:send_actor_message( element( 1 , RemovePID ) ,
-				 { decrement_vertex_count, { element( 2 , RemovePID) , car } }, State );
+			ets:update_counter( list_streets, DecrementVertex , { 6 , -1 }),
+			State;
 		_ ->		
 			State
 
@@ -229,8 +229,6 @@ get_next_vertex( State , Path , Trip ) ->
 	{ InitialVertice , FinalVertice } = { lists:nth( 1 , Path ) , lists:nth( 2 , Path ) },
 
 	Mode = element( 1 , Trip ),
-	
-	VertexPID = ets:lookup_element(list_vertex, InitialVertice, 2 ),
 					
 	Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] )),
 
@@ -238,26 +236,31 @@ get_next_vertex( State , Path , Trip ) ->
 
 	case Mode  of
 
-		"walk" ->							
-
-			class_Actor:send_actor_message( VertexPID ,
-				{ get_speed_walk, { Vertices } }, FinalState );
+		"walk" ->		
+					
+			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
+			StreetData = traffic_models:get_speed_walk( Data ),
+                        go( FinalState , StreetData );
 
 		_ ->		
 
-			RemovePID = getAttribute( FinalState , last_vertex_pid ),
+			DecrementVertex = getAttribute( FinalState , last_vertex_pid ),
 			FinalState2 = case RemovePID of
 				ok ->
 					FinalState;
 				_ ->
-					class_Actor:send_actor_message( element( 1 , RemovePID ) ,
-							{ decrement_vertex_count, { element( 2 , RemovePID) , car } }, FinalState )
+					ets:update_counter( list_streets, DecrementVertex , { 6 , -1 }),
+					FinalState
 			end,
+		
+			FinalStateCar = setAttribute( FinalState2 , last_vertex_pid , Vertices ),		
+		
+			ets:update_counter( list_streets , Vertices , { 6 , 1 }),
+			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
 
-			FinalStateCar = setAttribute( FinalState2 , last_vertex_pid , { VertexPID , Vertices } ),
-					
-			class_Actor:send_actor_message( VertexPID ,
-				{ get_speed_car, { Vertices } }, FinalStateCar )
+			StreetData = traffic_models:get_speed_car( Data ),
+
+                        go( FinalStateCar , StreetData )
 	end.
 
 get_parking_spot( State , IdNode , _ParkingPID ) ->
@@ -292,8 +295,8 @@ set_new_path( State , NewPath , _CityPID ) ->
 
         request_position( StateDict , CurrentTrip ).
 
--spec go( wooper:state(), car_position() , parameter() ) -> class_Actor:actor_oneway_return().
-go( State, PositionTime , _GraphPID ) ->
+-spec go( wooper:state(), car_position() ) -> class_Actor:actor_oneway_return().
+go( State, PositionTime ) ->
 
 	TotalTime = class_Actor:get_current_tick_offset( State ) + element( 2 , PositionTime ), % CurrentTime + Time to pass the link
 
