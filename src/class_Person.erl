@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Mode , PID ).
+-define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Mode ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/7, new_link/7,
-		 synchronous_new/7, synchronous_new_link/7,
-		 synchronous_timed_new/7, synchronous_timed_new_link/7,
-		 remote_new/8, remote_new_link/8, remote_synchronous_new/8,
-		 remote_synchronous_new_link/8, remote_synchronisable_new_link/8,
-		 remote_synchronous_timed_new/8, remote_synchronous_timed_new_link/8,
-		 construct/8, destruct/1 ).
+-define( wooper_construct_export, new/6, new_link/6,
+		 synchronous_new/6, synchronous_new_link/6,
+		 synchronous_timed_new/6, synchronous_timed_new_link/6,
+		 remote_new/7, remote_new_link/7, remote_synchronous_new/7,
+		 remote_synchronous_new_link/7, remote_synchronisable_new_link/7,
+		 remote_synchronous_timed_new/7, remote_synchronous_timed_new_link/7,
+		 construct/7, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , metro_go/3 , bus_go/3 ).
@@ -29,7 +29,7 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter()  ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
@@ -37,14 +37,12 @@ construct( State, ?wooper_construct_parameters ) ->
 	setAttributes( ActorState, [
 		{ car_name, CarName },
 		{ trips , ListTripsFinal },
-		{ log_pid, element ( 1 , PID ) },
 		{ type, Type },
 		{ distance , 0 },
 		{ car_position, -1 },
 		{ start_time , StartTime },
 		{ path , ok },
 		{ cost , 3.8 },
-		{ metro , element ( 2 , PID ) },
 		{ mode , Mode },
 		{ pt_status , start } %public transport -> bus or metro
 						] ).
@@ -89,7 +87,7 @@ actSpontaneous( State ) ->
 
 					Mode = getAttribute( NewState , mode ), 
 
-					FinalState = print:write_final_message( NewState , Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , ?getAttr(log_pid) , Mode , csv ),
+					FinalState = print:write_final_message( NewState , Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , ets:lookup_element(options, log_pid, 2 ) , Mode , csv ),
 
 					executeOneway( FinalState, scheduleNextSpontaneousTick )
 
@@ -186,7 +184,7 @@ request_position_metro( State , Trip ) ->
 
 	Destination = element( 4 , Trip ), 
 
-	class_Actor:send_actor_message( ?getAttr( metro ) ,
+	class_Actor:send_actor_message( ets:lookup_element(options, metro_pid, 2 ) ,
 		{ getTravelTime, { Origin , Destination } }, State ).
 
 
@@ -208,7 +206,7 @@ metro_go( State, PositionTime , _GraphPID ) ->
 
 	CarId = getAttribute( PositionState , car_name ),
   	Type = getAttribute( PositionState , type ),
-	FinalState = print:write_movement_bus_metro_message( PositionState , CurrentTickOffset , 0 , CarId , Type , Destination , bus , ?getAttr(log_pid) , csv ),
+	FinalState = print:write_movement_bus_metro_message( PositionState , CurrentTickOffset , 0 , CarId , Type , Destination , bus , ets:lookup_element(options, log_pid, 2 ) , csv ),
 
 	executeOneway( FinalState , addSpontaneousTick, TotalTime ).
 
@@ -229,7 +227,7 @@ bus_go( State, _PositionTime , _GraphPID ) ->
 	CarId = getAttribute( PositionState , car_name ),
   	Type = getAttribute( PositionState , type ),
 
-	FinalState = print:write_movement_bus_metro_message( PositionState , CurrentTickOffset , 0 , CarId , Type , Destination , bus , ?getAttr(log_pid) , csv ),
+	FinalState = print:write_movement_bus_metro_message( PositionState , CurrentTickOffset , 0 , CarId , Type , Destination , bus , ets:lookup_element(options, log_pid, 2 ) , csv ),
 
 	executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 ).
 
@@ -337,18 +335,20 @@ go( State, PositionTime , _GraphPID ) ->
 	CarId = getAttribute( State , car_name ),
   	Type = getAttribute( State , type ),
 
+        LogPID = ets:lookup_element(options, log_pid, 2 ),
+
 	FinalState = case LastPosition == -1 of
 
 		false ->
 			
-			print:write_movement_car_message( LengthState , CarId , LastPosition , Type , ?getAttr(log_pid) , CurrentTickOffset , NewPosition , csv  );
+			print:write_movement_car_message( LengthState , CarId , LastPosition , Type , LogPID , CurrentTickOffset , NewPosition , csv  );
  
 
 		true -> 
 
 			LinkOrigin = element( 3 , CurrentTrip ), 
 
-			print:write_initial_message( LengthState , ?getAttr(log_pid) , CarId , Type , CurrentTickOffset , LinkOrigin , LastPosition , csv )
+			print:write_initial_message( LengthState , LogPID , CarId , Type , CurrentTickOffset , LinkOrigin , LastPosition , csv )
 
 	end,
 

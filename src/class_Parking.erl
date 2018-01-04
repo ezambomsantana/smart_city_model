@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings , SpotName , ListOfSpots, LogPID ).
+-define( wooper_construct_parameters, ActorSettings , SpotName , ListOfSpots ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/4, new_link/4,
-		 synchronous_new/4, synchronous_new_link/4,
-		 synchronous_timed_new/4, synchronous_timed_new_link/4,
-		 remote_new/5, remote_new_link/5, remote_synchronous_new/5,
-		 remote_synchronous_new_link/5, remote_synchronisable_new_link/5,
-		 remote_synchronous_timed_new/5, remote_synchronous_timed_new_link/5,
-		 construct/5, destruct/1 ).
+-define( wooper_construct_export, new/3, new_link/3,
+		 synchronous_new/3, synchronous_new_link/3,
+		 synchronous_timed_new/3, synchronous_timed_new_link/3,
+		 remote_new/4, remote_new_link/4, remote_synchronous_new/4,
+		 remote_synchronous_new_link/4, remote_synchronisable_new_link/4,
+		 remote_synchronous_timed_new/4, remote_synchronous_timed_new_link/4,
+		 construct/4, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, spot_available/3 ).
@@ -31,8 +31,14 @@
 % Creates a list with the parking spots in the city
 %
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name() , parameter(), pid() ) -> wooper:state().
+				class_Actor:name() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
+
+    case ets:info(options) of
+	undefined -> ets:new(options, [public, set, named_table]);
+        _ -> ok
+    end,
+    ets:insert(options, {parking_pid, self() }),
 
     AvailableParkingSpots = dict:from_list( ListOfSpots ),
     UnavailableParkingSpots = dict:new(),
@@ -42,7 +48,6 @@ construct( State, ?wooper_construct_parameters ) ->
     ActorState = class_Actor:construct( State, ActorSettings , SpotName ),
 
     setAttributes( ActorState, [
-                                { logPID, LogPID },
                                 { availableSpots , AvailableParkingSpots },
                                 { unavailableSpots , UnavailableParkingSpots } ] ).
 
@@ -123,7 +128,7 @@ spot_available( State , SpotUUID , PersonPID ) ->
     case dict:find( UUID , AvailableParkingSpots ) of
         { ok, GraphNodeID } ->
 
-     	    LogPID = getAttribute( State, logPID ),
+     	    LogPID = ets:lookup_element(options, log_pid, 2 ),
 	    UnavailableParkingSpots = getAttribute( State, unavailableSpots ),
 
 	    CurrentTick = class_Actor:get_current_tick_offset( State ),

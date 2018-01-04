@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Park , Mode , PID ).
+-define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Park , Mode ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/8, new_link/8,
-		 synchronous_new/8, synchronous_new_link/8,
-		 synchronous_timed_new/8, synchronous_timed_new_link/8,
-		 remote_new/9, remote_new_link/9, remote_synchronous_new/9,
-		 remote_synchronous_new_link/9, remote_synchronisable_new_link/9,
-		 remote_synchronous_timed_new/9, remote_synchronous_timed_new_link/9,
-		 construct/9, destruct/1 ).
+-define( wooper_construct_export, new/7, new_link/7,
+		 synchronous_new/7, synchronous_new_link/7,
+		 synchronous_timed_new/7, synchronous_timed_new_link/7,
+		 remote_new/8, remote_new_link/8, remote_synchronous_new/8,
+		 remote_synchronous_new_link/8, remote_synchronisable_new_link/8,
+		 remote_synchronous_timed_new/8, remote_synchronous_timed_new_link/8,
+		 construct/8, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , get_parking_spot/3 , set_new_path/3 ).
@@ -29,7 +29,7 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() , parameter()  ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
@@ -37,7 +37,6 @@ construct( State, ?wooper_construct_parameters ) ->
 	NewState = setAttributes( ActorState, [
 		{ car_name, CarName },
 		{ trips , ListTripsFinal },
-		{ log_pid, element ( 1 , PID ) },
 		{ type, Type },
 		{ distance , 0 },
 		{ car_position, -1 },
@@ -52,11 +51,7 @@ construct( State, ?wooper_construct_parameters ) ->
 		ok ->
 			setAttribute( NewState , park_status , finish );
 		_ ->
-			setAttributes( NewState , [
-				{ parking , element ( 3 , PID ) },
-				{ city , element ( 4 , PID ) },
-				{ park_status , find }
-						])
+			setAttribute( NewState , park_status , find )
 	end.
 
 -spec destruct( wooper:state() ) -> wooper:state().
@@ -99,7 +94,7 @@ actSpontaneous( State ) ->
 
 					Mode = getAttribute( NewState , mode ), 
 
-					FinalState = print:write_final_message( NewState , Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , ?getAttr(log_pid) , Mode , csv ),
+					FinalState = print:write_final_message( NewState , Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , ets:lookup_element(options, log_pid, 2 ) , Mode , csv ),
 
 					executeOneway( FinalState, scheduleNextSpontaneousTick )
 
@@ -210,7 +205,7 @@ verify_park( State , Trip , CurrentTickOffset ) ->
 
 				_ ->
 					
-					Parking = getAttribute( NewState , parking ),
+					Parking = ets:lookup_element(options, parking_pid, 2 ),
 					class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , NewState )
 	
 			end,
@@ -220,7 +215,7 @@ verify_park( State , Trip , CurrentTickOffset ) ->
 			executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
 		find ->
 
-			Parking = getAttribute( NewState , parking ),
+			Parking = ets:lookup_element(options, parking_pid, 2 ),
 			class_Actor:send_actor_message( Parking, { spot_available, { Park } } , NewState )
 
 	end.
@@ -277,7 +272,7 @@ get_parking_spot( State , IdNode , _ParkingPID ) ->
 
     	     _ ->
 
-		{ Path , City } = { getAttribute( State , path ), getAttribute( State , city ) },
+		{ Path , City } = { getAttribute( State , path ), ets:lookup_element(options, city_pid, 2 ) },
 
 		CurrentVertice = lists:nth( 1 , Path ),
 
@@ -302,34 +297,34 @@ go( State, PositionTime , _GraphPID ) ->
 
 	TotalTime = class_Actor:get_current_tick_offset( State ) + element( 2 , PositionTime ), % CurrentTime + Time to pass the link
 
-	LastPosition = getAttribute( State , car_position ),
+%	LastPosition = getAttribute( State , car_position ),
 	% Calculate the total distance that the person moved until now.
 	TotalLength = getAttribute( State , distance ) + element( 3 , PositionTime),
 	LengthState = setAttributes( State , [ { distance , TotalLength } , { car_position , element( 1 , PositionTime ) } ] ), 
 
-	{ Trips , CurrentTickOffset , CarId , Type , NewPosition }
-             = { getAttribute( LengthState , trips ), class_Actor:get_current_tick_offset( State ) , 
-                 getAttribute( State , car_name ) , getAttribute( State , type ) , getAttribute( LengthState , car_position ) },
-	CurrentTrip =  lists:nth( 1 , Trips ),
+%	{ Trips , CurrentTickOffset , CarId , Type , NewPosition }
+ %            = { getAttribute( LengthState , trips ), class_Actor:get_current_tick_offset( State ) , 
+  %               getAttribute( State , car_name ) , getAttribute( State , type ) , getAttribute( LengthState , car_position ) },
+%	CurrentTrip =  lists:nth( 1 , Trips ),
 
-	FinalState = case LastPosition == -1 of
+%	FinalState = case LastPosition == -1 of
 
-		false ->
+%		false ->
 			
-			print:write_movement_car_message( LengthState , CarId , LastPosition , Type , ?getAttr(log_pid) , CurrentTickOffset , NewPosition , csv  );
+%			print:write_movement_car_message( LengthState , CarId , LastPosition , Type , ets:lookup_element(options, log_pid, 2 ) , CurrentTickOffset , NewPosition , csv  );
  
 
-		true -> 
+%		true -> 
 
-			LinkOrigin = element( 3 , CurrentTrip ), 
+%			LinkOrigin = element( 3 , CurrentTrip ), 
 
-			print:write_initial_message( LengthState , ?getAttr(log_pid) , CarId , Type , CurrentTickOffset , LinkOrigin , LastPosition , csv )
+%			print:write_initial_message( LengthState , ets:lookup_element(options, log_pid, 2 ) , CarId , Type , CurrentTickOffset , LinkOrigin , LastPosition , csv )
 	   
 
 
-	end,
+%	end,
 
-	executeOneway( FinalState , addSpontaneousTick , TotalTime ).
+	executeOneway( LengthState , addSpontaneousTick , TotalTime ).
 
 
 % Simply schedules this just created actor at the next tick (diasca 0).

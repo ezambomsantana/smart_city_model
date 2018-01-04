@@ -1,21 +1,20 @@
 -module(create_agents).
 
 -export([
-         iterate_list/7,
-	 get_path_nodes/3
+         iterate_list/6
         ]).
 
 
 % Init the XML processing
 
-iterate_list( _ListCount , [] , _Graph , Name , CityActors , MainPID , FinalList ) -> 
+iterate_list( _ListCount , [] , _Graph , Name , MainPID , FinalList ) -> 
 
 	class_Actor:create_initial_actor( class_CarManager,
-		[ Name , FinalList , CityActors ] ),
+		[ Name , FinalList ] ),
 
 	MainPID ! { Name };
 
-iterate_list( ListCount , [ Car | MoreCars] , Graph , Name , _CityActors , MainPID , FinalList ) ->
+iterate_list( ListCount , [ Car | MoreCars] , Graph , Name , MainPID , FinalList ) ->
 
 	Count = element ( 3 , Car ),
 
@@ -29,7 +28,7 @@ iterate_list( ListCount , [ Car | MoreCars] , Graph , Name , _CityActors , MainP
 
 	end,
 
-	iterate_list( ListCount + 1 , MoreCars , Graph , Name , _CityActors , MainPID , FinalList ++ Element ).
+	iterate_list( ListCount + 1 , MoreCars , Graph , Name , MainPID , FinalList ++ Element ).
 
 
 create_person( CarCount ,  Car , Graph , _Path ) ->
@@ -133,15 +132,3 @@ create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph ) ->
 	
 
 	end.
-
-get_path_nodes( [] , _ListVertex , List ) ->
-	
-	List;
-
-get_path_nodes( [ Node | MoreNodes] , ListVertex , List ) ->
-
-	Element = dict:find( Node , ListVertex ),
-
-	ElementList = [{ Node , element( 2 , Element) }],
-
-	get_path_nodes( MoreNodes , ListVertex , List ++ ElementList ).	

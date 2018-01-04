@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, BusName, Path , StartTime , Interval , LogPID , Stops ).
+-define( wooper_construct_parameters, ActorSettings, BusName, Path , StartTime , Interval , Stops ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/7, new_link/7,
-		 synchronous_new/7, synchronous_new_link/7,
-		 synchronous_timed_new/7, synchronous_timed_new_link/7,
-		 remote_new/8, remote_new_link/8, remote_synchronous_new/8,
-		 remote_synchronous_new_link/8, remote_synchronisable_new_link/8,
-		 remote_synchronous_timed_new/8, remote_synchronous_timed_new_link/8,
-		 construct/8, destruct/1 ).
+-define( wooper_construct_export, new/6, new_link/6,
+		 synchronous_new/6, synchronous_new_link/6,
+		 synchronous_timed_new/6, synchronous_timed_new_link/6,
+		 remote_new/7, remote_new_link/7, remote_synchronous_new/7,
+		 remote_synchronous_new_link/7, remote_synchronisable_new_link/7,
+		 remote_synchronous_timed_new/7, remote_synchronous_timed_new_link/7,
+		 construct/7, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , continue/3).
@@ -29,7 +29,7 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 
@@ -39,7 +39,6 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	setAttributes( ActorState, [
 		{ bus_name, BusName },
-		{ log_pid, LogPID },
 		{ distance , 0 },
 		{ car_position, -1 },
 		{ start_time , StartTime },	
@@ -258,7 +257,9 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 									{ decrement_vertex_count, { element( 2 , RemovePID) , bus } }, State )
 			end,
 
-			print:write_final_message_bus( FinalState , CurrentTickOffset , IdBus , LastPosition , StartTime , ?getAttr(log_pid) , csv )
+     	    		LogPID = ets:lookup_element(options, log_pid, 2 ),
+
+			print:write_final_message_bus( FinalState , CurrentTickOffset , IdBus , LastPosition , StartTime , LogPID , csv )
 
 	end.
 
@@ -386,18 +387,20 @@ go( State, PositionTime , _GraphPID ) ->
 
 	LastPosition = list_utils:get_element_at( Bus , 4 ),
 
+     	LogPID = ets:lookup_element(options, log_pid, 2 ),
+
 	LogState = case LastPosition == -1 of
 
 		false ->
 			
-			print:write_movement_car_message( State , BusId , LastPosition , "bus" , ?getAttr(log_pid) , CurrentTickOffset , NewPosition , csv  );
+			print:write_movement_car_message( State , BusId , LastPosition , "bus" , LogPID , CurrentTickOffset , NewPosition , csv  );
  
 
 		true -> 
 
 			LinkOrigin = "1", % getAttribute( State , link_origin ), 
 
-			print:write_initial_message( State , ?getAttr(log_pid) , BusId , "bus" , CurrentTickOffset , LinkOrigin , LastPosition , csv )
+			print:write_initial_message( State , LogPID , BusId , "bus" , CurrentTickOffset , LinkOrigin , LastPosition , csv )
 	   
 
 

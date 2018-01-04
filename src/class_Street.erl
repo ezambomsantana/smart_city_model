@@ -34,8 +34,6 @@
 				class_Actor:name() , sensor_type() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
-
-
 	case ets:info(list_vertex) of
 		undefined -> ets:new(list_vertex, [public, set, named_table]);
                 _ -> ok

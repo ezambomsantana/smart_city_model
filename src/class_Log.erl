@@ -20,7 +20,7 @@
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2,
-         receive_action/3, publish_data/3 ).
+         receive_action/3 ). % publish_data/3 ).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -35,35 +35,40 @@
 				class_Actor:name() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
-    code:add_pathsa( Paths ),
+	case ets:info(options) of
+		undefined -> ets:new(options, [public, set, named_table]);
+                _ -> ok
+        end,
 
-	{ ok, Connection } = amqp_connection:start( #amqp_params_network{} ),
-	{ ok, Channel } = amqp_connection:open_channel( Connection ),
+	ets:insert(options, {log_pid, self() }),
 
-	Exchange = #'exchange.declare'{ exchange = <<"simulator_exchange">>,
-                                    type = <<"topic">> },
-	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
+        code:add_pathsa( Paths ),
 
-	Publish = #'basic.publish'{ exchange = <<"simulator_exchange">>,
-                                routing_key = <<"log_output">> },
+%	{ ok, Connection } = amqp_connection:start( #amqp_params_network{} ),
+%	{ ok, Channel } = amqp_connection:open_channel( Connection ),
 
-	amqp_channel:cast( Channel,
-					   Publish,
-					   #amqp_msg{ payload = <<"<events version=\"1.0\">\n">> }),
+%	Exchange = #'exchange.declare'{ exchange = <<"simulator_exchange">>,
+  %                                  type = <<"topic">> },
+%	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
+
+%	Publish = #'basic.publish'{ exchange = <<"simulator_exchange">>,
+ %                               routing_key = <<"log_output">> },
+
+%	amqp_channel:cast( Channel,
+%					   Publish,
+%					   #amqp_msg{ payload = <<"<events version=\"1.0\">\n">> }),
 
 	ActorState = class_Actor:construct( State, ActorSettings, "log" ),
 
 	filelib:ensure_dir( LogName ),
 	InitFile = file_utils:open( LogName , _Opts=[ write , delayed_write ] ),
 
-	file_utils:write( InitFile, "<events version=\"1.0\">\n" ),
-
 	setAttributes( ActorState, [
-			{ file , InitFile },
-			{ channel, Channel },
-			{ exchange, Exchange },
-			{ publish, Publish },
-			{ connection, Connection }
+			{ file , InitFile }
+%			{ channel, Channel },
+%			{ exchange, Exchange },
+%			{ publish, Publish },
+%			{ connection, Connection }
 		] ).
 
 % The destructor just close the log file.
@@ -72,21 +77,21 @@ construct( State, ?wooper_construct_parameters ) ->
 destruct( State ) ->
 
 	InitFile = ?getAttr(file),
-	Connection = ?getAttr(connection),
-	Channel = ?getAttr(channel),
-	Publish = ?getAttr(publish),
-	Exchange = ?getAttr(exchange),
+	%Connection = ?getAttr(connection),
+	%Channel = ?getAttr(channel),
+	%Publish = ?getAttr(publish),
+	%Exchange = ?getAttr(exchange),
 
-	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
+	%#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
 
-	amqp_channel:cast( Channel,
-                       Publish,
-                       #amqp_msg{ payload = <<"</events>">> } ),
+	%amqp_channel:cast( Channel,
+         %              Publish,
+          %             #amqp_msg{ payload = <<"</events>">> } ),
 
-	ok = amqp_channel:close(Channel),
-	ok = amqp_connection:close(Connection),
+	%ok = amqp_channel:close(Channel),
+	%ok = amqp_connection:close(Connection),
 
-	file_utils:write( InitFile, "</events>" ),
+%	file_utils:write( InitFile, "</events>" ),
 	file_utils:close( InitFile ),
 
 	State.
@@ -101,14 +106,14 @@ actSpontaneous( State ) ->
 receive_action( State , Data , _Pid ) ->
 
 	InitFile = ?getAttr(file),
-	Channel = ?getAttr(channel),
-	Publish = ?getAttr(publish),
+%	Channel = ?getAttr(channel),
+%	Publish = ?getAttr(publish),
 
 	Content = element( 1, Data ),
 
-	amqp_channel:cast( Channel,
-                       Publish,
-                       #amqp_msg{ payload = list_to_binary( Content ) }),
+%	amqp_channel:cast( Channel,
+ %                      Publish,
+  %                     #amqp_msg{ payload = list_to_binary( Content ) }),
 
 	file_utils:write( InitFile, Content ),
 
@@ -121,22 +126,22 @@ onFirstDiasca( State, _SendingActorPid ) ->
 
 
 % Receive a message from an agent and saves it in the log file.
--spec publish_data( wooper:state() , parameter() , pid() ) -> wooper:state().
-publish_data( State , Data , _Pid ) ->
+%-spec publish_data( wooper:state() , parameter() , pid() ) -> wooper:state().
+%publish_data( State , Data , _Pid ) ->
 
-	Channel = ?getAttr(channel),
+%	Channel = ?getAttr(channel),
 
-	Topic = element ( 1, Data ),
-	RoutingKey = element( 2, Data ),
-	Message = element( 3, Data ),
+%	Topic = element ( 1, Data ),
+%	RoutingKey = element( 2, Data ),
+%	Message = element( 3, Data ),
 
-	Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ),
-									type = <<"topic">> },
-	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
+%	Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ),
+%									type = <<"topic">> },
+%	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
 
-	Publish = #'basic.publish'{ exchange = list_to_binary( Topic ),
-								routing_key = list_to_binary( RoutingKey ) },
+%	Publish = #'basic.publish'{ exchange = list_to_binary( Topic ),
+%								routing_key = list_to_binary( RoutingKey ) },
 
-	amqp_channel:cast( Channel,
-					   Publish,
-					   #amqp_msg{ payload = list_to_binary( Message ) }).
+%	amqp_channel:cast( Channel,
+%					   Publish,
+%					   #amqp_msg{ payload = list_to_binary( Message ) }).	

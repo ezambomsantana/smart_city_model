@@ -49,8 +49,8 @@ create_street_list([Element | MoreElements] , List , Graph) ->
 	create_street_list( MoreElements , List ++ NewElement , Graph ).
 
 
-create_buses( [] , _CityGraph , _LogPID  ) -> ok;
-create_buses( [ Bus | Buses ] , CityGraph , LogPID  ) -> 
+create_buses( [] , _CityGraph  ) -> ok;
+create_buses( [ Bus | Buses ] , CityGraph  ) -> 
 
 	Id = element( 1 , Bus ),
 	Interval = element( 2 , Bus ),
@@ -62,9 +62,9 @@ create_buses( [ Bus | Buses ] , CityGraph , LogPID  ) ->
 	FinalStartTime = element( 1 , string:to_integer( StartTime ) ) - 600 + class_RandomManager:get_uniform_value( 1200 ),
 
 	class_Actor:create_initial_actor( class_Bus,
-		[ Id , Path , FinalStartTime , Interval , LogPID , Stops ] ),
+		[ Id , Path , FinalStartTime , Interval , Stops ] ),
 
-	create_buses( Buses , CityGraph , LogPID  ).
+	create_buses( Buses , CityGraph  ).
 
 calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 
@@ -97,16 +97,16 @@ calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 	
 
 
-spaw_proccess( [] , _CityGraph , _MetroActor  ) -> 
+spaw_proccess( [] , _CityGraph ) -> 
 	ok;
 
-spaw_proccess( [ List | MoreLists ] , CityGraph , CityActors ) ->
+spaw_proccess( [ List | MoreLists ] , CityGraph ) ->
 
 	Name = element( 1 , List ),
 	ListTrips = element( 2 , List ),
 
-	spawn( create_agents, iterate_list , [ 1 , ListTrips , CityGraph , Name , CityActors , self() , [] ]),
-	spaw_proccess( MoreLists , CityGraph , CityActors ).
+	spawn( create_agents, iterate_list , [ 1 , ListTrips , CityGraph , Name , self() , [] ]),
+	spaw_proccess( MoreLists , CityGraph ).
 
 
 
@@ -193,45 +193,45 @@ run() ->
 	ParkSpots = park_parser:read_csv( element( 7 , Config ) ), 
 
 	% create the vertices actors
-	ListVertex  = create_street_list( CityGraph ),
+	create_street_list( CityGraph ),
 
 	{ _ , Pwd } = file:get_cwd(),
 	OutputPath = string:concat( Pwd, "/" ),
 	AmqpClientPath = string:concat( Pwd, "/../deps/amqp_client"),
 
-	LogPID = class_Actor:create_initial_actor( class_Log,
-			[ string:concat( OutputPath, element( 1 , Config ) ),
-			  [ AmqpClientPath,
-				string:concat( AmqpClientPath, "/ebin" ),
-				string:concat( AmqpClientPath, "/include/rabbit_common/ebin" )
-			  ]
-			] ),
+	class_Actor:create_initial_actor( class_Log,
+		[ string:concat( OutputPath, element( 1 , Config ) ),
+		  [ AmqpClientPath,
+			string:concat( AmqpClientPath, "/ebin" ),
+			string:concat( AmqpClientPath, "/include/rabbit_common/ebin" )
+		  ]
+		] ),
 
-	MetroActor = class_Actor:create_initial_actor( class_Metro, [ "MetroCity" , string:concat( OutputPath, MetroFile ) ] ), 
+	class_Actor:create_initial_actor( class_Metro, [ "MetroCity" , string:concat( OutputPath, MetroFile ) ] ), 
 
-	CityActor = case element( 8 , Config ) of % verify if it is necessary to generate the city graph actor 
+	case element( 8 , Config ) of % verify if it is necessary to generate the city graph actor 
 		"true" ->
-			 class_Actor:create_initial_actor( class_City, [ "City" , { string:concat( OutputPath, element( 3 , Config ) ), ListVertex } ] );
+			 class_Actor:create_initial_actor( class_City, [ "City" , { string:concat( OutputPath, element( 3 , Config ) ) } ] );
 		_ ->
 			ok
 	end,
 
-	ParkActor = case ParkSpots of
+	case ParkSpots of
 	    ok ->
 		ok;
 	    _ ->		
-		class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots , LogPID ] )
+		class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots ] )
 	end,
 
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" , "car7" , "car8"  ],
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
-	spaw_proccess( List , CityGraph , { LogPID , MetroActor , ParkActor , CityActor } ),
+	spaw_proccess( List , CityGraph ),
  
 	ok = collectResults( Names ),
 
-	create_buses( ListBuses , CityGraph , LogPID  ),
+	create_buses( ListBuses , CityGraph  ),
 
 	SimulationDuration = element( 1 , string:to_integer(element( 2 , Config ) ) ),
 

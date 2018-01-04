@@ -34,13 +34,17 @@
 				class_Actor:name() , sensor_type() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
+    case ets:info(options) of
+	undefined -> ets:new(options, [public, set, named_table]);
+        _ -> ok
+    end,
+    ets:insert(options, {city_pid, self() }),
+
 	ActorState = class_Actor:construct( State, ActorSettings, CityName ),
 
 	CityGraph = map_parser:show( element( 1 , Graph ) , false ),	
-    	CityGraphPID = dict:from_list( element(2 , Graph ) ),
 
 	setAttributes( ActorState, [
-		{ dict , CityGraphPID },
 		{ graph , CityGraph } ] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
@@ -64,29 +68,10 @@ get_path( State, Data , PersonPID ) ->
 
 	Graph = getAttribute( State , graph ),
 
-	GraphPID = getAttribute( State , dict ),
-
 	Path = digraph:get_path( Graph , InitialVertice , list_to_atom( FinalVertice ) ),
 
-	PathNode = get_path_nodes( Path , GraphPID , [] ),
-
 	class_Actor:send_actor_message( PersonPID,
-		{ set_new_path , { Path , PathNode } }, State ).
-
-get_path_nodes( [] , _ListVertex , List ) ->
-	
-	List;
-
-get_path_nodes( [ Node | MoreNodes] , ListVertex , List ) ->
-
-	Element = dict:find( Node , ListVertex ),
-
-	ElementList = [{ Node , element( 2 , Element) }],
-
-	get_path_nodes( MoreNodes , ListVertex , List ++ ElementList ).	
-
-
-
+		{ set_new_path , { Path } }, State ).
 
 % Simply schedules this just created actor at the next tick (diasca 0).
 %

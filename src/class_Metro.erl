@@ -34,6 +34,12 @@
 				class_Actor:name() , sensor_type() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
+    case ets:info(options) of
+	undefined -> ets:new(options, [public, set, named_table]);
+        _ -> ok
+    end,
+    ets:insert(options, {metro_pid, self() }),
+
 	ActorState = class_Actor:construct( State, ActorSettings, CityName ),
 
 	MetroGraph = metro_parser:show( MetroFile , false ),
