@@ -18,7 +18,7 @@
 		 construct/7, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , metro_go/3 , bus_go/3 ).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, metro_go/3 , bus_go/3 ).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -154,9 +154,6 @@ actSpontaneous( State ) ->
 
 					end
 
-					
-
-
 			end
 
 
@@ -279,18 +276,15 @@ request_position( State , Trip ) ->
 				true ->	
 
 					% get the current and the next vertex in the path	
-					InitialVertice = list_utils:get_element_at( Path , 1 ),
-
-					FinalVertice = list_utils:get_element_at( Path , 2 ),
-
-					VertexPID = ets:lookup_element(list_vertex, InitialVertice, 2 ),
+					{ InitialVertice , FinalVertice } = { lists:nth( 1 , Path ), lists:nth( 2 , Path ) },
 					
 					Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] )),
 
 					FinalState = setAttribute( PathState , path, list_utils:remove_element_at( Path , 1 ) ), % remove the current element of the path
-			
-					class_Actor:send_actor_message( element( 2 , VertexPID ) ,
-						{ get_speed_walk, { Vertices } }, FinalState );
+
+					Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
+					StreetData = traffic_models:get_speed_walk( Data ),
+                        		go( FinalState , StreetData );
 
 				false ->							
 
@@ -315,8 +309,8 @@ request_position( State , Trip ) ->
 
 	end.
 
--spec go( wooper:state(), car_position() , parameter() ) -> class_Actor:actor_oneway_return().
-go( State, PositionTime , _GraphPID ) ->
+-spec go( wooper:state(), car_position() ) -> class_Actor:actor_oneway_return().
+go( State, PositionTime ) ->
 
 	TotalTime = class_Actor:get_current_tick_offset( State ) + element( 2 , PositionTime ), % CurrentTime + Time to pass the link
 
