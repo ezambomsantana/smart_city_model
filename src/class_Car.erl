@@ -245,7 +245,7 @@ get_next_vertex( State , Path , Trip ) ->
 		_ ->		
 
 			DecrementVertex = getAttribute( FinalState , last_vertex_pid ),
-			FinalState2 = case RemovePID of
+			FinalState2 = case DecrementVertex of
 				ok ->
 					FinalState;
 				_ ->

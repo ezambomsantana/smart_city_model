@@ -219,28 +219,28 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 
 			Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] ) ),
 
-			VertexPID = ets:lookup_element(list_vertex, InitialVertice, 2 ),	
-
-
-			RemovePID = list_utils:get_element_at( Bus , 5 ),
-			FinalState = case RemovePID of
+			DecrementVertex = list_utils:get_element_at( Bus , 5 ),
+			FinalState = case DecrementVertex of
 				ok ->
 					State;
 				_ ->
-					class_Actor:send_actor_message( element( 1 , RemovePID ) ,
-									{ decrement_vertex_count, { element( 2 , RemovePID) , bus } }, State )
+					ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
 			end,
 
 			Buses = getAttribute( FinalState , buses ),
 
-			NewBus = [ list_utils:get_element_at( Bus , 1 ) , list_utils:get_element_at( Bus , 2 ) , list_utils:get_element_at( Bus , 3 ), list_utils:get_element_at( Bus , 4 ) , { VertexPID , Vertices } ],
+			NewBus = [ list_utils:get_element_at( Bus , 1 ) , list_utils:get_element_at( Bus , 2 ) , list_utils:get_element_at( Bus , 3 ), list_utils:get_element_at( Bus , 4 ) , DecrementVertex ],
 	
 			NewDictBuses = dict:store( IdBus , NewBus , Buses ),
 
 			FinalBusState = setAttribute( FinalState , buses , NewDictBuses ),
-				
-			class_Actor:send_actor_message( VertexPID ,
-				{ get_speed_bus, { Vertices , IdBus } }, FinalBusState );
+
+			ets:update_counter( list_streets , Vertices , { 6 , 3 }),
+			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
+
+			StreetData = traffic_models:get_speed_bus( Data ),
+
+                        go( FinalBusState , StreetData , IdBus );
 
 		false ->							
 				
@@ -372,14 +372,13 @@ load_people( State , IdBus , [ Person | List ] , Dict ) ->
 % (actor oneway)
 %
 -spec go( wooper:state(), value(), pid() ) -> class_Actor:actor_oneway_return().
-go( State, PositionTime , _GraphPID ) ->
+go( State, PositionTime , BusId ) ->
 	
 	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), % get the current time of the simulation
 
 	% get the response from the city graph
 	NewPosition = element( 1 , PositionTime ),
 	Time = element( 2 , PositionTime),
-  	BusId = element( 3 , PositionTime ),
 
 	Buses = getAttribute( State , buses ), 
 
