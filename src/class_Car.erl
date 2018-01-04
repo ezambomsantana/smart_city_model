@@ -34,6 +34,9 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
 
+	InitialTrip = lists:nth( 1 , ListTripsFinal ),	
+	Path = element( 2 , InitialTrip ),
+
 	NewState = setAttributes( ActorState, [
 		{ car_name, CarName },
 		{ trips , ListTripsFinal },
@@ -41,7 +44,7 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ distance , 0 },
 		{ car_position, -1 },
 		{ start_time , StartTime },
-		{ path , ok },
+		{ path , Path },
 		{ park , Park },
 		{ mode , Mode },
 		{ last_vertex_pid , ok }
@@ -80,29 +83,29 @@ actSpontaneous( State ) ->
 
 					NewState = setAttribute( State , path , finish ),
 
-					Type = getAttribute( NewState , type ),
+%					Type = getAttribute( NewState , type ),
 						
-					TotalLength = getAttribute( NewState , distance ),
+%					TotalLength = getAttribute( NewState , distance ),
 
-					StartTime = getAttribute( NewState , start_time ),
+%					StartTime = getAttribute( NewState , start_time ),
 
-					CarId = getAttribute( NewState , car_name ),	
+%					CarId = getAttribute( NewState , car_name ),	
 
-					CurrentTickOffset = class_Actor:get_current_tick_offset( NewState ), 
+%					CurrentTickOffset = class_Actor:get_current_tick_offset( NewState ), 
 
-					LastPosition = getAttribute( NewState , car_position ),
+%					LastPosition = getAttribute( NewState , car_position ),
 
-					Mode = getAttribute( NewState , mode ), 
+%					Mode = getAttribute( NewState , mode ), 
 
-					FinalState = print:write_final_message( NewState , Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , ets:lookup_element(options, log_pid, 2 ) , Mode , csv ),
+%					FinalState = print:write_final_message( NewState , Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , ets:lookup_element(options, log_pid, 2 ) , Mode , csv ),
 
-					executeOneway( FinalState, scheduleNextSpontaneousTick )
+					executeOneway( NewState , scheduleNextSpontaneousTick )
 
 				end;
 
 		true ->
 
-			CurrentTrip = list_utils:get_element_at( Trips , 1 ),		
+			CurrentTrip = lists:nth( 1 , Trips ),		
 
 			NewState = request_position( State , CurrentTrip ),
 			?wooper_return_state_only( NewState )
@@ -111,36 +114,27 @@ actSpontaneous( State ) ->
 
 -spec request_position( wooper:state() , parameter() ) -> wooper:state().
 request_position( State , Trip ) ->
-	
-	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 	
-
-	PathTest = getAttribute( State , path ),
-
-	PathState = case PathTest of
-
-		ok -> 
 			
-			PathTrip = element( 2 , Trip ),
-			setAttribute( State, path , PathTrip );
-
-		_ ->
-
-			State
-
-	end,
-
-			
-	Path = getAttribute( PathState , path ),
+	Path = getAttribute( State , path ),
 
 	case Path of 
 
 		finish ->
 
+			CurrentTickOffset = class_Actor:get_current_tick_offset( State ),
+
 			Trips = getAttribute( State , trips ), 
 			
 			NewTrips = list_utils:remove_element_at( Trips , 1 ),
-
-			NewState = setAttributes( State , [ { trips , NewTrips } , { path, ok} ] ),
+			
+			NewState = case length( NewTrips ) > 0 of
+				true -> 
+					InitialTrip = lists:nth( 1 , NewTrips ),	
+					NewPath = element( 2 , InitialTrip ),
+					setAttributes( State , [ { trips , NewTrips } , { path, NewPath} ] );
+				false -> 
+					setAttributes( State , [ { trips , NewTrips } , { path, ok} ] )
+			end,
 
 			executeOneway( NewState , addSpontaneousTick , CurrentTickOffset + 1 );	
 	
@@ -154,21 +148,21 @@ request_position( State , Trip ) ->
 
 				true ->	
 
-					get_next_vertex( PathState , Path , Trip );
+					get_next_vertex( State , Path , Trip );
 
 				false ->							
 
-					LastPosition = getAttribute( PathState , car_position ),
+					LastPosition = getAttribute( State , car_position ),
 
 					case LastPosition == -1 of
 
 						true ->
 							
-							executeOneway( PathState , declareTermination );	
+							executeOneway( State , declareTermination );	
 
 						false ->
 
-							verify_park( PathState , Trip , CurrentTickOffset )
+							verify_park( State , Trip )
 					
 					end
 
@@ -176,7 +170,9 @@ request_position( State , Trip ) ->
 
 	end.
 
-verify_park( State , Trip , CurrentTickOffset ) ->
+verify_park( State , Trip ) ->
+
+	CurrentTickOffset = class_Actor:get_current_tick_offset( State ),
 
 	NewState = case element( 1 , Trip ) of % mode
 
@@ -224,17 +220,12 @@ verify_park( State , Trip , CurrentTickOffset ) ->
 
 
 get_next_vertex( State , Path , Trip ) ->
-
-	% get the current and the next vertex in the path	
-	{ InitialVertice , FinalVertice } = { lists:nth( 1 , Path ) , lists:nth( 2 , Path ) },
-
-	Mode = element( 1 , Trip ),
-					
-	Vertices = list_to_atom( lists:concat( [ InitialVertice , FinalVertice ] )),
+			
+	Vertices = list_to_atom( lists:concat( [ lists:nth( 1 , Path ) , lists:nth( 2 , Path ) ] )),
 
 	FinalState = setAttribute( State , path , list_utils:remove_element_at( Path , 1 ) ),
 
-	case Mode  of
+	case element( 1 , Trip )  of % get the travel mode
 
 		"walk" ->		
 					
@@ -245,15 +236,14 @@ get_next_vertex( State , Path , Trip ) ->
 		_ ->		
 
 			DecrementVertex = getAttribute( FinalState , last_vertex_pid ),
-			FinalState2 = case DecrementVertex of
+			case DecrementVertex of
 				ok ->
-					FinalState;
+					ok;
 				_ ->
-					ets:update_counter( list_streets, DecrementVertex , { 6 , -1 }),
-					FinalState
+					ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
 			end,
 		
-			FinalStateCar = setAttribute( FinalState2 , last_vertex_pid , Vertices ),		
+			FinalStateCar = setAttribute( FinalState , last_vertex_pid , Vertices ),		
 		
 			ets:update_counter( list_streets , Vertices , { 6 , 1 }),
 			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
@@ -337,7 +327,6 @@ go( State, PositionTime ) ->
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
 
-
 	StartTime = getAttribute( State , start_time ),
 
     	FirstActionTime = class_Actor:get_current_tick_offset( State ) + StartTime,   	
@@ -345,5 +334,4 @@ onFirstDiasca( State, _SendingActorPid ) ->
 	NewState = setAttribute( State , start_time , FirstActionTime ),
 
 	executeOneway( NewState , addSpontaneousTick , FirstActionTime ).
-
 
