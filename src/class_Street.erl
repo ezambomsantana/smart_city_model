@@ -5,7 +5,7 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings , StreetName , ListVertex ).
+-define( wooper_construct_parameters, ActorSettings , StreetName , ListEdges ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
@@ -34,20 +34,12 @@
 				class_Actor:name() , sensor_type() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
-	case ets:info(list_vertex) of
-		undefined -> ets:new(list_vertex, [public, set, named_table]);
-                _ -> ok
-        end,
-
-
 	case ets:info(list_streets) of
 		undefined -> ets:new(list_streets, [public, set, named_table]);
                 _ -> ok
         end,
 
-	ets:insert(list_vertex, {list_to_atom(StreetName), self() }),
-
-	iterate_list( ListVertex ),
+	iterate_list( ListEdges ),
 
 	ActorState = class_Actor:construct( State, ActorSettings, StreetName ),
 
