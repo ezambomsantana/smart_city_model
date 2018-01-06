@@ -154,7 +154,7 @@ verify_park( State , Trip ) ->
 
 	case element( 1 , Trip ) of % mode
 
-		"car" ->							
+		car ->							
 		
 			DecrementVertex = getAttribute( State , last_vertex_pid ),
 	
@@ -198,14 +198,14 @@ get_next_vertex( State , [ Current | Path ] , Trip ) ->
 
 	case element( 1 , Trip )  of % get the travel mode
 
-		"walk" ->		
+		walk ->		
 					
 			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
 			StreetData = traffic_models:get_speed_walk( Data ),
 			FinalState = setAttribute( State , path , Path ),
                         go( FinalState , StreetData );
 
-		_ ->		
+		car ->		
 
 			DecrementVertex = getAttribute( State , last_vertex_pid ),
 			case DecrementVertex of

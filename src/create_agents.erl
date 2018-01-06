@@ -32,9 +32,9 @@ create_person( Car , Graph ) ->
 
 	ModeFinal = case Mode of
 		ok ->
-			"car"; % if the mode is not set in the input file, "car" is the default value.
+			car; % if the mode is not set in the input file, "car" is the default value.
 		_ ->
-			Mode % Otherwise, car or walk.
+			list_to_atom( Mode ) % Otherwise, car or walk.
 	end,
 
 	NewPath = digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) ),

@@ -15,7 +15,7 @@ write_final_message( _Type , TotalLength , StartTime , CarId , CurrentTickOffset
 
 	TotalTime =   CurrentTickOffset - StartTime, 	
 
-%	Arrival = io_lib:format( "~w;arrival;~s;~s;~s;~w;~w;~s\n", [ CurrentTickOffset , CarId ,  LastPosition, Mode , TotalTime , TotalLength , Type ] ),
+%	Arrival = io_lib:format( "~w;arrival;~s;~s;~w;~w;~w;~s\n", [ CurrentTickOffset , CarId ,  LastPosition, Mode , TotalTime , TotalLength , Type ] ),
 
 	Arrival = io_lib:format( "~w;arrival;~s;~s;~w;~w\n", [ CurrentTickOffset , CarId ,  LastPosition, TotalTime , TotalLength ] ),
 

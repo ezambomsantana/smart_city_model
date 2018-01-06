@@ -77,9 +77,9 @@ init_cars( [ Car | Cars ] , State ) ->
 	{ CarName , ListTripsFinal , Type, Park , Mode , Count } = Car,	
 
 	NewState = case Mode of
-		"car" ->
+		car ->
 			create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode );
-		"walk" ->	
+		walk ->	
 			create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode );
 		_ ->
 			create_person_public( Count , State , CarName , ListTripsFinal , Type , Mode )
