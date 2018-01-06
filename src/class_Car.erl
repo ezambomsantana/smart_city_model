@@ -187,10 +187,8 @@ verify_park( State , Trip ) ->
 
 			executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
 		find ->
-
 			Parking = ets:lookup_element(options, parking_pid, 2 ),
 			class_Actor:send_actor_message( Parking, { spot_available, { Park } } , State )
-
 	end.
 
 
@@ -265,7 +263,6 @@ go( State, PositionTime ) ->
 	TotalTime = class_Actor:get_current_tick_offset( State ) + element( 2 , PositionTime ), % CurrentTime + Time to pass the link
 
 %	LastPosition = getAttribute( State , car_position ),
-	% Calculate the total distance that the person moved until now.
 	TotalLength = getAttribute( State , distance ) + element( 3 , PositionTime),
 	LengthState = setAttributes( State , [ { distance , TotalLength } , { car_position , element( 1 , PositionTime ) } ] ), 
 
@@ -293,11 +290,6 @@ go( State, PositionTime ) ->
 
 	executeOneway( LengthState , addSpontaneousTick , TotalTime ).
 
-
-% Simply schedules this just created actor at the next tick (diasca 0).
-%
-% (actor oneway)
-%
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
 	StartTime = getAttribute( State , start_time ),

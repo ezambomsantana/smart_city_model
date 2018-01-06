@@ -36,23 +36,17 @@ construct( State, ?wooper_construct_parameters ) ->
 
         DictCars = create_dict( dict:new() , CarList ),
 
-	setAttributes( ActorState, [
-		{ car_list, DictCars }
-						] ).
+	setAttributes( ActorState, [ { car_list, DictCars } ] ).
 
-create_dict( Dict , [] ) ->
-	Dict;
-
+create_dict( Dict , [] ) -> Dict;
 create_dict( Dict , [ Car | CarList ] ) ->
 
-	Key = element( 1 , Car ),
-	Value = element( 2 , Car ),
-
+	{ Key , Value } = Car,
 	Element = dict:find( Key , Dict ),
 	
-	NewDict= case Element of 
+	NewDict = case Element of 
 		error -> dict:store( Key , Value , Dict );
-		_ -> dict:store( Key , element( 2 , Element ) ++ Value , Dict )
+		{ ok , ListCar } -> dict:store( Key , ListCar ++ Value , Dict )
 	end,
 	create_dict( NewDict , CarList ).
 
@@ -72,77 +66,52 @@ actSpontaneous( State ) ->
 
 	NewState = case Cars of
 		error -> State;
-		_ -> init_cars( element( 2 , Cars ) , State )
+		{ ok , List } -> init_cars( List , State )
 	end,
 
-    	FirstActionTime = CurrentTick + 1,   	
-
-	executeOneway( NewState , addSpontaneousTick , FirstActionTime ).
+	executeOneway( NewState , addSpontaneousTick , CurrentTick + 1 ).
 	
-init_cars( [] , State ) ->
-	State;
-
+init_cars( [] , State ) -> State;
 init_cars( [ Car | Cars ] , State ) ->
 
-	CarName = element( 1 , Car ),
-	ListTripsFinal = element( 2 , Car ),
-	StartTime = element( 3 , Car ),
-	Type = element( 4 , Car ),
-	Park = element( 5 , Car ),
-	Mode = element( 6 , Car ),
-	Count = element( 7 , Car ),	
+	{ CarName , ListTripsFinal , Type, Park , Mode , Count } = Car,	
 
 	NewState = case Mode of
-
 		"car" ->
-
-			create_person_car( Count , State , { CarName , ListTripsFinal , StartTime , Type , Park , Mode } );
-
+			create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode );
 		"walk" ->	
-			create_person_car( Count , State , { CarName , ListTripsFinal , StartTime , Type , Park , Mode } );
+			create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode );
 		_ ->
-
-			create_person_public( Count , State , { CarName , ListTripsFinal , StartTime , Type , Mode } )
-	
+			create_person_public( Count , State , CarName , ListTripsFinal , Type , Mode )
 	end,
-
 	init_cars( Cars , NewState ).
 
 
-create_person_car( _Count = 0 , State , _Data ) -> State;
-create_person_car( Count , State , Data ) ->
+create_person_car( 0 , State , _CarName , _ListTripsFinal , _Type , _Park , _Mode ) -> State;
+create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode ) ->
 
-	CarName = io_lib:format( "~s_~B", [ element( 1 , Data ) , Count ] ),
-	ListTripsFinal = element( 2 , Data ),
+	CarFinalName = io_lib:format( "~s_~B", [ CarName , Count ] ),
 	StartTime = class_RandomManager:get_uniform_value( 1200 ),
-	Type = element( 4 , Data ),
-	Park = element( 5 , Data ),
-	Mode = element( 6 , Data ),
 
 	NewState = class_Actor:create_actor( class_Car,
-		[ CarName , ListTripsFinal , StartTime , Type , Park , Mode ] , State ),
+		[ CarFinalName , ListTripsFinal , StartTime , Type , Park , Mode ] , State ),
 
-	create_person_car( Count - 1 , NewState , Data ).
+	create_person_car( Count - 1 , NewState , CarName , ListTripsFinal , Type , Park , Mode ).
 
 
-create_person_public( _Count = 0 , State , _Data ) -> State;
-create_person_public( Count , State , Data ) ->
+create_person_public( _Count = 0 , State , _CarName , _ListTripsFinal , _Type , _Mode ) -> State;
+create_person_public( Count , State , CarName , ListTripsFinal , Type , Mode ) ->
 
-	CarName = io_lib:format( "~s_~B", [ element( 1 , Data ) , Count ] ),
-	ListTripsFinal = element( 2 , Data ),
+	CarFinalName = io_lib:format( "~s_~B", [ CarName , Count ] ),
 	StartTime = class_RandomManager:get_uniform_value( 1200 ),
-	Type = element( 4 , Data ),
-	Mode = element( 5 , Data ),
 
 	NewState = class_Actor:create_actor( class_Person,
-		[ CarName , ListTripsFinal , StartTime , Type , Mode ]  , State ),
+		[ CarFinalName , ListTripsFinal , StartTime , Type , Mode ]  , State ),
 
-	create_person_public( Count - 1 , NewState , Data ).
+	create_person_public( Count - 1 , NewState , CarName , ListTripsFinal , Type , Mode ).
 
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
-
     	FirstActionTime = class_Actor:get_current_tick_offset( State ) + 1,   	
-
 	executeOneway( State , addSpontaneousTick , FirstActionTime ).
 

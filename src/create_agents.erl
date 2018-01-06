@@ -21,7 +21,7 @@ iterate_list( ListCount , [ Car | MoreCars] , Graph , Name , MainPID , FinalList
 	Element = case size( Car ) == 9 of
 
 		true ->
-			create_person( element (1 , string:to_integer(Count)) , Car , Graph , false );
+			create_person( element (1 , string:to_integer(Count)) , Car , Graph );
 
 		false ->			
 			create_person_multi_trip( element (1 , string:to_integer(Count)) , Car , Graph )
@@ -31,7 +31,7 @@ iterate_list( ListCount , [ Car | MoreCars] , Graph , Name , MainPID , FinalList
 	iterate_list( ListCount + 1 , MoreCars , Graph , Name , MainPID , FinalList ++ Element ).
 
 
-create_person( CarCount ,  Car , Graph , _Path ) ->
+create_person( CarCount ,  Car , Graph ) ->
 
 	Origin = element ( 1 , Car ),
 	Destination = element ( 2 , Car ),
@@ -55,14 +55,13 @@ create_person( CarCount ,  Car , Graph , _Path ) ->
 			Mode % Otherwise, car or walk.
 	end,
 
-	
 	NewPath = digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) ),
 
 	ListTripsFinal = [ { ModeFinal , NewPath , LinkOrigin } ],
 
 	% ListTripsFinal = [ { ModeFinal , NewPath } ],
 
-	[ { StartTime , [ { NameFile , ListTripsFinal , StartTime , Type , Park , ModeFinal , CarCount } ] } ].
+	[ { StartTime , [ { NameFile , ListTripsFinal , Type , Park , ModeFinal , CarCount } ] } ].
 
 
 
@@ -81,7 +80,7 @@ create_person_multi_trip( CarCount ,  Car , Graph  ) ->
 	
 	ListTripsFinal = create_single_trip( ListTrips , [] , Graph ),
 
-	[ { StartTime , [ { NameFile , ListTripsFinal , StartTime , Type , ok , Mode , CarCount } ] } ].
+	[ { StartTime , [ { NameFile , ListTripsFinal , Type , ok , Mode , CarCount } ] } ].
 
 
 
