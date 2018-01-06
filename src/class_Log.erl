@@ -66,7 +66,6 @@ construct( State, ?wooper_construct_parameters ) ->
 
 
 	setAttributes( ActorState, [
-			{ file , InitFile }
 %			{ channel, Channel },
 %			{ exchange, Exchange },
 %			{ publish, Publish },
@@ -78,7 +77,6 @@ construct( State, ?wooper_construct_parameters ) ->
 -spec destruct( wooper:state() ) -> wooper:state().
 destruct( State ) ->
 
-	InitFile = ?getAttr(file),
 	%Connection = ?getAttr(connection),
 	%Channel = ?getAttr(channel),
 	%Publish = ?getAttr(publish),
@@ -94,7 +92,7 @@ destruct( State ) ->
 	%ok = amqp_connection:close(Connection),
 
 %	file_utils:write( InitFile, "</events>" ),
-	file_utils:close( InitFile ),
+	file_utils:close( ets:lookup_element(options, log_file, 2 ) ),
 
 	State.
 
@@ -105,19 +103,16 @@ actSpontaneous( State ) ->
 
 % Receive a message from an agent and saves it in the log file.
 -spec receive_action( wooper:state() , car_index() , pid() ) -> wooper:state().
-receive_action( State , Data , _Pid ) ->
+receive_action( State , _Data , _Pid ) ->
 
-	InitFile = ?getAttr(file),
 %	Channel = ?getAttr(channel),
 %	Publish = ?getAttr(publish),
 
-	Content = element( 1, Data ),
+%	Content = element( 1, Data ),
 
 %	amqp_channel:cast( Channel,
  %                      Publish,
   %                     #amqp_msg{ payload = list_to_binary( Content ) }),
-
-	file_utils:write( InitFile, Content ),
 
 	?wooper_return_state_only( State ).
 

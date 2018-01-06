@@ -45,16 +45,15 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ car_position, -1 },
 		{ start_time , StartTime },
 		{ path , Path },
-		{ park , Park },
 		{ mode , Mode },
 		{ last_vertex_pid , ok }
 						] ),
 
 	case Park of
 		ok ->
-			setAttribute( NewState , park_status , finish );
+			setAttribute( NewState , park_status , not_parking );
 		_ ->
-			setAttribute( NewState , park_status , find )
+			setAttributes( NewState , [ { park_status , find } , { park , Park } ] )
 	end.
 
 -spec destruct( wooper:state() ) -> wooper:state().
@@ -66,164 +65,123 @@ destruct( State ) ->
 actSpontaneous( State ) ->
 	
 	Trips = getAttribute( State , trips ), 
+	Path = getAttribute( State , path ), 
+	verify_next_action( State , Trips , Path ).
+
+verify_next_action( State , Trips , Path ) when length( Trips ) > 0 ->
+	CurrentTrip = lists:nth( 1 , Trips ),		
+	?wooper_return_state_only( request_position( State , CurrentTrip , Path ) );
 	
-	case length( Trips ) > 0 of
+verify_next_action( State , _Trips , Path ) when Path == finish -> 
+	executeOneway( State , declareTermination );
 
-		false ->		
-			
-			Path = getAttribute( State , path ), 
+verify_next_action( State , _Trips , _Path ) ->
+	NewState = setAttribute( State , path , finish ),
 
-			case Path of 
+	Type = getAttribute( NewState , type ),						
+	TotalLength = getAttribute( NewState , distance ),
+	StartTime = getAttribute( NewState , start_time ),
+	CarId = getAttribute( NewState , car_name ),	
+	LastPosition = getAttribute( NewState , car_position ),
+	Mode = getAttribute( NewState , mode ), 
 
-				finish -> 
-					
-					executeOneway( State , declareTermination );
+	CurrentTickOffset = class_Actor:get_current_tick_offset( NewState ), 
 
-				_ ->
+	print:write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , Mode , csv ),
 
-					NewState = setAttribute( State , path , finish ),
+	executeOneway( NewState , scheduleNextSpontaneousTick ).
 
-					Type = getAttribute( NewState , type ),
-						
-					TotalLength = getAttribute( NewState , distance ),
-
-					StartTime = getAttribute( NewState , start_time ),
-
-					CarId = getAttribute( NewState , car_name ),	
-
-					CurrentTickOffset = class_Actor:get_current_tick_offset( NewState ), 
-
-					LastPosition = getAttribute( NewState , car_position ),
-
-					Mode = getAttribute( NewState , mode ), 
-
-					print:write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , Mode , csv ),
-
-					executeOneway( NewState , scheduleNextSpontaneousTick )
-
-				end;
-
-		true ->
-
-			CurrentTrip = lists:nth( 1 , Trips ),		
-
-			NewState = request_position( State , CurrentTrip ),
-			?wooper_return_state_only( NewState )
-
-	end.
-
--spec request_position( wooper:state() , parameter() ) -> wooper:state().
-request_position( State , Trip ) ->
-			
-	Path = getAttribute( State , path ),
-
-	case Path of 
-
-		finish ->
-
-			CurrentTickOffset = class_Actor:get_current_tick_offset( State ),
-
-			Trips = getAttribute( State , trips ), 
-			
-			NewTrips = list_utils:remove_element_at( Trips , 1 ),
-			
-			NewState = case length( NewTrips ) > 0 of
-				true -> 
-					InitialTrip = lists:nth( 1 , NewTrips ),	
-					NewPath = element( 2 , InitialTrip ),
-					setAttributes( State , [ { trips , NewTrips } , { path, NewPath} ] );
-				false -> 
-					setAttributes( State , [ { trips , NewTrips } , { path, ok} ] )
-			end,
-
-			executeOneway( NewState , addSpontaneousTick , CurrentTickOffset + 1 );	
-	
-		false ->
-			executeOneway( State , declareTermination );
-		_ ->
-
-			case length( Path ) > 1 of
-				true ->	get_next_vertex( State , Path , Trip );
-				false -> verify_park( State , Trip )
-			end
-	end.
-
-verify_park( State , Trip ) ->
+request_position( State , _Trip , Path ) when Path == finish ->
 
 	CurrentTickOffset = class_Actor:get_current_tick_offset( State ),
 
-	case element( 1 , Trip ) of % mode
-
-		car ->							
-		
-			DecrementVertex = getAttribute( State , last_vertex_pid ),
+	Trips = getAttribute( State , trips ), 
+			
+	NewTrips = list_utils:remove_element_at( Trips , 1 ),
 	
-			ets:update_counter( list_streets, DecrementVertex , { 6 , -1 });
-		_ ->		
-			ok
+	NewState = case length( NewTrips ) > 0 of
+		true -> 
+			InitialTrip = lists:nth( 1 , NewTrips ),	
+			NewPath = element( 2 , InitialTrip ),
+			setAttributes( State , [ { trips , NewTrips } , { path, NewPath} ] );
+		false -> 
+			setAttributes( State , [ { trips , NewTrips } , { path, ok} ] )
+	end,
 
-	end,	
+	executeOneway( NewState , addSpontaneousTick , CurrentTickOffset + 1 );	
 
-	{ Park , ParkStatus } = { getAttribute( State , park ), getAttribute( State , park_status ) },
+request_position( State , _Trip , Path ) when Path == false ->
+	executeOneway( State , declareTermination );
+
+request_position( State , Trip , Path ) ->
+	case length( Path ) > 1 of
+		true ->	get_next_vertex( State , Path , element( 1 , Trip ) );
+		false -> verify_park( State , element( 1 , Trip ) )
+	end.
+
+verify_park( State , Mode ) when Mode == walk ->
+	FinalState = setAttribute( State, path , finish ),
+	executeOneway( FinalState , scheduleNextSpontaneousTick );
+
+
+verify_park( State , _Mode ) ->
+						
+	DecrementVertex = getAttribute( State , last_vertex_pid ),
+	
+	ets:update_counter( list_streets , DecrementVertex , { 6 , -1 }),
+
+	ParkStatus = getAttribute( State , park_status ),
 
 	case ParkStatus of
 
+		not_parking ->
+			FinalState = setAttribute( State , path , finish ),
+
+			executeOneway( FinalState , scheduleNextSpontaneousTick );
 		finish ->
 
-			NewNewState = case Park of
-
-				ok ->
-		
-					State;
-
-				_ ->
+			Park = getAttribute( State , park ),
 					
-					Parking = ets:lookup_element(options, parking_pid, 2 ),
-					class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , State )
-	
-			end,
+			Parking = ets:lookup_element(options, parking_pid, 2 ),
+			NewState = class_Actor:send_actor_message( Parking, { spot_in_use, { Park } } , State ),
 									
-			FinalState = setAttribute( NewNewState, path , finish ),
+			FinalState = setAttribute( NewState, path , finish ),
 
-			executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 );
+			executeOneway( FinalState , scheduleNextSpontaneousTick );
 		find ->
+			Park = getAttribute( State , park ),
 			Parking = ets:lookup_element(options, parking_pid, 2 ),
 			class_Actor:send_actor_message( Parking, { spot_available, { Park } } , State )
 	end.
 
 
-get_next_vertex( State , [ Current | Path ] , Trip ) ->
-			
+get_next_vertex( State , [ Current | Path ] , Mode ) when Mode == walk ->			
 	Vertices = list_to_atom( lists:concat( [ Current , lists:nth( 1 , Path ) ] )),
+	
+	Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
+	StreetData = traffic_models:get_speed_walk( Data ),
+	FinalState = setAttribute( State , path , Path ),
+        go( FinalState , StreetData );
 
-	case element( 1 , Trip )  of % get the travel mode
+get_next_vertex( State , [ Current | Path ] , _Mode ) ->
+	Vertices = list_to_atom( lists:concat( [ Current , lists:nth( 1 , Path ) ] )),
+	
+	DecrementVertex = getAttribute( State , last_vertex_pid ),
+	case DecrementVertex of
+		ok ->
+			ok;
+		_ ->
+			ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
+	end,
+	
+	FinalState = setAttributes( State , [ {last_vertex_pid , Vertices } , { path , Path } ] ),		
 
-		walk ->		
-					
-			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
-			StreetData = traffic_models:get_speed_walk( Data ),
-			FinalState = setAttribute( State , path , Path ),
-                        go( FinalState , StreetData );
+	ets:update_counter( list_streets , Vertices , { 6 , 1 }),
+	Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
 
-		car ->		
+	StreetData = traffic_models:get_speed_car( Data ),
 
-			DecrementVertex = getAttribute( State , last_vertex_pid ),
-			case DecrementVertex of
-				ok ->
-					ok;
-				_ ->
-					ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
-			end,
-		
-			FinalState = setAttributes( State , [ {last_vertex_pid , Vertices } , { path , Path } ] ),		
-		
-			ets:update_counter( list_streets , Vertices , { 6 , 1 }),
-			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
-
-			StreetData = traffic_models:get_speed_car( Data ),
-
-                        go( FinalState , StreetData )
-	end.
+        go( FinalState , StreetData ).
 
 get_parking_spot( State , IdNode , _ParkingPID ) ->
 
@@ -255,7 +213,7 @@ set_new_path( State , NewPath , _CityPID ) ->
 
 	CurrentTrip = list_utils:get_element_at( Trips , 1 ),
 
-        request_position( StateDict , CurrentTrip ).
+        request_position( StateDict , CurrentTrip , Path ).
 
 -spec go( wooper:state(), car_position() ) -> class_Actor:actor_oneway_return().
 go( State, PositionTime ) ->
