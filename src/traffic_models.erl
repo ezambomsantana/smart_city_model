@@ -26,7 +26,6 @@ get_speed_car( LinkData ) ->
 	Time = ( Length / Speed ) + 1,
 	{ Id , round( Time ) , round ( Length ) }.
 
-
 get_speed_walk( LinkData ) ->
 
 	{ _ , Id , Length , _ , _ , _ } = LinkData,	

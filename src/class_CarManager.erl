@@ -20,7 +20,6 @@
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2 ).
 
-
 % Allows to define WOOPER base variables and methods for that class:
 -include("smart_city_test_types.hrl").
 
@@ -31,11 +30,8 @@
 -spec construct( wooper:state(), class_Actor:actor_settings(),
 				class_Actor:name() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
-
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
-
         DictCars = create_dict( dict:new() , CarList ),
-
 	setAttributes( ActorState, [ { car_list, DictCars } ] ).
 
 create_dict( Dict , [] ) -> Dict;
@@ -114,4 +110,3 @@ create_person_public( Count , State , CarName , ListTripsFinal , Type , Mode ) -
 onFirstDiasca( State, _SendingActorPid ) ->
     	FirstActionTime = class_Actor:get_current_tick_offset( State ) + 1,   	
 	executeOneway( State , addSpontaneousTick , FirstActionTime ).
-
