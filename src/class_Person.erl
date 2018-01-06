@@ -42,7 +42,6 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ car_position, -1 },
 		{ start_time , StartTime },
 		{ path , ok },
-		{ cost , 3.8 },
 		{ mode , Mode },
 		{ pt_status , start } %public transport -> bus or metro
 						] ).
@@ -125,9 +124,11 @@ actSpontaneous( State ) ->
 
 						start ->
 								
-							NewState = request_position_bus( State , CurrentTrip ),
+							
+							{ _ , Origin , Destination , Line } = CurrentTrip,
+							ets:insert(waiting_bus, { Origin , Line , Destination , self() } ),
 
-							?wooper_return_state_only( NewState )
+							?wooper_return_state_only( State )
 
 					end;
 
@@ -158,28 +159,11 @@ actSpontaneous( State ) ->
 
 
 	end.
-
--spec request_position_bus( wooper:state() , parameter() ) -> wooper:state().
-request_position_bus( State , Trip ) -> 
-
-	Origin = element( 2 , Trip ),
-
-	Destination = element( 3 , Trip ), 
-
-	Line = element( 4 , Trip ), 
-
-	VertexPID = ets:lookup_element(list_vertex, Origin, 2 ),	% get the pid of the bus stop vertex
-
-	class_Actor:send_actor_message( VertexPID ,
-		{ wait_bus , { Destination , Line } }, State ).
-
 			
 -spec request_position_metro( wooper:state() , parameter() ) -> wooper:state().
 request_position_metro( State , Trip ) -> 
 
-	Origin = element( 2 , Trip ),
-
-	Destination = element( 4 , Trip ), 
+	{ _ , Origin , _ , Destination } = Trip,
 
 	class_Actor:send_actor_message( ets:lookup_element(options, metro_pid, 2 ) ,
 		{ getTravelTime, { Origin , Destination } }, State ).

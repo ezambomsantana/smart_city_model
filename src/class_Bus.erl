@@ -18,7 +18,7 @@
 		 construct/7, destruct/1 ).
 
 % Method declarations.
--define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , continue/3).
+-define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, go/3 , continue/4).
 
 
 % Allows to define WOOPER base variables and methods for that class:
@@ -142,14 +142,10 @@ actSpontaneous( State ) ->
 	
 
 
-request_position_buses( State , [] ) ->
-
-	State;
-
+request_position_buses( State , [] ) ->	State;
 request_position_buses( State ,  [ Bus | Buses ] ) ->
 	
 	NewState = request_position( State ,  Bus ),
-
 	request_position_buses( NewState , Buses ).
 	
 	
@@ -188,10 +184,9 @@ request_position( State , Bus ) ->
 
 					BusLine = getAttribute( NewState , bus_name ), 
 
-					VertexPID = ets:lookup_element(list_vertex, InitialVertice, 2 ),	
+					People = ets:match_object(waiting_bus, { InitialVertice , BusLine , '_' , '_' }  ),	
 
-					class_Actor:send_actor_message( VertexPID ,
-						{ load_people , { BusLine , IdBus } }, NewState );
+					continue( NewState , People , Bus , IdBus );
 
 				true ->
 
@@ -286,29 +281,12 @@ unload_people( State , IdBus , Position  ) ->
 
 	end.
 
-
-unload_person( State , [ ] ) ->
-
-	State;
-
+unload_person( State , [ ] ) ->	State;
 unload_person( State , [ Person | List ] ) ->
-
-	NewState = class_Actor:send_actor_message( element( 1 , Person ) , 
-		{ bus_go, { ok } }, State ),
-
+	NewState = class_Actor:send_actor_message( element( 1 , Person ) , { bus_go, { ok } }, State ),
 	unload_person( NewState , List ).
 			
-
--spec continue( wooper:state(), parameter(), pid() ) ->
-					   class_Actor:actor_oneway_return().
-continue( State , ListPeople , _StreetPID ) ->	
-
-	People = element( 1 , ListPeople ),
-	IdBus = element( 2 , ListPeople ),
-
-	Buses = getAttribute( State , buses ), 
-
-	Bus = element( 2 , dict:find( IdBus , Buses ) ), % dict:find returns { ok , Object }
+continue( State , People , Bus , IdBus ) ->	
 
 	NewState = case People of
 
@@ -337,16 +315,12 @@ continue( State , ListPeople , _StreetPID ) ->
 	move( NewState , Path , Position , IdBus , InitialVertice  , Bus , CurrentTickOffset ).
 
 
-load_people( _State , _IdBus , [ ] , Dict ) ->
-
-	Dict;
-
+load_people( _State , _IdBus , [ ] , Dict ) -> Dict;
 load_people( State , IdBus , [ Person | List ] , Dict ) ->
 
-	Position = element( 1 , Person ),
-	PersonPID = element( 2 , Person ),
+	{ _ , _ , Destination , PersonPID } = Person,
 
-	Key = io_lib:format( "~s~w", [ IdBus , list_to_atom( Position ) ] ), % The key is the id of the bus and the postion id of the bus stop
+	Key = io_lib:format( "~s~w", [ IdBus , list_to_atom( Destination ) ] ), %The key is the id of the bus and the postion id of the bus stop
 
 	NewDict = case dict:is_key( Key , Dict ) of
 
@@ -404,7 +378,7 @@ go( State, PositionTime , BusId ) ->
 
 	end,
 
-	NewBus = [ list_utils:get_element_at( Bus , 1 ) + 1 , list_utils:get_element_at( Bus , 2 ) , list_utils:get_element_at( Bus , 3 ), NewPosition , list_utils:get_element_at( Bus , 5 ) ],
+	NewBus = [ lists:nth( 1 , Bus ) + 1 , lists:nth( 2 , Bus ) , lists:nth( 3 , Bus ), NewPosition , lists:nth( 5 , Bus ) ],
 	
 	NewDictBuses = dict:store( BusId , NewBus , Buses ),
 
