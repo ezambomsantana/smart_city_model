@@ -139,9 +139,7 @@ request_position( State , Trip ) ->
 			executeOneway( NewState , addSpontaneousTick , CurrentTickOffset + 1 );	
 	
 		false ->
-
-			State;
-
+			executeOneway( State , declareTermination );
 		_ ->
 
 			case length( Path ) > 1 of
@@ -196,13 +194,9 @@ verify_park( State , Trip ) ->
 	end.
 
 
-
-
-get_next_vertex( State , Path , Trip ) ->
+get_next_vertex( State , [ Current | Path ] , Trip ) ->
 			
-	Vertices = list_to_atom( lists:concat( [ lists:nth( 1 , Path ) , lists:nth( 2 , Path ) ] )),
-
-	FinalState = setAttribute( State , path , list_utils:remove_element_at( Path , 1 ) ),
+	Vertices = list_to_atom( lists:concat( [ Current , lists:nth( 1 , Path ) ] )),
 
 	case element( 1 , Trip )  of % get the travel mode
 
@@ -210,11 +204,12 @@ get_next_vertex( State , Path , Trip ) ->
 					
 			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
 			StreetData = traffic_models:get_speed_walk( Data ),
+			FinalState = setAttribute( State , path , Path ),
                         go( FinalState , StreetData );
 
 		_ ->		
 
-			DecrementVertex = getAttribute( FinalState , last_vertex_pid ),
+			DecrementVertex = getAttribute( State , last_vertex_pid ),
 			case DecrementVertex of
 				ok ->
 					ok;
@@ -222,14 +217,14 @@ get_next_vertex( State , Path , Trip ) ->
 					ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
 			end,
 		
-			FinalStateCar = setAttribute( FinalState , last_vertex_pid , Vertices ),		
+			FinalState = setAttributes( State , [ {last_vertex_pid , Vertices } , { path , Path } ] ),		
 		
 			ets:update_counter( list_streets , Vertices , { 6 , 1 }),
 			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
 
 			StreetData = traffic_models:get_speed_car( Data ),
 
-                        go( FinalStateCar , StreetData )
+                        go( FinalState , StreetData )
 	end.
 
 get_parking_spot( State , IdNode , _ParkingPID ) ->
@@ -305,12 +300,8 @@ go( State, PositionTime ) ->
 %
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
-
 	StartTime = getAttribute( State , start_time ),
-
     	FirstActionTime = class_Actor:get_current_tick_offset( State ) + StartTime,   	
-
 	NewState = setAttribute( State , start_time , FirstActionTime ),
-
 	executeOneway( NewState , addSpontaneousTick , FirstActionTime ).
 
