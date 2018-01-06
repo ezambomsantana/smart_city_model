@@ -5,16 +5,13 @@
 % For all facilities common to all tests:
 -include("test_constructs.hrl").	
 
-
 % for each vertex is necessary to save its out links
-create_map_list([] , _Graph , List ) ->
-	List;
-
+create_map_list([] , _Graph , List ) -> List;
 create_map_list([Element | MoreElements] , Graph , List ) ->
 	
 	{_, V1, V2, Label} = digraph:edge( Graph , Element ),
 
-	Id = element( 1 , _Label),
+	Id = element( 1 , Label),
 	Length = element( 1 , string:to_float(element( 2 , Label))), % Link Length	
 	Capacity = element( 1 , string:to_float(element( 3 , Label))),
 	Freespeed = element( 1 , string:to_float(element( 4 , Label))), 		
@@ -37,7 +34,6 @@ create_street_list([Element | MoreElements] , List , Graph) ->
 	Edges = digraph:out_edges( Graph , Element ),
 	ListEdges = create_map_list( Edges , Graph , [] ),
 	create_street_list( MoreElements , List ++ ListEdges , Graph ).
-
 
 create_buses( [] , _CityGraph  ) -> ok;
 create_buses( [ Bus | Buses ] , CityGraph  ) -> 
@@ -82,9 +78,7 @@ spaw_proccess( [ List | MoreLists ] , CityGraph ) ->
 	spawn( create_agents, iterate_list , [ 1 , ListTrips , CityGraph , Name , self() , [] ]),
 	spaw_proccess( MoreLists , CityGraph ).
 
-split_list( [] , _NumberLists , _ListSplit , ListReturn ) ->
-	ListReturn;
-
+split_list( [] , _NumberLists , _ListSplit , ListReturn ) -> ListReturn;
 split_list( [ Name | Names ] , NumberLists , ListSplit , ListReturn ) ->
 
 	{List , ListCars } = lists:split(round (length (ListSplit) / NumberLists), ListSplit),
@@ -92,7 +86,6 @@ split_list( [ Name | Names ] , NumberLists , ListSplit , ListReturn ) ->
 	Element = [ { Name , List } ],
 
 	split_list( Names , length ( Names ) , ListCars , ListReturn ++ Element ).
-  
 
 collectResults( [] ) -> ok;
 collectResults( ListNames ) ->
@@ -199,7 +192,7 @@ run() ->
 
 	spaw_proccess( List , CityGraph ),
  
-	ok = collectResults( Names ),
+	collectResults( Names ),
 
 	create_buses( ListBuses , CityGraph  ),
 
