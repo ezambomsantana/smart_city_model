@@ -1,7 +1,7 @@
 -module(print).
 
 -export([
-         write_final_message/10,
+         write_final_message/8,
 	 write_final_message_bus/7,
 	 write_initial_message/8,
 	 write_movement_car_message/8,
@@ -11,7 +11,7 @@
 %%%% CAR MESSAGES %%%%
 
 %%%% ARRIVAL MESSAGE %%%%
-write_final_message( State , _Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , LogPID , _Mode , csv ) ->
+write_final_message( _Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , _Mode , csv ) ->
 
 	TotalTime =   CurrentTickOffset - StartTime, 	
 
@@ -19,13 +19,11 @@ write_final_message( State , _Type , TotalLength , StartTime , CarId , CurrentTi
 
 	Arrival = io_lib:format( "~w;arrival;~s;~s;~w;~w\n", [ CurrentTickOffset , CarId ,  LastPosition, TotalTime , TotalLength ] ),
 
-	class_Actor:send_actor_message( LogPID , { receive_action, { Arrival } }, State );
+	File = ets:lookup_element(options, log_file, 2 ),
+	file_utils:write( File, Arrival );
 
 
-
-write_final_message( State , Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , LogPID , Mode , xml ) ->
-
-	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
+write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , Mode , xml ) ->
 
 	TotalTime =   CurrentTickOffset - StartTime, 	
 
@@ -39,7 +37,8 @@ write_final_message( State , Type , TotalLength , StartTime , CarId , CurrentTic
 
 	TextFile = lists:concat( [ LeavesTraffic , LeavesVehicles , Arrival , ActStart ] ),
 
-	class_Actor:send_actor_message( LogPID , { receive_action, { TextFile } }, State ).
+	File = ets:lookup_element(options, log_file, 2 ),
+	file_utils:write( File, TextFile ).
 
 
 %%%% START MESSAGE %%%%

@@ -35,12 +35,16 @@
 				class_Actor:name() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
+	filelib:ensure_dir( LogName ),
+	InitFile = file_utils:open( LogName , _Opts=[ write , delayed_write ] ),
+
 	case ets:info(options) of
 		undefined -> ets:new(options, [public, set, named_table]);
                 _ -> ok
         end,
 
 	ets:insert(options, {log_pid, self() }),
+	ets:insert(options, {log_file, InitFile }),
 
         code:add_pathsa( Paths ),
 
@@ -60,8 +64,6 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, "log" ),
 
-	filelib:ensure_dir( LogName ),
-	InitFile = file_utils:open( LogName , _Opts=[ write , delayed_write ] ),
 
 	setAttributes( ActorState, [
 			{ file , InitFile }

@@ -97,9 +97,9 @@ actSpontaneous( State ) ->
 
 					Mode = getAttribute( NewState , mode ), 
 
-					FinalState = print:write_final_message( NewState , Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , ets:lookup_element(options, log_pid, 2 ) , Mode , csv ),
+					print:write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , Mode , csv ),
 
-					executeOneway( FinalState , scheduleNextSpontaneousTick )
+					executeOneway( NewState , scheduleNextSpontaneousTick )
 
 				end;
 
