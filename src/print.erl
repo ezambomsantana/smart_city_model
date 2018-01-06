@@ -19,8 +19,7 @@ write_final_message( _Type , TotalLength , StartTime , CarId , CurrentTickOffset
 
 	Arrival = io_lib:format( "~w;arrival;~s;~s;~w;~w\n", [ CurrentTickOffset , CarId ,  LastPosition, TotalTime , TotalLength ] ),
 
-	File = ets:lookup_element(options, log_file, 2 ),
-	file_utils:write( File, Arrival );
+	file_utils:write( ets:lookup_element(options, log_file, 2 ), Arrival );
 
 
 write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , Mode , xml ) ->
@@ -37,8 +36,7 @@ write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset 
 
 	TextFile = lists:concat( [ LeavesTraffic , LeavesVehicles , Arrival , ActStart ] ),
 
-	File = ets:lookup_element(options, log_file, 2 ),
-	file_utils:write( File, TextFile ).
+	file_utils:write( ets:lookup_element(options, log_file, 2 ) , TextFile ).
 
 
 %%%% START MESSAGE %%%%
