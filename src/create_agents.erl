@@ -8,45 +8,27 @@
 % Init the XML processing
 
 iterate_list( _ListCount , [] , _Graph , Name , MainPID , FinalList ) -> 
-
-	class_Actor:create_initial_actor( class_CarManager,
-		[ Name , FinalList ] ),
-
+	class_Actor:create_initial_actor( class_CarManager, [ Name , FinalList ] ),
 	MainPID ! { Name };
 
 iterate_list( ListCount , [ Car | MoreCars] , Graph , Name , MainPID , FinalList ) ->
 
-	Count = element ( 3 , Car ),
-
 	Element = case size( Car ) == 9 of
-
 		true ->
-			create_person( element (1 , string:to_integer(Count)) , Car , Graph );
-
+			create_person( Car , Graph );
 		false ->			
-			create_person_multi_trip( element (1 , string:to_integer(Count)) , Car , Graph )
-
+			create_person_multi_trip( Car , Graph )
 	end,
-
 	iterate_list( ListCount + 1 , MoreCars , Graph , Name , MainPID , FinalList ++ Element ).
 
+create_person( Car , Graph ) ->
 
-create_person( CarCount ,  Car , Graph ) ->
-
-	Origin = element ( 1 , Car ),
-	Destination = element ( 2 , Car ),
-	
-	ST = element( 1 , string:to_integer( element ( 4 , Car ) ) ),
-	StartTime = case ST > 800 of
-		true -> ST - 800 + class_RandomManager:get_uniform_value( 200 );
-		false -> ST + class_RandomManager:get_uniform_value( 200 )
+	{ Origin , Destination , CarCount , ST , LinkOrigin , Type , Mode , NameFile , Park } = Car,
+        { STInteger , _ } = string:to_integer( ST ),
+	StartTime = case STInteger > 800 of
+		true -> STInteger - 800 + class_RandomManager:get_uniform_value( 200 );
+		false -> STInteger + class_RandomManager:get_uniform_value( 200 )
 	end,
-
-	LinkOrigin = element ( 5 , Car ),
-	Type = element ( 6 , Car ),
-	Mode = element ( 7 , Car ),
-	NameFile = element ( 8 , Car ),
-	Park = element ( 9 , Car ),
 
 	ModeFinal = case Mode of
 		ok ->
@@ -59,44 +41,25 @@ create_person( CarCount ,  Car , Graph ) ->
 
 	ListTripsFinal = [ { ModeFinal , NewPath , LinkOrigin } ],
 
-	% ListTripsFinal = [ { ModeFinal , NewPath } ],
+	[ { StartTime , [ { NameFile , ListTripsFinal , Type , Park , ModeFinal , element (1 , string:to_integer(CarCount)) } ] } ].
 
-	[ { StartTime , [ { NameFile , ListTripsFinal , Type , Park , ModeFinal , CarCount } ] } ].
+create_person_multi_trip( Car , Graph  ) ->
 
-
-
-create_person_multi_trip( CarCount ,  Car , Graph  ) ->
-
-	io:format("teste ~w", [ element( 1 , Car ) ] ),
-	ST = element( 1 , string:to_integer( element ( 1 , Car ) ) ),
-	StartTime = case ST > 800 of
-		true -> ST - 800 + class_RandomManager:get_uniform_value( 200 );
-		false -> ST + class_RandomManager:get_uniform_value( 200 )
+	{ ST , Type , CarCount , ListTrips , NameFile , Mode } = Car,
+        { STInteger , _ } = string:to_integer( ST ),
+	StartTime = case STInteger > 800 of
+		true -> STInteger - 800 + class_RandomManager:get_uniform_value( 200 );
+		false -> STInteger + class_RandomManager:get_uniform_value( 200 )
 	end,
-	Type = element ( 2 , Car ),
-	ListTrips = element ( 4 , Car ),
-	NameFile = element ( 5 , Car ),
-	Mode = element ( 6 , Car ),
 	
 	ListTripsFinal = create_single_trip( ListTrips , [] , Graph ),
 
-	[ { StartTime , [ { NameFile , ListTripsFinal , Type , ok , Mode , CarCount } ] } ].
+	[ { StartTime , [ { NameFile , ListTripsFinal , Type , ok , Mode , element (1 , string:to_integer(CarCount)) } ] } ].
 
-
-
-create_single_trip( [] , ListTripsFinal , _Graph ) ->
-
-	ListTripsFinal;
-
+create_single_trip( [] , ListTripsFinal , _Graph ) -> ListTripsFinal;
 create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph ) ->
 
-	Origin = element ( 1 , Trip ),
-	Destination = element ( 2 , Trip ),
-	LinkOrigin = element ( 3 , Trip ),
-	Mode = element ( 4 , Trip ),
-	LinkDestination = element ( 5 , Trip ),
-	Line = element ( 6 , Trip ),
-
+	{ Origin , Destination , LinkOrigin , Mode , LinkDestination , Line } = Trip,
 	case Mode of
 
 		"metro" ->
