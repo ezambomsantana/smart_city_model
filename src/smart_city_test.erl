@@ -156,19 +156,17 @@ run() ->
 	ParkSpots = park_parser:read_csv( element( 7 , Config ) ), 
 
 	ListEdges = create_street_list( CityGraph ),
-        class_Actor:create_initial_actor( class_Street,  [ "Street" , ListEdges ] ),
 
 	{ _ , Pwd } = file:get_cwd(),
 	OutputPath = string:concat( Pwd, "/" ),
 	AmqpClientPath = string:concat( Pwd, "/../deps/amqp_client"),
 
-	class_Actor:create_initial_actor( class_Log,
-		[ string:concat( OutputPath, element( 1 , Config ) ),
-		  [ AmqpClientPath,
+	LogName = string:concat( OutputPath, element( 1 , Config ) ),
+	Paths = [ AmqpClientPath,
 			string:concat( AmqpClientPath, "/ebin" ),
 			string:concat( AmqpClientPath, "/include/rabbit_common/ebin" )
-		  ]
-		] ),
+		],
+        class_Actor:create_initial_actor( class_Street,  [ "Street" , ListEdges , LogName , Paths ] ),
 
 	class_Actor:create_initial_actor( class_Metro, [ "MetroCity" , string:concat( OutputPath, MetroFile ) ] ), 
 

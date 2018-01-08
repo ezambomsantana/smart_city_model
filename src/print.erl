@@ -128,3 +128,24 @@ write_movement_bus_metro_message( State , CurrentTickOffset , LastPosition , Car
 	TextFile = lists:concat( [ LastPositionText , NextPositionText  ] ),
 
 	class_Actor:send_actor_message( LogPID, { receive_action, { TextFile } }, State ).
+
+% Receive a message from an agent and saves it in the log file.
+%-spec publish_data( wooper:state() , parameter() , pid() ) -> wooper:state().
+%publish_data( State , Data , _Pid ) ->
+
+%	Channel = ?getAttr(channel),
+
+%	Topic = element ( 1, Data ),
+%	RoutingKey = element( 2, Data ),
+%	Message = element( 3, Data ),
+
+%	Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ),
+%									type = <<"topic">> },
+%	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
+
+%	Publish = #'basic.publish'{ exchange = list_to_binary( Topic ),
+%								routing_key = list_to_binary( RoutingKey ) },
+
+%	amqp_channel:cast( Channel,
+%					   Publish,
+%					   #amqp_msg{ payload = list_to_binary( Message ) }).

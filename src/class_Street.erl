@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings , StreetName , ListEdges ).
+-define( wooper_construct_parameters, ActorSettings , StreetName , ListEdges , LogName , Paths ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/3, new_link/3,
-		 synchronous_new/3, synchronous_new_link/3,
-		 synchronous_timed_new/3, synchronous_timed_new_link/3,
-		 remote_new/4, remote_new_link/4, remote_synchronous_new/4,
-		 remote_synchronous_new_link/4, remote_synchronisable_new_link/4,
-		 remote_synchronous_timed_new/4, remote_synchronous_timed_new_link/4,
-		 construct/4, destruct/1 ).
+-define( wooper_construct_export, new/5, new_link/5,
+		 synchronous_new/5, synchronous_new_link/5,
+		 synchronous_timed_new/5, synchronous_timed_new_link/5,
+		 remote_new/6, remote_new_link/6, remote_synchronous_new/6,
+		 remote_synchronous_new_link/6, remote_synchronisable_new_link/6,
+		 remote_synchronous_timed_new/6, remote_synchronous_timed_new_link/6,
+		 construct/6, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2 ).
@@ -31,7 +31,7 @@
 % Creates a new city graph
 %
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name() , sensor_type() ) -> wooper:state().
+				class_Actor:name() , sensor_type() , parameter() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	case ets:info(list_streets) of
@@ -46,7 +46,44 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	iterate_list( ListEdges ),
 
+	create_option_table( LogName , Paths ),
+
 	class_Actor:construct( State, ActorSettings, StreetName ).
+
+create_option_table( LogName , Paths ) ->
+
+	filelib:ensure_dir( LogName ),
+	InitFile = file_utils:open( LogName , _Opts=[ write , delayed_write ] ),
+
+	case ets:info(options) of
+		undefined -> ets:new(options, [public, set, named_table]);
+                _ -> ok
+        end,
+
+	ets:insert(options, {log_pid, self() }),
+	ets:insert(options, {log_file, InitFile }),
+
+        code:add_pathsa( Paths ).
+
+%	{ ok, Connection } = amqp_connection:start( #amqp_params_network{} ),
+%	{ ok, Channel } = amqp_connection:open_channel( Connection ),
+
+%	Exchange = #'exchange.declare'{ exchange = <<"simulator_exchange">>,
+  %                                  type = <<"topic">> },
+%	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
+
+%	Publish = #'basic.publish'{ exchange = <<"simulator_exchange">>,
+ %                               routing_key = <<"log_output">> },
+
+%	amqp_channel:cast( Channel,
+%					   Publish,
+%					   #amqp_msg{ payload = <<"<events version=\"1.0\">\n">> }),
+
+
+%	ets:insert(options, {rabbitmq_channel, Channel }),
+%	ets:insert(options, {rabbitmq_connection, Connection }),
+%	ets:insert(options, {rabbitmq_publish, Publish }),
+%	ets:insert(options, {rabbitmq_exchange, Exchange }).
 
 
 iterate_list([]) -> ok;
@@ -61,6 +98,23 @@ iterate_list([ Element | List ]) ->
 
 -spec destruct( wooper:state() ) -> wooper:state().
 destruct( State ) ->
+
+	%Connection = ?getAttr(connection),
+	%Channel = ?getAttr(channel),
+	%Publish = ?getAttr(publish),
+	%Exchange = ?getAttr(exchange),
+
+	%#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
+
+	%amqp_channel:cast( Channel,
+         %              Publish,
+          %             #amqp_msg{ payload = <<"</events>">> } ),
+
+	%ok = amqp_channel:close(Channel),
+	%ok = amqp_connection:close(Connection),
+
+%	file_utils:write( InitFile, "</events>" ),
+	file_utils:close( ets:lookup_element(options, log_file, 2 ) ),
 
 	State.
 
