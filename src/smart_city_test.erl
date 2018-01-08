@@ -18,12 +18,9 @@ create_map_list([Element | MoreElements] , Graph , List ) ->
 	
 	Vertices = list_to_atom(lists:concat( [ V1 , V2 ] )),
 
-	NewElement = [{ Vertices , { list_to_atom( Id ) , Length , Capacity , Freespeed , 0 } }],  % The last 0 is the number of cars in the link
+	NewElement = [{ Vertices , { list_to_atom( Id ) , Length , Capacity , Freespeed , 0 } }],  % 0 is the number of cars in the link
 
 	create_map_list( MoreElements , Graph , List ++ NewElement ).
-
-
-% Create the actors that represent the city vertex
 
 create_street_list( Graph ) ->	
 	Vertices = digraph:vertices( Graph ),
@@ -57,23 +54,19 @@ calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 		true ->
 			NextStop = lists:nth( 1 , List ),
 			ParcialPath = case length( List ) == 1 of 
-
-				true -> 
-					digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) );	
-				false ->					
-					lists:droplast( digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) ) )		
+			   true -> 
+				digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) );	
+			   false ->					
+				lists:droplast( digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) ) )		
 			end,
 			calculate_bus_path( List , CityGraph , Path ++ ParcialPath);
 		false ->
 			Path
 	end.	
 
-spaw_proccess( [] , _CityGraph ) -> 
-	ok;
-
+spaw_proccess( [] , _CityGraph ) -> ok;
 spaw_proccess( [ List | MoreLists ] , CityGraph ) ->
-	Name = element( 1 , List ),
-	ListTrips = element( 2 , List ),
+	{ Name , ListTrips } = List,
 
 	spawn( create_agents, iterate_list , [ 1 , ListTrips , CityGraph , Name , self() , [] ]),
 	spaw_proccess( MoreLists , CityGraph ).
