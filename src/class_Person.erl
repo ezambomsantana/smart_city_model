@@ -102,6 +102,8 @@ actSpontaneous( State ) ->
 			case Mode of 
 
 				"walk" ->
+
+					io:format("teste"),
 	
 					NewState = request_position( State , CurrentTrip  ),
 					?wooper_return_state_only( NewState );
