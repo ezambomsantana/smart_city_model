@@ -162,12 +162,10 @@ actSpontaneous( State ) ->
 -spec request_position_metro( wooper:state() , parameter() ) -> wooper:state().
 request_position_metro( State , Trip ) -> 
 
-	{ _ , Origin , _ , Destination } = Trip,
+	{ _ , Origin , _ , Destination , _ } = Trip,
 
 	class_Actor:send_actor_message( ets:lookup_element(options, metro_pid, 2 ) ,
 		{ getTravelTime, { Origin , Destination } }, State ).
-
-
 
 -spec metro_go( wooper:state(), value(), pid() ) -> class_Actor:actor_oneway_return().
 metro_go( State, PositionTime , _GraphPID ) ->
@@ -186,9 +184,9 @@ metro_go( State, PositionTime , _GraphPID ) ->
 
 	CarId = getAttribute( PositionState , car_name ),
   	Type = getAttribute( PositionState , type ),
-	FinalState = print:write_movement_bus_metro_message( PositionState , CurrentTickOffset , 0 , CarId , Type , Destination , bus , ets:lookup_element(options, log_pid, 2 ) , csv ),
+	print:write_movement_bus_metro_message( CurrentTickOffset , 0 , CarId , Type , Destination , metro , csv ),
 
-	executeOneway( FinalState , addSpontaneousTick, TotalTime ).
+	executeOneway( PositionState , addSpontaneousTick, TotalTime ).
 
 -spec bus_go( wooper:state(), value(), pid() ) -> class_Actor:actor_oneway_return().
 bus_go( State, _PositionTime , _GraphPID ) ->
