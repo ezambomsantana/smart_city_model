@@ -60,6 +60,7 @@ create_single_trip( [] , ListTripsFinal , _Graph ) -> ListTripsFinal;
 create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph ) ->
 
 	{ Origin , Destination , LinkOrigin , Mode , LinkDestination , Line } = Trip,
+	
 	case Mode of
 
 		"metro" ->

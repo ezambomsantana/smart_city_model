@@ -290,7 +290,7 @@ continue( State , People , Bus , IdBus ) ->
 
 	NewState = case People of
 
-		nobody ->
+		[] ->
 
 			State;
 

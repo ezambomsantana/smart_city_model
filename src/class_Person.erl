@@ -102,13 +102,12 @@ actSpontaneous( State ) ->
 			case Mode of 
 
 				"walk" ->
-
-					io:format("teste"),
 	
 					NewState = request_position( State , CurrentTrip  ),
 					?wooper_return_state_only( NewState );
 
 				"bus" ->
+
 
 					PtStatus = getAttribute( State , pt_status ), 
 
@@ -117,6 +116,7 @@ actSpontaneous( State ) ->
 	
 						finish ->
 
+							io:format("finish_bus\n"),
 
 							NewTrips = list_utils:remove_element_at( Trips , 1 ),
 
@@ -124,11 +124,13 @@ actSpontaneous( State ) ->
 
 							executeOneway( NewState , scheduleNextSpontaneousTick );
 
-						start ->
-								
+						start ->								
 							
 							{ _ , Origin , Destination , Line , _ , _ } = CurrentTrip,
-							ets:insert(waiting_bus, { Origin , Line , Destination , self() } ),
+							ets:insert(waiting_bus, { list_to_atom( Origin ) , Line , Destination , self() } ),
+
+
+							io:format("lista ~s , ~s , ~s , ~w\n", [ Origin , Line , Destination , self() ]),
 
 							?wooper_return_state_only( State )
 
@@ -203,16 +205,20 @@ bus_go( State, _PositionTime , _GraphPID ) ->
 	
 	Trip = list_utils:get_element_at( Trips , 1 ),
 
+	io:format("trip ~w\n", [ Trip ] ),
+
 	Destination = element( 6 , Trip ), 
+
+	io:format( "destinatio: ~s\n", [ element(1 , Trip ) ] ),
 
 	PositionState = setAttributes( State , [ { car_position, list_to_atom( Destination ) } , { pt_status , finish } ] ),
 
 	CarId = getAttribute( PositionState , car_name ),
   	Type = getAttribute( PositionState , type ),
 
-	FinalState = print:write_movement_bus_metro_message( PositionState , CurrentTickOffset , 0 , CarId , Type , Destination , bus , ets:lookup_element(options, log_pid, 2 ) , csv ),
+	print:write_movement_bus_metro_message( CurrentTickOffset , 0 , CarId , Type , Destination , bus , csv ),
 
-	executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + 1 ).
+	executeOneway( PositionState , addSpontaneousTick, CurrentTickOffset + 1 ).
 
 
 
@@ -318,12 +324,12 @@ go( State, PositionTime ) ->
 	case LastPosition == -1 of
 
 		false ->
-			
+				
 			print:write_movement_car_message( CarId , LastPosition , Type , CurrentTickOffset , NewPosition , csv  );
  
 
 		true -> 
-
+				
 			LinkOrigin = element( 3 , CurrentTrip ), 
 
 			print:write_initial_message( CarId , Type , CurrentTickOffset , LinkOrigin , LastPosition , csv )
@@ -331,7 +337,6 @@ go( State, PositionTime ) ->
 	end,
 
 	executeOneway( LengthState , addSpontaneousTick , TotalTime ).
-
 
 % Simply schedules this just created actor at the next tick (diasca 0).
 %

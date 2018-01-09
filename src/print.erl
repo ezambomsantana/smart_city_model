@@ -73,6 +73,7 @@ write_movement_car_message( CarId , LastPosition , Type , CurrentTickOffset , Ne
 
 write_movement_car_message( CarId , _LastPosition , _Type , CurrentTickOffset , NewPosition , csv ) ->
 
+
 	Move = io_lib:format( "~w;move;~s;~s\n", [ CurrentTickOffset , CarId ,  atom_to_list( NewPosition ) ] ),
 
 	file_utils:write( ets:lookup_element(options, log_file, 2 ), Move ).
