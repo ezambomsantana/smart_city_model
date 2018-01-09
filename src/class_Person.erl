@@ -86,9 +86,9 @@ actSpontaneous( State ) ->
 
 					Mode = getAttribute( NewState , mode ), 
 
-					FinalState = print:write_final_message( NewState , Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , ets:lookup_element(options, log_pid, 2 ) , Mode , csv ),
+					print:write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , Mode , csv ),
 
-					executeOneway( FinalState, scheduleNextSpontaneousTick )
+					executeOneway( NewState, scheduleNextSpontaneousTick )
 
 				end;
 
@@ -116,8 +116,6 @@ actSpontaneous( State ) ->
 	
 						finish ->
 
-							io:format("finish_bus\n"),
-
 							NewTrips = list_utils:remove_element_at( Trips , 1 ),
 
 							NewState = setAttributes( State , [ {trips , NewTrips } , {  pt_status , start } ] ),					
@@ -128,9 +126,6 @@ actSpontaneous( State ) ->
 							
 							{ _ , Origin , Destination , Line , _ , _ } = CurrentTrip,
 							ets:insert(waiting_bus, { list_to_atom( Origin ) , Line , Destination , self() } ),
-
-
-							io:format("lista ~s , ~s , ~s , ~w\n", [ Origin , Line , Destination , self() ]),
 
 							?wooper_return_state_only( State )
 
@@ -205,11 +200,7 @@ bus_go( State, _PositionTime , _GraphPID ) ->
 	
 	Trip = list_utils:get_element_at( Trips , 1 ),
 
-	io:format("trip ~w\n", [ Trip ] ),
-
 	Destination = element( 6 , Trip ), 
-
-	io:format( "destinatio: ~s\n", [ element(1 , Trip ) ] ),
 
 	PositionState = setAttributes( State , [ { car_position, list_to_atom( Destination ) } , { pt_status , finish } ] ),
 
@@ -344,7 +335,7 @@ go( State, PositionTime ) ->
 %
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
-
-    	FirstActionTime = class_Actor:get_current_tick_offset( State ) + 10,   	
-
-	executeOneway( State , addSpontaneousTick , FirstActionTime ).
+	StartTime = getAttribute( State , start_time ),
+    	FirstActionTime = class_Actor:get_current_tick_offset( State ) + StartTime,   	
+	NewState = setAttribute( State , start_time , FirstActionTime ),
+	executeOneway( NewState , addSpontaneousTick , FirstActionTime ).

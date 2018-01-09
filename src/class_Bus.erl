@@ -184,7 +184,8 @@ request_position( State , Bus ) ->
 
 					BusLine = getAttribute( NewState , bus_name ), 
 
-					People = ets:match_object(waiting_bus, { InitialVertice , BusLine , '_' , '_' }  ),	
+					People = ets:match_object(waiting_bus, { InitialVertice , BusLine , '_' , '_' }  ),
+					ets:match_delete(waiting_bus, { InitialVertice , BusLine , '_' , '_' } ),
 
 					continue( NewState , People , Bus , IdBus );
 
