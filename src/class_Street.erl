@@ -60,7 +60,6 @@ create_option_table( LogName , Paths ) ->
                 _ -> ok
         end,
 
-	ets:insert(options, {log_pid, self() }),
 	ets:insert(options, {log_file, InitFile }),
 
         code:add_pathsa( Paths ).

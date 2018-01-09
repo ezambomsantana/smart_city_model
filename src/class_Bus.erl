@@ -107,7 +107,7 @@ actSpontaneous( State ) ->
 			NewDictState = setAttribute( NewState , buses , NewDict ),
 
 			FinalState = request_position( NewDictState , Bus ),
-			
+
 			executeOneway( FinalState , addSpontaneousTick, CurrentTickOffset + NewInterval );	
 
 		_ ->
@@ -219,7 +219,8 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 				ok ->
 					State;
 				_ ->
-					ets:update_counter( list_streets, DecrementVertex , { 6 , -3 })
+					ets:update_counter( list_streets, DecrementVertex , { 6 , -3 }),
+					State
 			end,
 
 			Buses = getAttribute( FinalState , buses ),
@@ -244,16 +245,15 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 			StartTime = list_utils:get_element_at( Bus , 3 ),
 
 			DecrementVertex = list_utils:get_element_at( Bus , 5 ),
-			FinalState = case DecrementVertex of
+			print:write_final_message_bus( CurrentTickOffset , IdBus , LastPosition , StartTime , csv ),
+			case DecrementVertex of
 				ok ->
 					State;
 				_ ->
-					ets:update_counter( list_streets, DecrementVertex , { 6 , -3 })
-			end,
+					ets:update_counter( list_streets, DecrementVertex , { 6 , -3 }),
+					State
+			end
 
-     	    		LogPID = ets:lookup_element(options, log_pid, 2 ),
-
-			print:write_final_message_bus( FinalState , CurrentTickOffset , IdBus , LastPosition , StartTime , LogPID , csv )
 
 	end.
 
@@ -359,30 +359,19 @@ go( State, PositionTime , BusId ) ->
 
 	LastPosition = list_utils:get_element_at( Bus , 4 ),
 
-     	LogPID = ets:lookup_element(options, log_pid, 2 ),
-
-	LogState = case LastPosition == -1 of
-
+	case LastPosition == -1 of
 		false ->
-			
-			print:write_movement_car_message( State , BusId , LastPosition , "bus" , LogPID , CurrentTickOffset , NewPosition , csv  );
- 
-
-		true -> 
-
+			print:write_movement_car_message( BusId , LastPosition , "bus" , CurrentTickOffset , NewPosition , csv  );
+ 		true -> 
 			LinkOrigin = "1", % getAttribute( State , link_origin ), 
-
-			print:write_initial_message( State , LogPID , BusId , "bus" , CurrentTickOffset , LinkOrigin , LastPosition , csv )
-	   
-
-
+			print:write_initial_message( BusId , "bus" , CurrentTickOffset , LinkOrigin , LastPosition , csv )
 	end,
 
 	NewBus = [ lists:nth( 1 , Bus ) + 1 , lists:nth( 2 , Bus ) , lists:nth( 3 , Bus ), NewPosition , lists:nth( 5 , Bus ) ],
 	
 	NewDictBuses = dict:store( BusId , NewBus , Buses ),
 
-	BusesState = setAttribute( LogState , buses , NewDictBuses ),
+	BusesState = setAttribute( State , buses , NewDictBuses ),
 
 	ScheduledBuses = getAttribute( BusesState , buses_time ), 
 

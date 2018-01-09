@@ -2,10 +2,10 @@
 
 -export([
          write_final_message/8,
-	 write_final_message_bus/7,
-	 write_initial_message/8,
-	 write_movement_car_message/8,
-	 write_movement_bus_metro_message/9
+	 write_final_message_bus/5,
+	 write_initial_message/6,
+	 write_movement_car_message/6,
+	 write_movement_bus_metro_message/7
         ]).
 
 %%%% CAR MESSAGES %%%%
@@ -40,14 +40,13 @@ write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset 
 
 
 %%%% START MESSAGE %%%%
-write_initial_message( State , LogPID , CarId , _Type , CurrentTickOffset , LinkOrigin , _NewPosition , csv ) ->
+write_initial_message( CarId , _Type , CurrentTickOffset , LinkOrigin , _NewPosition , csv ) ->
 
 	Start = io_lib:format( "~w;start;~s;~s\n", [ CurrentTickOffset , CarId ,  LinkOrigin 	 ] ),
 
-	class_Actor:send_actor_message( LogPID, { receive_action, { Start } }, State );
+	file_utils:write( ets:lookup_element(options, log_file, 2 ), Start );
 
-
-write_initial_message( State , LogPID , CarId , Type , CurrentTickOffset , LinkOrigin , NewPosition , xml ) ->
+write_initial_message( CarId , Type , CurrentTickOffset , LinkOrigin , NewPosition , xml ) ->
 
   	Text1 = io_lib:format( "<event time=\"~w\" type=\"actend\" person=\"~s\" link=\"~s\" actType=\"h\" action=\"~s\" />\n", [ CurrentTickOffset , CarId , LinkOrigin , Type ] ),
  	Text2 = io_lib:format( "<event time=\"~w\" type=\"departure\" person=\"~s\" link=\"~s\" legMode=\"car\" action=\"~s\" />\n", [ CurrentTickOffset , CarId , LinkOrigin , Type ] ),
@@ -58,31 +57,31 @@ write_initial_message( State , LogPID , CarId , Type , CurrentTickOffset , LinkO
 
 	TextFile = lists:concat( [ Text1 , Text2 , Text3 , Text4 , NextPositionText  ] ),
 		
-	class_Actor:send_actor_message( LogPID, { receive_action, { TextFile } }, State ).
+	file_utils:write( ets:lookup_element(options, log_file, 2 ), TextFile ).
 
 
 %%%% MOVEMENT MESSAGE %%%%
-write_movement_car_message( State , CarId , LastPosition , Type , LogPID , CurrentTickOffset , NewPosition , xml ) ->
+write_movement_car_message( CarId , LastPosition , Type , CurrentTickOffset , NewPosition , xml ) ->
 
 	LastPositionText = io_lib:format( "<event time=\"~w\" type=\"left link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" />\n", [ CurrentTickOffset , CarId , atom_to_list(LastPosition) , CarId , Type ] ),
 	NextPositionText = io_lib:format( "<event time=\"~w\" type=\"entered link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" />\n", [  CurrentTickOffset , CarId , atom_to_list(NewPosition) , CarId , Type ] ),
 
 	TextFile = lists:concat( [ LastPositionText , NextPositionText  ] ),
 
-	class_Actor:send_actor_message( LogPID,	{ receive_action, { TextFile } }, State );
+	file_utils:write( ets:lookup_element(options, log_file, 2 ), TextFile );
 
 
-write_movement_car_message( State , CarId , _LastPosition , _Type , LogPID , CurrentTickOffset , NewPosition , csv ) ->
+write_movement_car_message( CarId , _LastPosition , _Type , CurrentTickOffset , NewPosition , csv ) ->
 
 	Move = io_lib:format( "~w;move;~s;~s\n", [ CurrentTickOffset , CarId ,  atom_to_list( NewPosition ) ] ),
 
-	class_Actor:send_actor_message( LogPID,	{ receive_action, { Move } }, State ).
+	file_utils:write( ets:lookup_element(options, log_file, 2 ), Move ).
 
 
 
 %%%%%% BUS FUNCTIONS %%%%%%
 
-write_final_message_bus( State , CurrentTickOffset , BusId , LastPosition , StartTime , LogPID , xml ) ->
+write_final_message_bus( CurrentTickOffset , BusId , LastPosition , StartTime , xml ) ->
 	
 	_TotalTime =   CurrentTickOffset - StartTime, 	
 
@@ -96,20 +95,20 @@ write_final_message_bus( State , CurrentTickOffset , BusId , LastPosition , Star
 
 	TextFile = lists:concat( [ LeavesTraffic , LeavesVehicles , Arrival , ActStart ] ),
 				
-	class_Actor:send_actor_message( LogPID , { receive_action, { TextFile } }, State );
+	file_utils:write( ets:lookup_element(options, log_file, 2 ), TextFile );
 
-write_final_message_bus( State , CurrentTickOffset , BusId , LastPosition , StartTime , LogPID , csv ) ->
+write_final_message_bus( CurrentTickOffset , BusId , LastPosition , StartTime , csv ) ->
 
 	TotalTime =   CurrentTickOffset - StartTime, 	
 
 	Arrival = io_lib:format( "~w;arrival;~s;~s;~w;0\n", [ CurrentTickOffset , BusId ,  LastPosition , TotalTime ] ),
 
-	class_Actor:send_actor_message( LogPID , { receive_action, { Arrival } }, State ).
+	file_utils:write( ets:lookup_element(options, log_file, 2 ), Arrival ).
 
 
 
 
-write_movement_bus_metro_message( State , CurrentTickOffset , _LastPosition , CarId , _Type , Destination , TripType , LogPID , csv ) ->
+write_movement_bus_metro_message( CurrentTickOffset , _LastPosition , CarId , _Type , Destination , TripType , csv ) ->
 
 	Move = case TripType of		
 		bus ->
@@ -118,16 +117,16 @@ write_movement_bus_metro_message( State , CurrentTickOffset , _LastPosition , Ca
 			io_lib:format( "~w;move_metro;~s;~s\n", [ CurrentTickOffset , CarId , Destination ] )
 	end,
 
-	class_Actor:send_actor_message( LogPID, { receive_action, { Move } }, State );
+	file_utils:write( ets:lookup_element(options, log_file, 2 ), Move );
 
-write_movement_bus_metro_message( State , CurrentTickOffset , LastPosition , CarId , Type , Destination , TripType , LogPID , xml ) ->
+write_movement_bus_metro_message( CurrentTickOffset , LastPosition , CarId , Type , Destination , TripType , xml ) ->
 
 	LastPositionText = io_lib:format( "<event time=\"~w\" type=\"left link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" trip=\"~s\" />\n", [ CurrentTickOffset , CarId , LastPosition , CarId , Type , atom_to_list( TripType ) ] ),
 	NextPositionText = io_lib:format( "<event time=\"~w\" type=\"entered link\" person=\"~s\" link=\"~s\" vehicle=\"~s\" action=\"~s\" trip=\"~s\" />\n", [  CurrentTickOffset , CarId , Destination , CarId , Type , atom_to_list( TripType ) ] ),
 
 	TextFile = lists:concat( [ LastPositionText , NextPositionText  ] ),
 
-	class_Actor:send_actor_message( LogPID, { receive_action, { TextFile } }, State ).
+	file_utils:write( ets:lookup_element(options, log_file, 2 ), TextFile ).
 
 % Receive a message from an agent and saves it in the log file.
 %-spec publish_data( wooper:state() , parameter() , pid() ) -> wooper:state().

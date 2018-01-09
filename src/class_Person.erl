@@ -125,7 +125,7 @@ actSpontaneous( State ) ->
 						start ->
 								
 							
-							{ _ , Origin , Destination , Line } = CurrentTrip,
+							{ _ , Origin , Destination , Line , _ , _ } = CurrentTrip,
 							ets:insert(waiting_bus, { Origin , Line , Destination , self() } ),
 
 							?wooper_return_state_only( State )
@@ -309,28 +309,26 @@ go( State, PositionTime ) ->
 
 	CurrentTrip = list_utils:get_element_at( Trips , 1 ),
 
-	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 	
-	CarId = getAttribute( State , car_name ),
-  	Type = getAttribute( State , type ),
+	CurrentTickOffset = class_Actor:get_current_tick_offset( LengthState ), 	
+	CarId = getAttribute( LengthState , car_name ),
+  	Type = getAttribute( LengthState , type ),
 
-        LogPID = ets:lookup_element(options, log_pid, 2 ),
-
-	FinalState = case LastPosition == -1 of
+	case LastPosition == -1 of
 
 		false ->
 			
-			print:write_movement_car_message( LengthState , CarId , LastPosition , Type , LogPID , CurrentTickOffset , NewPosition , csv  );
+			print:write_movement_car_message( CarId , LastPosition , Type , CurrentTickOffset , NewPosition , csv  );
  
 
 		true -> 
 
 			LinkOrigin = element( 3 , CurrentTrip ), 
 
-			print:write_initial_message( LengthState , LogPID , CarId , Type , CurrentTickOffset , LinkOrigin , LastPosition , csv )
+			print:write_initial_message( CarId , Type , CurrentTickOffset , LinkOrigin , LastPosition , csv )
 
 	end,
 
-	executeOneway( FinalState , addSpontaneousTick , TotalTime ).
+	executeOneway( LengthState , addSpontaneousTick , TotalTime ).
 
 
 % Simply schedules this just created actor at the next tick (diasca 0).

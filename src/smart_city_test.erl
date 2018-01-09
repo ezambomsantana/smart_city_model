@@ -161,7 +161,7 @@ run() ->
 		],
         class_Actor:create_initial_actor( class_Street,  [ "Street" , ListEdges , LogName , Paths ] ),
 
-	class_Actor:create_initial_actor( class_Metro, [ "MetroCity" , string:concat( OutputPath, MetroFile ) ] ), 
+	class_Actor:create_initial_actor( class_Metro, [ "MetroCity" , string:concat( OutputPath , MetroFile ) ] ), 
 
 	case element( 8 , Config ) of % verify if it is necessary to generate the city graph actor 
 		"true" ->
