@@ -16,7 +16,7 @@ create_map_list([Element | MoreElements] , Graph , List ) ->
 	Capacity = element( 1 , string:to_float(element( 3 , Label))),
 	Freespeed = element( 1 , string:to_float(element( 4 , Label))), 		
 	
-	Vertices = list_to_atom(lists:concat( [ V1 , V2 ] )),
+	Vertices = list_to_atom( lists:concat( [ V1 , V2 ] )),
 
 	NewElement = [{ Vertices , { list_to_atom( Id ) , Length , Capacity , Freespeed , 0 } }],  % 0 is the number of cars in the link
 
@@ -68,7 +68,7 @@ spaw_proccess( [] , _CityGraph ) -> ok;
 spaw_proccess( [ List | MoreLists ] , CityGraph ) ->
 	{ Name , ListTrips } = List,
 
-	spawn( create_agents, iterate_list , [ 1 , ListTrips , CityGraph , Name , self() , [] ]),
+	spawn( create_agents, iterate_list , [ 1 , ListTrips , CityGraph , Name , self() ]),
 	spaw_proccess( MoreLists , CityGraph ).
 
 split_list( [] , _NumberLists , _ListSplit , ListReturn ) -> ListReturn;
@@ -177,7 +177,7 @@ run() ->
 		class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots ] )
 	end,
 
-	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" , "car7" , "car8"  ],
+	Names = [ "car1" , "car2" , "car3" , "car4" , "car5"  ],
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 

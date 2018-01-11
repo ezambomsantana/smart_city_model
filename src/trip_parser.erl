@@ -19,23 +19,15 @@ show(Infilename) ->
 init(Node) ->
     case Node of
         #xmlElement{name=Name, content=Content} ->
-            
 	    case Name of
-		
 		scsimulator_matrix -> 
-
-			List = trips(Content , [] , false),
-			List;
-
+			trips(Content , [] , false);
 		_ -> ok
-
 	    end;
             _ -> ok
     end.
 
-trips([], List , _Multi ) ->
-    List;
-
+trips([], List , _Multi ) -> List;
 trips([Node | MoreNodes] , List , Multi ) ->
     Element = extract_node( Node , Multi ),
     case Element of

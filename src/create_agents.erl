@@ -1,17 +1,16 @@
 -module(create_agents).
 
 -export([
-         iterate_list/6
+         iterate_list/5
         ]).
 
+iterate_list( ListCount , Lista , Graph , Name , MainPID ) -> 
+	ListaFinal = verify_list( ListCount , Lista , Graph , Name , MainPID ),
+	class_Actor:create_initial_actor( class_CarManager, [ Name , ListaFinal ] ),
+	MainPID ! { Name }.
 
-% Init the XML processing
-
-iterate_list( _ListCount , [] , _Graph , Name , MainPID , FinalList ) -> 
-	class_Actor:create_initial_actor( class_CarManager, [ Name , FinalList ] ),
-	MainPID ! { Name };
-
-iterate_list( ListCount , [ Car | MoreCars] , Graph , Name , MainPID , FinalList ) ->
+verify_list( _ListCount , [ ] , _Graph , _Name , _MainPID ) -> [];
+verify_list( ListCount , [ Car | MoreCars] , Graph , Name , MainPID ) ->
 
 	Element = case size( Car ) == 9 of
 		true ->
@@ -19,10 +18,10 @@ iterate_list( ListCount , [ Car | MoreCars] , Graph , Name , MainPID , FinalList
 		false ->			
 			create_person_multi_trip( Car , Graph )
 	end,
-	iterate_list( ListCount + 1 , MoreCars , Graph , Name , MainPID , FinalList ++ Element ).
+
+	[ Element | verify_list( ListCount + 1 , MoreCars , Graph , Name , MainPID ) ].
 
 create_person( Car , Graph ) ->
-
 	{ Origin , Destination , CarCount , ST , LinkOrigin , Type , Mode , NameFile , Park } = Car,
         { STInteger , _ } = string:to_integer( ST ),
 	StartTime = case STInteger > 800 of
@@ -41,7 +40,7 @@ create_person( Car , Graph ) ->
 
 	ListTripsFinal = [ { ModeFinal , NewPath , LinkOrigin } ],
 
-	[ { StartTime , [ { NameFile , ListTripsFinal , Type , Park , ModeFinal , element (1 , string:to_integer(CarCount)) } ] } ].
+	{ StartTime , [ { NameFile , ListTripsFinal , Type , Park , ModeFinal , element (1 , string:to_integer(CarCount)) } ] }.
 
 create_person_multi_trip( Car , Graph  ) ->
 
@@ -54,7 +53,7 @@ create_person_multi_trip( Car , Graph  ) ->
 	
 	ListTripsFinal = create_single_trip( ListTrips , [] , Graph ),
 
-	[ { StartTime , [ { NameFile , ListTripsFinal , Type , ok , Mode , element (1 , string:to_integer(CarCount)) } ] } ].
+	{ StartTime , [ { NameFile , ListTripsFinal , Type , ok , Mode , element (1 , string:to_integer(CarCount)) } ] }.
 
 create_single_trip( [] , ListTripsFinal , _Graph ) -> ListTripsFinal;
 create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph ) ->
