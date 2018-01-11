@@ -5,7 +5,8 @@
 	 write_final_message_bus/5,
 	 write_initial_message/6,
 	 write_movement_car_message/6,
-	 write_movement_bus_metro_message/7
+	 write_movement_bus_metro_message/7,
+	 write_sensor_data/3
         ]).
 
 %%%% CAR MESSAGES %%%%
@@ -129,6 +130,10 @@ write_movement_bus_metro_message( CurrentTickOffset , LastPosition , CarId , Typ
 
 	file_utils:write( ets:lookup_element(options, log_file, 2 ), TextFile ).
 
+
+write_sensor_data( Name , Type , Value ) ->
+	Data = io_lib:format( "~s;sensor_data;~s;~s\n", [ Name , Type , Value ] ),
+	file_utils:write( ets:lookup_element(options, log_file, 2 ), Data ).
 % Receive a message from an agent and saves it in the log file.
 %-spec publish_data( wooper:state() , parameter() , pid() ) -> wooper:state().
 %publish_data( State , Data , _Pid ) ->
