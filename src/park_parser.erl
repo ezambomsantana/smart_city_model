@@ -106,28 +106,24 @@ extract_children( Node , Type ) ->
             _ -> ok
     end.
 
+
 read_csv( FileName ) ->
+    {ok, Data} = file:read_file(FileName),
+    List = binary:split(Data, [<<"\n">>], [global]),
+    read_line(1 , List).
 
-    case file:open(FileName, [ read , raw , { read_ahead , 40000 } ]) of
-	{ ok , Bin } -> read_line( 1 , Bin , [] );
-	{ error , _ } -> ok
+read_line( _Count, [] ) -> [];
+read_line( Count , [ Data | ListRest ] ) ->
+    String = binary_to_list(Data),
+
+    case String of
+	[] -> [];
+ 	_ ->
+	    Text = string:chomp(String),
+	    TextSplit = string:split( Text ,  ";" , all ),
+	    Uuid = lists:nth( 1 , TextSplit ),
+	    NodeId = lists:nth( 2 , TextSplit ),
+	    Coordinates = { lists:nth( 3 , TextSplit ) , lists:nth( 4 , TextSplit ) },
+	    Element = { Uuid , { NodeId , Coordinates } },
+	    [ Element | read_line( Count +1 , ListRest ) ]
     end.
-
-    
-
-
-read_line( Count , File , List ) ->
-    case file:read_line(File) of
-        {ok, Data} -> 
-            Text = string:chomp(Data),
-            TextSplit = string:split( Text ,  ";" , all ),
-            Element = [ { 
-        	lists:nth( 1 , TextSplit ) , 
-	        lists:nth( 2 , TextSplit )
-            } ], 
-
-            read_line( Count +1 , File , List ++ Element );
-
-        eof        -> List
-    end.
-
