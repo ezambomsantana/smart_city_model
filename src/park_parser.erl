@@ -108,9 +108,13 @@ extract_children( Node , Type ) ->
 
 
 read_csv( FileName ) ->
-    {ok, Data} = file:read_file(FileName),
-    List = binary:split(Data, [<<"\n">>], [global]),
-    read_line(1 , List).
+    case file:read_file(FileName) of
+        {ok, Data} ->
+            List = binary:split(Data, [<<"\n">>], [global]),
+            read_line(1 , List);
+	_ ->
+	    ok
+     end.
 
 read_line( _Count, [] ) -> [];
 read_line( Count , [ Data | ListRest ] ) ->

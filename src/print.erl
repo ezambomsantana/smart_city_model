@@ -14,11 +14,13 @@
 %%%% ARRIVAL MESSAGE %%%%
 write_final_message( _Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , _Mode , csv ) ->
 
+	{ Hour , Minute } = get_hour_minute(),
+
 	TotalTime =   CurrentTickOffset - StartTime, 	
 
 %	Arrival = io_lib:format( "~w;arrival;~s;~s;~w;~w;~w;~s\n", [ CurrentTickOffset , CarId ,  LastPosition, Mode , TotalTime , TotalLength , Type ] ),
 
-	Arrival = io_lib:format( "~w;arrival;~s;~s;~w;~w\n", [ CurrentTickOffset , CarId ,  LastPosition, TotalTime , TotalLength ] ),
+	Arrival = io_lib:format( "~w;~w;~w;arrival;~s;~s;~w;~w\n", [ Hour , Minute , CurrentTickOffset , CarId ,  LastPosition, TotalTime , TotalLength ] ),
 
 	file_utils:write( ets:lookup_element(options, log_file, 2 ), Arrival );
 
@@ -43,7 +45,9 @@ write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset 
 %%%% START MESSAGE %%%%
 write_initial_message( CarId , _Type , CurrentTickOffset , LinkOrigin , _NewPosition , csv ) ->
 
-	Start = io_lib:format( "~w;start;~s;~s\n", [ CurrentTickOffset , CarId ,  LinkOrigin 	 ] ),
+	{ Hour , Minute } = get_hour_minute(),
+
+	Start = io_lib:format( "~w:~w;~w;start;~s;~s\n", [ Hour , Minute , CurrentTickOffset , CarId ,  LinkOrigin 	 ] ),
 
 	file_utils:write( ets:lookup_element(options, log_file, 2 ), Start );
 
@@ -75,7 +79,8 @@ write_movement_car_message( CarId , LastPosition , Type , CurrentTickOffset , Ne
 write_movement_car_message( CarId , _LastPosition , _Type , CurrentTickOffset , NewPosition , csv ) ->
 
 
-	Move = io_lib:format( "~w;move;~s;~s\n", [ CurrentTickOffset , CarId ,  atom_to_list( NewPosition ) ] ),
+	{ Hour , Minute } = get_hour_minute(),
+	Move = io_lib:format( "~w:~w;~w;move;~s;~s\n", [ Hour , Minute , CurrentTickOffset , CarId ,  atom_to_list( NewPosition ) ] ),
 
 	file_utils:write( ets:lookup_element(options, log_file, 2 ), Move ).
 
@@ -100,10 +105,11 @@ write_final_message_bus( CurrentTickOffset , BusId , LastPosition , StartTime , 
 	file_utils:write( ets:lookup_element(options, log_file, 2 ), TextFile );
 
 write_final_message_bus( CurrentTickOffset , BusId , LastPosition , StartTime , csv ) ->
-
+	
+	{ Hour , Minute } = get_hour_minute(),
 	TotalTime =   CurrentTickOffset - StartTime, 	
 
-	Arrival = io_lib:format( "~w;arrival;~s;~s;~w;0\n", [ CurrentTickOffset , BusId ,  LastPosition , TotalTime ] ),
+	Arrival = io_lib:format( "~w:~w;~w;arrival;~s;~s;~w;0\n", [ Hour , Minute , CurrentTickOffset , BusId ,  LastPosition , TotalTime ] ),
 
 	file_utils:write( ets:lookup_element(options, log_file, 2 ), Arrival ).
 
@@ -111,14 +117,14 @@ write_final_message_bus( CurrentTickOffset , BusId , LastPosition , StartTime , 
 
 
 write_movement_bus_metro_message( CurrentTickOffset , _LastPosition , CarId , _Type , Destination , TripType , csv ) ->
-
+	
+	{ Hour , Minute } = get_hour_minute(),
 	Move = case TripType of		
 		bus ->
-			io_lib:format( "~w;move_bus;~s;~s\n", [ CurrentTickOffset , CarId , Destination ] );
+			io_lib:format( "~w:~w;~w;move_bus;~s;~s\n", [ Hour , Minute , CurrentTickOffset , CarId , Destination ] );
 		metro ->
-			io_lib:format( "~w;move_metro;~s;~s\n", [ CurrentTickOffset , CarId , Destination ] )
+			io_lib:format( "~w:~w~w;move_metro;~s;~s\n", [ Hour , Minute , CurrentTickOffset , CarId , Destination ] )
 	end,
-
 	file_utils:write( ets:lookup_element(options, log_file, 2 ), Move );
 
 write_movement_bus_metro_message( CurrentTickOffset , LastPosition , CarId , Type , Destination , TripType , xml ) ->
@@ -132,8 +138,16 @@ write_movement_bus_metro_message( CurrentTickOffset , LastPosition , CarId , Typ
 
 
 write_sensor_data( Name , Type , Value ) ->
-	Data = io_lib:format( "~s;sensor_data;~s;~s\n", [ Name , Type , Value ] ),
+	{ Hour , Minute } = get_hour_minute(),
+	Data = io_lib:format( "~w:~w;~s;sensor_data;~s;~s\n", [ Hour , Minute , Name , Type , Value ] ),
 	file_utils:write( ets:lookup_element(options, log_file, 2 ), Data ).
+
+
+get_hour_minute() ->
+	TS = os:timestamp(),
+	{{_,_,_},{Hour,Minute,_}} = calendar:now_to_universal_time(TS),
+	{ Hour , Minute }.
+
 % Receive a message from an agent and saves it in the log file.
 %-spec publish_data( wooper:state() , parameter() , pid() ) -> wooper:state().
 %publish_data( State , Data , _Pid ) ->

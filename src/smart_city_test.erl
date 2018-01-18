@@ -6,8 +6,8 @@
 -include("test_constructs.hrl").	
 
 % for each vertex is necessary to save its out links
-create_map_list([] , _Graph , List ) -> List;
-create_map_list([Element | MoreElements] , Graph , List ) ->
+create_map_list([] , _Graph ) -> [];
+create_map_list([Element | MoreElements] , Graph ) ->
 	
 	{_, V1, V2, Label} = digraph:edge( Graph , Element ),
 
@@ -18,9 +18,9 @@ create_map_list([Element | MoreElements] , Graph , List ) ->
 	
 	Vertices = list_to_atom( lists:concat( [ V1 , V2 ] )),
 
-	NewElement = [{ Vertices , { list_to_atom( Id ) , Length , Capacity , Freespeed , 0 } }],  % 0 is the number of cars in the link
+	NewElement = { Vertices , { list_to_atom( Id ) , Length , Capacity , Freespeed , 0 } },  % 0 is the number of cars in the link
 
-	create_map_list( MoreElements , Graph , List ++ NewElement ).
+	[ NewElement | create_map_list( MoreElements , Graph ) ].
 
 create_street_list( Graph ) ->	
 	Vertices = digraph:vertices( Graph ),
@@ -29,7 +29,7 @@ create_street_list( Graph ) ->
 create_street_list([] , List , _Graph ) -> List;
 create_street_list([Element | MoreElements] , List , Graph) ->
 	Edges = digraph:out_edges( Graph , Element ),
-	ListEdges = create_map_list( Edges , Graph , [] ),
+	ListEdges = create_map_list( Edges , Graph ),
 	create_street_list( MoreElements , List ++ ListEdges , Graph ).
 
 create_buses( [] , _CityGraph  ) -> ok;
@@ -177,7 +177,7 @@ run() ->
 		class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots ] )
 	end,
 
-	Names = [ "car1" , "car2" , "car3" , "car4" , "car5"  ],
+	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" , "car7" , "car8" ],
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
