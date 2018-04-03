@@ -96,8 +96,10 @@ extract_node(Node , Graph ) ->
 		
 		node -> 
 			
-			Id = children( Attributes , id ),	
-			digraph:add_vertex(Graph, list_to_atom(Id));	
+			Id = children( Attributes , id ),
+			Lat = children( Attributes , x ),
+			Long = children( Attributes , y ),	
+			digraph:add_vertex(Graph, list_to_atom(Id), { Lat , Long });	
 
 		_ ->
 			ok

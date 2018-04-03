@@ -44,7 +44,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ start_time , StartTime },
 		{ path , Path },
 		{ mode , Mode },
-		{ last_vertex_pid , ok }
+		{ last_vertex_pid , ok },
+		{ coordFrom , ok }
 						] ),
 
 	case Park of
@@ -149,7 +150,7 @@ get_next_vertex( State , [ Current | Path ] , Mode ) when Mode == walk ->
 	
 	Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
 	{ Id , Time , Distance } = traffic_models:get_speed_walk( Data ),
-
+	
 	TotalLength = getAttribute( State , distance ) + Distance,
 	FinalState = setAttributes( State , [ { distance , TotalLength } , { car_position , Id } , { path , Path } ] ), 
 
@@ -171,10 +172,14 @@ get_next_vertex( State , [ Current | Path ] , _Mode ) ->
 	ets:update_counter( list_streets , Vertices , { 6 , 1 }),
 	Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
 
+	{ _ , _ , _ , _ , _ , _ , From , _ } = Data,
+
+	io:format("~w\n", [ From ] ), 
+
 	{ Id , Time , Distance } = traffic_models:get_speed_car( Data ),
 
 	TotalLength = getAttribute( State , distance ) + Distance,
-	FinalState = setAttributes( State , [{distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , Path}] ), 
+	FinalState = setAttributes( State , [{distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , Path},  { coordFrom , From } ] ), 
 
 %	print_movement( FinalState ),
 
