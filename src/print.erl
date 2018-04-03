@@ -90,7 +90,7 @@ write_movement_car_message( CarId , _LastPosition , _Type , CurrentTickOffset , 
 
 write_final_message_bus( CurrentTickOffset , BusId , LastPosition , StartTime , xml ) ->
 	
-	_TotalTime =   CurrentTickOffset - StartTime, 	
+	_ =   CurrentTickOffset - StartTime, 	
 
 	LeavesTraffic = io_lib:format( "<event time=\"~w\" type=\"vehicle leaves traffic\" person=\"~s\" link=\"~s\" vehicle=\"~s\" relativePosition=\"1.0\" />\n", [ CurrentTickOffset , BusId , LastPosition , BusId ] ),
 	

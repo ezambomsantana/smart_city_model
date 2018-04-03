@@ -1,15 +1,18 @@
-#InterSCSimulator Dockerfile
-FROM debian:unstable
+FROM erlang:20
 
-RUN apt update && apt install make erlang -qy
+RUN apt update && apt install -y \
+  make \
+  uuid-runtime 
 
-RUN apt install uuid-runtime
+WORKDIR /interscsimulator
+COPY . .
+RUN rm -r mock-simulators/smart_city_model
+RUN make all
 
-ADD . /src
-RUN cd /src && make all
+COPY mock-simulators/smart_city_model mock-simulators/smart_city_model
+WORKDIR mock-simulators/smart_city_model/src
+RUN make all
 
+ENV USER root
 
-CMD [ "make", "smart_city_run", "CMD_LINE_OPT='--batch'" ]
-
-#building: sudo docker build -t simulador/latest .
-#running: sudo docker run -t -w /src/mock-simulators/smart_city_model/src --net="host" -v /home/eduardo/volume:/src/mock-simulators/smart_city_model/output -e USER=root ezambomsantana/interscsimulator
+CMD ["make", "smart_city_run", "CMD_LINE_OPT='--batch'"]

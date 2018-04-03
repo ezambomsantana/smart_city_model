@@ -1,0 +1,7 @@
+<scsimulator_config>
+  <config 
+    trip_file="../simple_scenario/trips2.xml" 
+    map_file="../simple_scenario/fiandeiras.xml" 
+    output_file="../simple_scenario/events.xml" 
+    simulation_time="86400"/>
+</scsimulator_config>

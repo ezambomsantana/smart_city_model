@@ -1,34 +1,73 @@
-# InterSCSimulator
+# InterSCSimulator #
+This is the official repository of InterSCSimulator, a large-scale smart city simulator. InterSCSimulator is based on Sim-Diasca, a general purpose simulator implemented in Erlang.
 
-It is the official repository of the InterSCSimulator, a large-scale, smart city simulator. InterSCSimulator is based on Sim-Diasca, a general purpose simulator implemented in Erlang.
+## Running InterSCSimulator with Docker ##
+Download and extract Sim-Diasca. Place this repository under Sim-Diasca's `mock-simulators` directory:
+```
+cd sim-diasca/mock-simulators
+git clone https://github.com/ezambomsantana/smart_city_model.git
+```
 
-# Dependencies
+Under InterSCSimulator's directory, create a configuration file called `interscsimulator.conf` with the path to `config.xml` for the desired simulation scenario:
+```
+cd smart_city_model
+echo "../simple_scenario/config.xml" > interscsimulator.conf
+```
 
-To install dependencies you just need to run the `install-deps.sh` script. All
-the dependencies will be placed in the `lib/` directory.
+Go back to Sim-Diasca root directory and build the image:
+```
+cd ../..
+docker build -f mock-simulators/smart_city_model/Dockerfile -t interscitysimulator .  
+```
 
-`$ ./install-deps.sh`
+Create a Docker network:
+```
+docker network create interscity
+```
 
-# Configuration
+Run the simulator container mouting a volume from the desired scenario directory:
+```
+docker run -it --network interscity --hostname interscity.local -v $(pwd)/mock-simulators/smart_city_model/simple_scenario/:/interscsimulator/mock-simulators/smart_city_model/simple_scenario interscitysimulator
+```
 
-To run the simulator you need to create a configuration file in the root
-directory called `interscsimulator.conf`. This file should contain the path to
-the config.xml. By default you can point to example/config.xml in the root of
-the source tree.
+## Running InterSCSimulator on Linux ##
+### Prerequisites ### 
+#### Sim-Diasca and Erlang ####
+Download and extract Sim-Diasca. If you don't have Erlang installed, you can use the script at `sim-diasca/common/conf/install-erlang.sh`.
+After Erlang is installed, compile Sim-Diasca:
+```
+cd sim-diasca
+make all
+```
+3. Make sure that the hostname is a FQDN, e.g. `localhost.local`
 
-`$(pwd)/example/config.xml`
+#### RabbitMQ ####
+Run the `install-deps.sh` script. Dependencies will be placed in the `lib/` directory.
 
-# Run InterSCSimulator
+### Installation ###
+Clone this respository under Sim-Diasca's `mock-simulators` directory:
+```
+cd mock-simulators
+git clone https://github.com/ezambomsantana/smart_city_model.git
+``` 
 
-In sim-diasca's root directory run:
+Compile InterSCSimulator:
+```
+cd smart_city_model/src
+make all
+```
 
-`$ make all`
+---
 
-Enter in mock-simulator/smart_city_model/src and run:
+### Run InterSCSimulator ###
+Under InterSCSimulator's directory, create a configuration file called `interscsimulator.conf` with the path to `config.xml` for the desired simulation scenario:
+```
+cd sim-diasca/mock-simulators/smart_city_model
+echo "../simple_scenario/config.xml" > interscsimulator.conf
+```
 
-`$ make smart_city_run CMD_LINE_OPT="--batch"`
-
-## Tips
-
-* Install erlang via this script: sim-diasca/common/conf/install-erlang.sh
-* Configure hostname FQDN to something like this: localhost.org
+Run the simulator
+```
+cd src
+make smart_city_run CMD_LINE_OPT="--batch"
+```
