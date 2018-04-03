@@ -174,14 +174,16 @@ get_next_vertex( State , [ Current | Path ] , _Mode ) ->
 
 	{ _ , _ , _ , _ , _ , _ , From , _ } = Data,
 
-	io:format("~w\n", [ From ] ), 
-
 	{ Id , Time , Distance } = traffic_models:get_speed_car( Data ),
 
 	TotalLength = getAttribute( State , distance ) + Distance,
 	FinalState = setAttributes( State , [{distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , Path},  { coordFrom , From } ] ), 
 
+	CityGraph = ets:lookup( options , city_graph ), 
+
+	io:format("~w\n", [ CityGraph ] ),
 %	print_movement( FinalState ),
+%	send data to rabbitMQ, including the From lat/long
 
 	executeOneway( FinalState , addSpontaneousTick , class_Actor:get_current_tick_offset( FinalState ) + Time ).
 
