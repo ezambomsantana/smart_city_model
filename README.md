@@ -20,9 +20,14 @@ cd ../..
 docker build -f mock-simulators/smart_city_model/Dockerfile -t interscitysimulator .  
 ```
 
+Create a Docker network:
+```
+docker network create interscity
+```
+
 Run the simulator container mouting a volume from the desired scenario directory:
 ```
-docker run -it --hostname interscity.local -v $(pwd)/mock-simulators/smart_city_model/simple_scenario/:/interscsimulator/mock-simulators/smart_city_model/simple_scenario interscitysimulator
+docker run -it --network interscity --hostname interscity.local -v $(pwd)/mock-simulators/smart_city_model/simple_scenario/:/interscsimulator/mock-simulators/smart_city_model/simple_scenario interscitysimulator
 ```
 
 ## Running InterSCSimulator on Linux ##

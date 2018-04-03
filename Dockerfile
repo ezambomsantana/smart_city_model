@@ -1,9 +1,8 @@
-FROM debian:unstable
+FROM erlang:20
 
 RUN apt update && apt install -y \
   make \
-  uuid-runtime \
-  erlang
+  uuid-runtime 
 
 WORKDIR /interscsimulator
 COPY . .
@@ -15,4 +14,5 @@ WORKDIR mock-simulators/smart_city_model/src
 RUN make all
 
 ENV USER root
-CMD [ "make", "smart_city_run", "CMD_LINE_OPT='--batch'" ]
+
+CMD ["make", "smart_city_run", "CMD_LINE_OPT='--batch'"]
