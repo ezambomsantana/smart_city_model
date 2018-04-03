@@ -161,7 +161,10 @@ run() ->
 
 	class_Actor:create_initial_actor( class_Street,  [ "Street" , ListEdges , LogName , Paths ] ),
 
-	class_Actor:create_initial_actor( class_Metro, [ "MetroCity" , string:concat( OutputPath , MetroFile ) ] ), 
+	case MetroFile of
+		ok -> ok;
+		_  -> class_Actor:create_initial_actor( class_Metro, [ "MetroCity" , string:concat( OutputPath , MetroFile ) ] )
+	end,
 
 	case element( 8 , Config ) of % verify if it is necessary to generate the city graph actor 
 		"true" ->
@@ -189,7 +192,10 @@ run() ->
 
 	ListEvents = events_parser:read_csv( element( 9 , Config ) ),
 
-	class_Actor:create_initial_actor( class_EventsManager, [ "EventsManager", ListEvents ] ),
+	case ListEvents of
+		ok -> ok;
+		_  -> class_Actor:create_initial_actor( class_EventsManager, [ "EventsManager", ListEvents ] )
+	end,
 
 	SimulationDuration = element( 1 , string:to_integer(element( 2 , Config ) ) ),
 
