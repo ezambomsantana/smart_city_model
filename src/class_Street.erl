@@ -120,6 +120,28 @@ destruct( State ) ->
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
 actSpontaneous( State ) ->
 
+%       CurrentTick = class_Actor:get_current_tick_offset( State ),
+
+%	CurrentTime = get_timestamp(),
+
+%	Time = ets:lookup_element(options, current_time, 2 ),
+
+%	Diff = CurrentTime - Time,
+
+%	io:format("Diff: ~w", [ Diff ] ),
+	
+%	timer:sleep(970 - Diff),
+
+
+% Adicionar no arquivo /sim-diasca/src/core/src/scheduling/class_TimeManager.erl beginTimeManagerTick 1880
+%	CurrentTime = get_timestamp(),
+%	LastTime = getAttribute( State , last_time ),
+
+%	ets:insert(options, {current_time, CurrentTime }),
+
+%	Diff = CurrentTime - LastTime,
+%	io:format("Current Tick: ~w       ----    tempo: ~w\n ", [ NewTickOffset , Diff ] ),
+
 	State.
 
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().

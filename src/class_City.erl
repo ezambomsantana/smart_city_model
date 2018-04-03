@@ -35,10 +35,13 @@ construct( State, ?wooper_construct_parameters ) ->
 	    undefined -> ets:new(options, [public, set, named_table]);
             _ -> ok
         end,
-        ets:insert(options, {city_pid, self() }),
-
+        
 	ActorState = class_Actor:construct( State, ActorSettings, CityName ),
-	CityGraph = map_parser:show( element( 1 , Graph ) , false ),	
+	CityGraph = map_parser:show( element( 1 , Graph ) , false ),
+
+	ets:insert(options, { city_pid , self() }),
+	ets:insert(options, { city_graph , CityGraph }),
+	
 	setAttributes( ActorState, [ { graph , CityGraph } ] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
@@ -62,7 +65,7 @@ get_path( State, Data , PersonPID ) ->
 
 	Graph = getAttribute( State , graph ),
 
-	Path = digraph:get_path( Graph , InitialVertice , list_to_atom( FinalVertice ) ),
+	Path = digraph:get_best_path( Graph , InitialVertice , list_to_atom( FinalVertice ) ),
 
 	class_Actor:send_actor_message( PersonPID,
 		{ set_new_path , { Path } }, State ).
