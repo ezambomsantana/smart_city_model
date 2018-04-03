@@ -1,0 +1,3 @@
+<scsimulator_config>
+<config trip_file="../events_input/trips_reduced.xml" map_file="../events_input/map_reduced.xml" output_file="../output/events.xml" metro_file="../events_input/metro.xml" bus_file="../events_input/buses.xml" events_file="../events_input/events.csv"  simulation_time="3000"/>
+</scsimulator_config>
