@@ -11,6 +11,9 @@ create_map_list([Element | MoreElements] , Graph ) ->
 	
 	{_, V1, V2, Label} = digraph:edge( Graph , Element ),
 
+	{ _ , LabelV1 } = digraph:vertex( Graph , V1 ),
+	{ _ , LabelV2 } = digraph:vertex( Graph , V2 ),
+
 	Id = element( 1 , Label),
 	Length = element( 1 , string:to_float(element( 2 , Label))), % Link Length	
 	Capacity = element( 1 , string:to_float(element( 3 , Label))),
@@ -18,7 +21,7 @@ create_map_list([Element | MoreElements] , Graph ) ->
 	
 	Vertices = list_to_atom( lists:concat( [ V1 , V2 ] )),
 
-	NewElement = { Vertices , { list_to_atom( Id ) , Length , Capacity , Freespeed , 0 } },  % 0 is the number of cars in the link
+	NewElement = { Vertices , { list_to_atom( Id ) , Length , Capacity , Freespeed , 0 , LabelV1 , LabelV2 } },  % 0 is the number of cars in the link
 
 	[ NewElement | create_map_list( MoreElements , Graph ) ].
 
@@ -27,8 +30,8 @@ create_street_list( Graph ) ->
 	create_street_list( Vertices , [] , Graph ).
 
 create_street_list([] , List , _Graph ) -> List;
-create_street_list([Element | MoreElements] , List , Graph) ->
-	Edges = digraph:out_edges( Graph , Element ),
+create_street_list( [ Vertex | MoreElements] , List , Graph) ->
+	Edges = digraph:out_edges( Graph , Vertex ),
 	ListEdges = create_map_list( Edges , Graph ),
 	create_street_list( MoreElements , List ++ ListEdges , Graph ).
 
