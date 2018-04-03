@@ -88,7 +88,7 @@ write_movement_car_message( CarId , _LastPosition , _Type , CurrentTickOffset , 
 
 %%%%%% BUS FUNCTIONS %%%%%%
 
-write_final_message_bus( CurrentTickOffset , BusId , LastPosition , StartTime , xml ) ->
+write_final_message_bus( CurrentTickOffset , BusId , LastPosition , _StartTime , xml ) ->
 	
 	_ =   CurrentTickOffset - StartTime, 	
 

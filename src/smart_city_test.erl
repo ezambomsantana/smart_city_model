@@ -145,7 +145,6 @@ run() ->
 
 	ListBuses = bus_parser:show( element( 6 , Config ) ), % Read the list of buses. TODO: verify if this configurition does not exist.
 
-	io:format("read parks"),
 	ParkSpots = park_parser:read_csv( element( 7 , Config ) ), 
 
 	ListEdges = create_street_list( CityGraph ),
@@ -159,7 +158,8 @@ run() ->
 			string:concat( AmqpClientPath, "/ebin" ),
 			string:concat( AmqpClientPath, "/include/rabbit_common/ebin" )
 		],
-        class_Actor:create_initial_actor( class_Street,  [ "Street" , ListEdges , LogName , Paths ] ),
+
+	class_Actor:create_initial_actor( class_Street,  [ "Street" , ListEdges , LogName , Paths ] ),
 
 	class_Actor:create_initial_actor( class_Metro, [ "MetroCity" , string:concat( OutputPath , MetroFile ) ] ), 
 
@@ -186,6 +186,10 @@ run() ->
 	collectResults( Names ),
 
 	create_buses( ListBuses , CityGraph  ),
+
+	ListEvents = events_parser:read_csv( element( 9 , Config ) ),
+
+	class_Actor:create_initial_actor( class_EventsManager, [ "EventsManager", ListEvents ] ),
 
 	SimulationDuration = element( 1 , string:to_integer(element( 2 , Config ) ) ),
 
