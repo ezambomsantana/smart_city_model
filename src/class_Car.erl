@@ -179,9 +179,8 @@ get_next_vertex( State , [ Current | Path ] , _Mode ) ->
 	TotalLength = getAttribute( State , distance ) + Distance,
 	FinalState = setAttributes( State , [{distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , Path},  { coordFrom , From } ] ), 
 
-	CityGraph = ets:lookup( options , city_graph ), 
+%   CityGraph = ets:lookup( options , city_graph ),
 
-	io:format("~w\n", [ CityGraph ] ),
 %	print_movement( FinalState ),
 %	send data to rabbitMQ, including the From lat/long
 

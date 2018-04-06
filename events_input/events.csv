@@ -1,1 +1,2 @@
-reduce_capacity;45;100;300
+reduce_capacity;4;5;100;300;10
+close_street;3;4;50;100;0
