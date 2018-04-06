@@ -18,13 +18,14 @@ read_line( Count , [ Data | ListRest ] ) ->
     case String of
 	[] -> [];
  	_ ->
-	    Text = string:chomp(String),
-	    TextSplit = string:split( Text ,  ";" , all ),
-	    Type = lists:nth( 1 , TextSplit ),
-	    EdgeId = list_to_atom( lists:nth( 2 , TextSplit ) ),
-	    { Time, _ } = string:to_integer( lists:nth( 3 , TextSplit ) ),
-        io:format("time: ~w", [Time]),
-	    { Duration, _ } = string:to_integer( lists:nth( 4 , TextSplit ) ),
-	    Element = { Time, [ { Type, EdgeId, Duration } ] },
-	    [ Element | read_line( Count +1 , ListRest ) ]
+        Text = string:chomp(String),
+        TextSplit = string:split( Text ,  ";" , all ),
+        Type = lists:nth( 1 , TextSplit ),
+        V1 = list_to_atom( lists:nth( 2 , TextSplit ) ),
+        V2 = list_to_atom( lists:nth( 3 , TextSplit ) ),
+        { Time, _ } = string:to_integer( lists:nth( 4 , TextSplit ) ),
+        { Duration, _ } = string:to_integer( lists:nth( 5 , TextSplit ) ),
+        { Capacity, _ } = string:to_integer( lists:nth( 6 , TextSplit ) ),
+        Element = { Time, [ { Type, V1, V2, Duration, Capacity } ] },
+        [ Element | read_line( Count +1 , ListRest ) ]
     end.
