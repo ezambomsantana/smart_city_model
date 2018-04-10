@@ -1,3 +1,3 @@
 <scsimulator_config>
-<config trip_file="../events_input/trips_reduced.xml" map_file="../events_input/map_reduced.xml" output_file="../output/events.xml" events_file="../events_input/events.csv" generate_graph="true" simulation_time="3000"/>
+<config trip_file="../events_input/trips-with-uuid.xml" map_file="../events_input/map_reduced.xml" output_file="../output/events.xml" events_file="../events_input/events.csv" generate_graph="true" simulation_time="3000"/>
 </scsimulator_config>

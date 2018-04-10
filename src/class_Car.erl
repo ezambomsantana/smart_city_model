@@ -4,17 +4,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Park , Mode ).
+-define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Park , Mode, Uuid ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/7, new_link/7,
-		 synchronous_new/7, synchronous_new_link/7,
-		 synchronous_timed_new/7, synchronous_timed_new_link/7,
-		 remote_new/8, remote_new_link/8, remote_synchronous_new/8,
-		 remote_synchronous_new_link/8, remote_synchronisable_new_link/8,
-		 remote_synchronous_timed_new/8, remote_synchronous_timed_new_link/8,
-		 construct/8, destruct/1 ).
+-define( wooper_construct_export, new/8, new_link/8,
+		 synchronous_new/8, synchronous_new_link/8,
+		 synchronous_timed_new/8, synchronous_timed_new_link/8,
+		 remote_new/9, remote_new_link/9, remote_synchronous_new/9,
+		 remote_synchronous_new_link/9, remote_synchronisable_new_link/9,
+		 remote_synchronous_timed_new/9, remote_synchronous_timed_new_link/9,
+		 construct/9, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, get_parking_spot/3 , set_new_path/3 ).
@@ -27,7 +27,7 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter(), parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
@@ -47,6 +47,7 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ last_vertex_pid , ok },
 		{ coordFrom , ok },
 		{ wait , false }
+		{ uuid, Uuid }
 						] ),
 
 	case Park of
@@ -219,7 +220,29 @@ get_next_vertex( State , Path , _Mode ) ->
 
 	end.
 
+	{ Lat, Lon } = From,
+    LAT = lists:flatten( io_lib:format( "~p", [ Lat ] ) ),
+    LON = lists:flatten( io_lib:format( "~p", [ Lon ] ) ),
+    Uuid = getAttribute( State , uuid ),
+    UUID = lists:flatten( io_lib:format( "~p", [ Uuid ] ) ),
+    ID = lists:flatten( io_lib:format( "~p", [ Id ] ) ),
 
+    { { Year, Month, Day }, { Hour, Minute, Second } } = calendar:local_time(),
+    Timestamp = lists:flatten( io_lib:format( "~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w",
+                                          [ Year, Month, Day, Hour, Minute, Second ] ) ),
+
+    RoutingKey = string:concat( Uuid, ".current_location.simulated" ),
+
+    Message = "{ \"uuid\": " ++ UUID ++
+              ", \"nodeID\": " ++ ID ++
+              ", \"lat\": " ++ LAT ++
+              ", \"lon\": " ++ LON ++
+              ", \"timestamp\": " ++ Timestamp ++
+              " }",
+
+    print:publish_data( "data_stream", RoutingKey, Message ),
+
+	executeOneway( FinalState , addSpontaneousTick , class_Actor:get_current_tick_offset( FinalState ) + Time ).
 
 get_parking_spot( State , IdNode , _ParkingPID ) ->
 	Node = element( 1 , IdNode ),
