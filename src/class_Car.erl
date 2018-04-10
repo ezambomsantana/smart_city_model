@@ -45,7 +45,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ path , Path },
 		{ mode , Mode },
 		{ last_vertex_pid , ok },
-		{ coordFrom , ok }
+		{ coordFrom , ok },
+		{ wait , false }
 						] ),
 
 	case Park of
@@ -62,20 +63,25 @@ destruct( State ) ->
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
 actSpontaneous( State ) ->	
 	Trips = getAttribute( State , trips ), 
+	Wait = getAttribute( State , wait ), 
 	Path = getAttribute( State , path ), 
-	verify_next_action( State , Trips , Path ).
+	verify_next_action( State , Trips , Path , Wait ).
 
-verify_next_action( State , _Trip , Path ) when Path == false ->
-	executeOneway( State , declareTermination );
-
-verify_next_action( State , Trips , Path ) when length( Trips ) == 0, Path == finish -> 
-	executeOneway( State , declareTermination );
-
-verify_next_action( State , Trips , Path ) when length( Trips ) > 0 ->
+verify_next_action( State , Trips , Path , Wait ) when Wait == true ->
 	CurrentTrip = lists:nth( 1 , Trips ),		
 	?wooper_return_state_only( request_position( State , CurrentTrip , Path ) );
 
-verify_next_action( State , _Trips , _Path ) ->
+verify_next_action( State , _Trip , Path , _Wait ) when Path == false ->
+	executeOneway( State , declareTermination );
+
+verify_next_action( State , Trips , Path , _Wait ) when length( Trips ) == 0, Path == finish -> 
+	executeOneway( State , declareTermination );
+
+verify_next_action( State , Trips , Path , _Wait ) when length( Trips ) > 0 ->
+	CurrentTrip = lists:nth( 1 , Trips ),		
+	?wooper_return_state_only( request_position( State , CurrentTrip , Path ) );
+
+verify_next_action( State , _Trips , _Path , _Wait  ) ->
 	Type = getAttribute( State , type ),						
 	TotalLength = getAttribute( State , distance ),
 	StartTime = getAttribute( State , start_time ),
@@ -158,33 +164,59 @@ get_next_vertex( State , [ Current | Path ] , Mode ) when Mode == walk ->
 
 	executeOneway( FinalState , addSpontaneousTick , class_Actor:get_current_tick_offset( FinalState ) + Time );
 
-get_next_vertex( State , [ Current | Path ] , _Mode ) ->
-	Vertices = list_to_atom( lists:concat( [ Current , lists:nth( 1 , Path ) ] )),
+get_next_vertex( State , Path , _Mode ) ->
+	Vertices = list_to_atom( lists:concat( [ lists:nth( 1 , Path )  , lists:nth( 2 , Path ) ] )),
+
+	CurrentTick = class_Actor:get_current_tick_offset( State ),
 	
-	DecrementVertex = getAttribute( State , last_vertex_pid ),
-	case DecrementVertex of
-		ok ->
-			ok;
-		_ ->
-			ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
-	end,	
-
-	ets:update_counter( list_streets , Vertices , { 6 , 1 }),
 	Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
+	{ _ , _ , _ , _ , _ , _ , From , _ , NumCars , Tick , MaxCar } = Data,
 
-	{ _ , _ , _ , _ , _ , _ , From , _ } = Data,
+	case Tick /= CurrentTick of 
+		true ->
 
-	{ Id , Time , Distance } = traffic_models:get_speed_car( Data ),
+			ets:update_element( list_streets , Vertices , { 9 , 0 }),
+			ets:update_element( list_streets , Vertices , { 10 , CurrentTick });
+	
+		false ->
 
-	TotalLength = getAttribute( State , distance ) + Distance,
-	FinalState = setAttributes( State , [{distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , Path},  { coordFrom , From } ] ), 
+			ok
 
-%   CityGraph = ets:lookup( options , city_graph ),
+	end,
 
-%	print_movement( FinalState ),
-%	send data to rabbitMQ, including the From lat/long
+	case NumCars >= MaxCar of
+	
+		true ->
 
-	executeOneway( FinalState , addSpontaneousTick , class_Actor:get_current_tick_offset( FinalState ) + Time ).
+			FinalState = setAttribute( State , wait , true ),
+			executeOneway( FinalState , addSpontaneousTick , CurrentTick + 1 );
+
+		false ->
+
+			DecrementVertex = getAttribute( State , last_vertex_pid ),
+			case DecrementVertex of
+				ok ->
+					ok;
+				_ ->
+					ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
+			end,	
+
+			ets:update_counter( list_streets , Vertices , { 6 , 1 }),
+
+			NewPath = lists:nthtail( 1 , Path ),
+		
+			ets:update_counter( list_streets , Vertices , { 9 , 1 }),
+
+			{ Id , Time , Distance } = traffic_models:get_speed_car( Data ),
+
+			TotalLength = getAttribute( State , distance ) + Distance,
+			FinalState = setAttributes( State , [{ wait , false } , {distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , NewPath},  { coordFrom , From } ] ), 
+
+			%	send data to rabbitMQ, including the From lat/long
+	
+			executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
+
+	end.
 
 get_parking_spot( State , IdNode , _ParkingPID ) ->
 	Node = element( 1 , IdNode ),
