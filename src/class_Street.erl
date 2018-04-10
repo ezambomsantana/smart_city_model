@@ -91,7 +91,7 @@ iterate_list([ Element | List ]) ->
 	Vertices = element( 1, Element),
 	{ Id , Length , Capacity , Freespeed , Count , From , To } = element(2, Element),
 
-	ets:insert(list_streets, {Vertices,  Id , Length , Capacity , Freespeed , Count , From , To }),
+	ets:insert(list_streets, {Vertices,  Id , Length , Capacity , Freespeed , Count , From , To , 0 , 1 , 5 }),
 
 	iterate_list( List ).
 
