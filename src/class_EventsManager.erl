@@ -110,14 +110,15 @@ iterate_events( State, [ Event | Events ] ) ->
 					   NewEvents = dict:append( CurrentTickOffset + Duration, OpenStreetEvent, EventsDict ),
 					   setAttribute( State, events, NewEvents );
 
+
 				   "restore_capacity" ->
 					   EdgeID = element( 2, Event ),
-					   CapacityFactor = element( 3, Event ),
+					   CapacityFactor = element( 3 , Event ),
 					   CAPACITY_INDEX = 4,
 					   Street = lists:nth( 1, ets:lookup( list_streets, EdgeID )),
 					   Capacity = element( CAPACITY_INDEX, Street ),
 					   RestoredCapacity = Capacity * ( 100.0 / CapacityFactor ),
-					   ets:update_element( list_streets, EdgeID, { CAPACITY_INDEX, RestoredCapacity } ),
+					   ets:update_element( list_streets, EdgeID, [ { CAPACITY_INDEX, RestoredCapacity } ] ),
 					   State;
 
 				   "reduce_capacity" ->
@@ -127,16 +128,19 @@ iterate_events( State, [ Event | Events ] ) ->
 					   Duration = element( 4, Event ),
 					   CapacityFactor = element( 5, Event ),
 					   CAPACITY_INDEX = 4,
+
 					   Street = lists:nth( 1, ets:lookup( list_streets, EdgeID )),
 					   Capacity = element( CAPACITY_INDEX, Street ),
 					   ReducedCapacity = Capacity * ( CapacityFactor / 100.0 ),
-					   ets:update_element( list_streets, EdgeID, { CAPACITY_INDEX, ReducedCapacity } ),
+					   ets:update_element( list_streets, EdgeID, [ { CAPACITY_INDEX, ReducedCapacity } ] ),
+
 
 					   RestoreCapacityEvent = { "restore_capacity", EdgeID, CapacityFactor },
 					   CurrentTickOffset = class_Actor:get_current_tick_offset( State ),
 					   EventsDict = getAttribute( State, events ),
 					   NewEvents = dict:append( CurrentTickOffset + Duration, RestoreCapacityEvent, EventsDict ),
 					   setAttribute( State, events, NewEvents )
+
 			   end,
 	iterate_events( NewState, Events ).
     
