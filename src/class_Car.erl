@@ -165,6 +165,7 @@ get_next_vertex( State , [ Current | Path ] , Mode ) when Mode == walk ->
 	executeOneway( FinalState , addSpontaneousTick , class_Actor:get_current_tick_offset( FinalState ) + Time );
 
 get_next_vertex( State , Path , _Mode ) ->
+
 	Vertices = list_to_atom( lists:concat( [ lists:nth( 1 , Path )  , lists:nth( 2 , Path ) ] )),
 
 	CurrentTick = class_Actor:get_current_tick_offset( State ),
@@ -217,6 +218,8 @@ get_next_vertex( State , Path , _Mode ) ->
 			executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
 
 	end.
+
+
 
 get_parking_spot( State , IdNode , _ParkingPID ) ->
 	Node = element( 1 , IdNode ),
