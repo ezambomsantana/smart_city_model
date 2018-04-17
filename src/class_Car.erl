@@ -46,7 +46,7 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ mode , Mode },
 		{ last_vertex_pid , ok },
 		{ coordFrom , ok },
-		{ wait , false }
+		{ wait , false },
 		{ uuid, Uuid }
 						] ),
 
@@ -216,33 +216,31 @@ get_next_vertex( State , Path , _Mode ) ->
 
 			%	send data to rabbitMQ, including the From lat/long
 	
+            { Lat, Lon } = From,
+            LAT = lists:flatten( io_lib:format( "~p", [ Lat ] ) ),
+            LON = lists:flatten( io_lib:format( "~p", [ Lon ] ) ),
+            Uuid = getAttribute( State , uuid ),
+            UUID = lists:flatten( io_lib:format( "~p", [ Uuid ] ) ),
+            ID = lists:flatten( io_lib:format( "~p", [ atom_to_list(Id) ] ) ),
+
+            { { Year, Month, Day }, { Hour, Minute, Second } } = calendar:local_time(),
+            Timestamp = lists:flatten( io_lib:format( "~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w",
+                                                  [ Year, Month, Day, Hour, Minute, Second ] ) ),
+
+            RoutingKey = string:concat( Uuid, ".current_location.simulated" ),
+
+            Message = "{ \"uuid\": " ++ UUID ++
+                      ", \"nodeID\": " ++ ID ++
+                      ", \"lat\": " ++ LAT ++
+                      ", \"lon\": " ++ LON ++
+                      ", \"timestamp\": \"" ++ Timestamp ++
+                      "\" }",
+
+            print:publish_data( "data_stream", RoutingKey, Message ),
+
 			executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
 
 	end.
-
-	{ Lat, Lon } = From,
-    LAT = lists:flatten( io_lib:format( "~p", [ Lat ] ) ),
-    LON = lists:flatten( io_lib:format( "~p", [ Lon ] ) ),
-    Uuid = getAttribute( State , uuid ),
-    UUID = lists:flatten( io_lib:format( "~p", [ Uuid ] ) ),
-    ID = lists:flatten( io_lib:format( "~p", [ Id ] ) ),
-
-    { { Year, Month, Day }, { Hour, Minute, Second } } = calendar:local_time(),
-    Timestamp = lists:flatten( io_lib:format( "~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w",
-                                          [ Year, Month, Day, Hour, Minute, Second ] ) ),
-
-    RoutingKey = string:concat( Uuid, ".current_location.simulated" ),
-
-    Message = "{ \"uuid\": " ++ UUID ++
-              ", \"nodeID\": " ++ ID ++
-              ", \"lat\": " ++ LAT ++
-              ", \"lon\": " ++ LON ++
-              ", \"timestamp\": " ++ Timestamp ++
-              " }",
-
-    print:publish_data( "data_stream", RoutingKey, Message ),
-
-	executeOneway( FinalState , addSpontaneousTick , class_Actor:get_current_tick_offset( FinalState ) + Time ).
 
 get_parking_spot( State , IdNode , _ParkingPID ) ->
 	Node = element( 1 , IdNode ),
