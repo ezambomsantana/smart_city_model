@@ -222,6 +222,7 @@ get_next_vertex( State , Path , _Mode ) ->
             Uuid = getAttribute( State , uuid ),
             UUID = lists:flatten( io_lib:format( "~p", [ Uuid ] ) ),
             ID = lists:flatten( io_lib:format( "~p", [ atom_to_list(Id) ] ) ),
+            TickSimulated = lists:flatten( io_lib:format( "~p", [ CurrentTick ] ) ),
 
             { { Year, Month, Day }, { Hour, Minute, Second } } = calendar:local_time(),
             Timestamp = lists:flatten( io_lib:format( "~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w",
@@ -234,7 +235,7 @@ get_next_vertex( State , Path , _Mode ) ->
                       ", \"lat\": " ++ LAT ++
                       ", \"lon\": " ++ LON ++
                       ", \"timestamp\": \"" ++ Timestamp ++
-                      "\" }",
+                      "\", \"tick\": " ++ TickSimulated ++ " }",
 
             print:publish_data( "data_stream", RoutingKey, Message ),
 
