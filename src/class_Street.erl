@@ -44,6 +44,13 @@ construct( State, ?wooper_construct_parameters ) ->
                 _ -> ok
         end,
 
+	case ets:info(traffic_events) of
+	    undefined ->
+	        ets:new(traffic_events, [public, set, named_table]),
+	        spawn(events_handler, listen_for_events, []);
+	    _ -> ok
+	end,
+
 	iterate_list( ListEdges ),
 
 	create_option_table( LogName , Paths ),

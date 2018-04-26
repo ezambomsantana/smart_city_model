@@ -239,6 +239,8 @@ get_next_vertex( State , Path , _Mode ) ->
 
             print:publish_data( "data_stream", RoutingKey, Message ),
 
+            io:format("MENSAGEM CHEGOU: ~w~n", [ets:lookup( traffic_events, nodeID )]),
+
 			executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
 
 	end.
