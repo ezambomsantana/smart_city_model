@@ -205,14 +205,29 @@ get_next_vertex( State , Path , _Mode ) ->
 
 			ets:update_counter( list_streets , Vertices , { 6 , 1 }),
 
-			NewPath = lists:nthtail( 1 , Path ),
+            CurrentNode = lists:nth( 1 , Path ),
+
+            NewPath = case ets:lookup( traffic_events, CurrentNode ) of
+				[ { From, To } ] ->
+				    case edgeInPath( Path, From, To ) of
+					    true ->
+					        [ { _ , CityGraph } ] = ets:lookup( options , city_graph ),
+							Origin = CurrentNode,
+							[ Destination | _ ] = lists:reverse( Path ), 
+							digraph:get_short_path( CityGraph , list_to_atom(Origin) , list_to_atom(Destination) );
+						false -> Path
+					end;
+				_ -> Path
+			end,
+
+			FinalPath = lists:nthtail( 1 , NewPath ),
 		
 			ets:update_counter( list_streets , Vertices , { 9 , 1 }),
 
 			{ Id , Time , Distance } = traffic_models:get_speed_car( Data ),
 
 			TotalLength = getAttribute( State , distance ) + Distance,
-			FinalState = setAttributes( State , [{ wait , false } , {distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , NewPath},  { coordFrom , From } ] ), 
+			FinalState = setAttributes( State , [{ wait , false } , {distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , FinalPath},  { coordFrom , From } ] ), 
 
 			%	send data to rabbitMQ, including the From lat/long
 	
@@ -239,10 +254,19 @@ get_next_vertex( State , Path , _Mode ) ->
 
             print:publish_data( "data_stream", RoutingKey, Message ),
 
-            io:format("MENSAGEM CHEGOU: ~w~n", [ets:lookup( traffic_events, nodeID )]),
-
 			executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
 
+	end.
+
+edgeInPath( [], _From, _To ) -> false;
+edgeInPath( [ Node | Path ], From, To ) ->
+    case Node =:= From of
+        true ->
+		    case lists:nth( 1 , Path ) =:= To of
+                true -> true;
+				false -> false
+			end;
+		false -> edgeInPath( Path, From, To)
 	end.
 
 get_parking_spot( State , IdNode , _ParkingPID ) ->

@@ -153,7 +153,8 @@ get_hour_minute() ->
 %-spec publish_data( wooper:state() , parameter() , pid() ) -> wooper:state().
 publish_data( Topic, RoutingKey, Message ) ->
 
-	{ ok, Connection } = amqp_connection:start( #amqp_params_network{host="192.168.33.133"} ),
+	%{ ok, Connection } = amqp_connection:start( #amqp_params_network{host="192.168.33.254"} ),
+	{ ok, Connection } = amqp_connection:start(#amqp_params_network{}),
 	{ ok, Channel } = amqp_connection:open_channel( Connection ),
 
 	Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ),
