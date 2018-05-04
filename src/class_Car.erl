@@ -206,19 +206,24 @@ get_next_vertex( State , Path , _Mode ) ->
 			ets:update_counter( list_streets , Vertices , { 6 , 1 }),
 
             CurrentNode = lists:nth( 1 , Path ),
+            CarName = getAttribute( State, car_name),
+            EventEdge = ets:lookup( traffic_events, CurrentNode ),
 
-            NewPath = case ets:lookup( traffic_events, CurrentNode ) of
-				[ { From, To } ] ->
-				    case edgeInPath( Path, From, To ) of
-					    true ->
-					        [ { _ , CityGraph } ] = ets:lookup( options , city_graph ),
-							Origin = CurrentNode,
-							[ Destination | _ ] = lists:reverse( Path ), 
-							digraph:get_short_path( CityGraph , list_to_atom(Origin) , list_to_atom(Destination) );
-						false -> Path
-					end;
-				_ -> Path
-			end,
+            NewPath = case EventEdge of
+                [ { CurrentNode, { FromNodeID, ToNodeID } } ] ->
+                    case edgeInPath( Path, FromNodeID, ToNodeID ) of
+                        true ->
+                            io:format("PATH DO CARRO ~p MUDOU!~n", [CarName]),
+                            [ { _ , CityGraph } ] = ets:lookup( options , city_graph ),
+                            Origin = CurrentNode,
+                            [ Destination | _ ] = lists:reverse( Path ),
+                            NewVertices = digraph:get_short_path( CityGraph , Origin , Destination ),
+                            io:format("Path do ~p: ~w~n", [CarName, NewVertices]),
+                            NewVertices;
+                        false -> Path
+                    end;
+                _ -> Path
+            end,
 
 			FinalPath = lists:nthtail( 1 , NewPath ),
 		

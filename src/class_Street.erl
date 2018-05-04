@@ -124,20 +124,25 @@ destruct( State ) ->
 
 	State.
 
+-spec get_timestamp() -> integer().
+get_timestamp() ->
+    {Mega, Sec, Micro} = os:timestamp(),
+    (Mega*1000000 + Sec)*1000 + round(Micro/1000).
+
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
 actSpontaneous( State ) ->
 
 %       CurrentTick = class_Actor:get_current_tick_offset( State ),
 
-%	CurrentTime = get_timestamp(),
+	CurrentTime = get_timestamp(),
 
-%	Time = ets:lookup_element(options, current_time, 2 ),
+	Time = ets:lookup_element(options, current_time, 2 ),
 
-%	Diff = CurrentTime - Time,
+	Diff = CurrentTime - Time,
 
-%	io:format("Diff: ~w", [ Diff ] ),
+	io:format("Diff: ~w", [ Diff ] ),
 	
-%	timer:sleep(970 - Diff),
+	timer:sleep(970 - Diff),
 
 
 % Adicionar no arquivo /sim-diasca/src/core/src/scheduling/class_TimeManager.erl beginTimeManagerTick 1880

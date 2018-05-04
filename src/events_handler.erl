@@ -35,13 +35,13 @@ test() ->
                               routing_key = BindKey},
     #'queue.bind_ok'{} = amqp_channel:call(Channel, QueueBind),
 
-    Payload = <<"1.3.5">>,
+    Payload = <<"2.3.5">>,
     RoutingKey = <<"test.traffic.event">>,
     Publish = #'basic.publish'{exchange = X, routing_key = RoutingKey},
     amqp_channel:cast(Channel, Publish, #amqp_msg{payload = Payload}),
     io:format("ENVIADO A PRIMEIRA MSG\n"),
 
-    Payload1 = <<"1.3.5">>,
+    Payload1 = <<"2.3.5">>,
     amqp_channel:cast(Channel, Publish, #amqp_msg{payload = Payload1}),
     io:format("ENVIADO A SEGUNDA MSG\n"),
     
@@ -83,6 +83,6 @@ loop(Channel) ->
             [ CurrentNode, FromNode, ToNode ] = string:tokens( binary_to_list(Payload), "." ),
             io:format("Payload received: ~p~n", [Payload]),
             io:format("Current Node: ~p~nFrom Node: ~p~nTo Node: ~p~n", [CurrentNode, FromNode, ToNode]),
-			ets:insert(traffic_events, { CurrentNode, { FromNode, ToNode } }),
+            ets:insert(traffic_events, { list_to_atom(CurrentNode), { list_to_atom(FromNode), list_to_atom(ToNode) } }),
             loop(Channel)
     end.
