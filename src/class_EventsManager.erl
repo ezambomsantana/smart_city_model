@@ -31,43 +31,43 @@
 % Creates a list with the parking spots in the city
 %
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name() , parameter() ) -> wooper:state().
+				 class_Actor:name() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
-    
-    Events = dict:from_list( ListOfEvents ),
 
-    ActorState = class_Actor:construct( State, ActorSettings , EventsName ),
+	Events = dict:from_list( ListOfEvents ),
 
-    setAttributes( ActorState, [ { events , Events } ] ).
+	ActorState = class_Actor:construct( State, ActorSettings , EventsName ),
+
+	setAttributes( ActorState, [ { events , Events } ] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
 destruct( State ) ->
 
-    State.
+	State.
 
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
 actSpontaneous( State ) ->
 
-    Events = getAttribute( State, events ),
+	Events = getAttribute( State, events ),
 	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
 
-    NewState = case dict:find(  CurrentTickOffset, Events ) of
-      {ok, EventsList} -> iterate_events( State, EventsList );
-      error -> State
-    end,
+	NewState = case dict:find(  CurrentTickOffset, Events ) of
+				   {ok, EventsList} -> iterate_events( State, EventsList );
+				   error -> State
+			   end,
 
-    executeOneway( NewState , addSpontaneousTick, CurrentTickOffset + 1 ).
+	executeOneway( NewState , addSpontaneousTick, CurrentTickOffset + 1 ).
 
 iterate_events( State, [] ) ->
-    State;
+	State;
 iterate_events( State, [ Event | Events ] ) ->
 	NewState = case element( 1, Event ) of
 				   "open_street" ->
-				       io:format("OPEN STREET~n"),
+					   io:format("OPEN STREET~n"),
 					   V1 = element( 2, Event ),
 					   V2 = element( 3, Event ),
 
-                       [ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
+					   [ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
 
 					   GraphManagerPid ! { print_graph_edges },
 					   GraphManagerPid ! { add_edge, V1, V2 },
@@ -76,12 +76,12 @@ iterate_events( State, [ Event | Events ] ) ->
 					   State;
 
 				   "close_street" ->
-				       io:format("CLOSE STREET~n"),
+					   io:format("CLOSE STREET~n"),
 					   V1 = element( 2, Event ),
 					   V2 = element( 3, Event ),
 					   Duration = element( 4, Event ),
 
-                       [ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
+					   [ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
 					   %[ { _ , Graph } ] = ets:lookup( graph , mygraph ),
 
 					   GraphManagerPid ! { print_graph_edges },
@@ -125,7 +125,7 @@ iterate_events( State, [ Event | Events ] ) ->
 
 			   end,
 	iterate_events( NewState, Events ).
-    
+
 % Simply schedules this just created actor at the next tick (diasca 0).
 %
 % (actor oneway)
