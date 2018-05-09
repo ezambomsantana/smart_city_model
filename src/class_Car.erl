@@ -214,12 +214,14 @@ get_next_vertex( State , Path , _Mode ) ->
                     case edgeInPath( Path, FromNodeID, ToNodeID ) of
                         true ->
                             io:format("PATH DO CARRO ~p MUDOU!~n", [CarName]),
-                            [ { _ , CityGraph } ] = ets:lookup( options , city_graph ),
-                            Origin = CurrentNode,
-                            [ Destination | _ ] = lists:reverse( Path ),
+                            [ { _ , CityGraph } ] = ets:lookup( graph , mygraph ),
+                            [ { _, Origin } ] = ets:lookup(graph, atom_to_list(CurrentNode)),
+                            [ ToNode | _ ] = lists:reverse( Path ),
+                            [ { _, Destination } ] = ets:lookup(graph, atom_to_list(ToNode)),
                             NewVertices = digraph:get_short_path( CityGraph , Origin , Destination ),
-                            io:format("Path do ~p: ~w~n", [CarName, NewVertices]),
-                            NewVertices;
+                            Ids = getVerticesIds( CityGraph, NewVertices, [] ),
+                            io:format("Path do ~p: ~p~n", [CarName, Ids]),
+                            Ids;
                         false -> Path
                     end;
                 _ -> Path
@@ -262,6 +264,12 @@ get_next_vertex( State , Path , _Mode ) ->
 			executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
 
 	end.
+
+getVerticesIds( _G, [], Ids ) ->
+    Ids;
+getVerticesIds( G, [ Vertex | Vertices ], Ids ) ->
+    { _, { Id } } = digraph:vertex( G, Vertex),
+    getVerticesIds( G, Vertices, lists:append( Ids, [ list_to_atom( Id ) ]) ).
 
 edgeInPath( [], _From, _To ) -> false;
 edgeInPath( [ Node | Path ], From, To ) ->

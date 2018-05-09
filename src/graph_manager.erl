@@ -15,7 +15,8 @@ add_edge(G, IdV1, IdV2) ->
 
 add_vertex(G, Id) ->
     V = digraph:add_vertex(G),
-    ets:insert( graph, { Id, V } ).
+    Vertex = digraph:add_vertex( G, V, { Id } ),
+    ets:insert( graph, { Id, Vertex } ).
 
 find_edge( Graph, V1, V2 ) ->
     EdgesList = digraph:out_edges( Graph, V1 ),
