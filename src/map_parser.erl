@@ -12,6 +12,7 @@
 
 % Init the XML processing
 show(Infilename , Print) ->
+    spawn( graph_manager, init, []),
     {Doc, _Misc} = xmerl_scan:file(Infilename),
     Graph = digraph:new(),
     init( Doc , Graph ),
@@ -99,6 +100,9 @@ extract_node(Node , Graph ) ->
 			Id = children( Attributes , id ),
 			Lat = children( Attributes , x ),
 			Long = children( Attributes , y ),	
+            [ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
+            GraphManagerPid ! { add_vertex, Id },
+            GraphManagerPid ! { print_graph_vertices },
 			digraph:add_vertex(Graph, list_to_atom(Id), { Lat , Long });	
 
 		_ ->
@@ -123,7 +127,10 @@ extract_link(Link , Graph ) ->
 			Length = children( Attributes , length ),
 			Capacity = children ( Attributes , capacity ),
 			Freespeed = children( Attributes , freespeed ),
-			digraph:add_edge(Graph, list_to_atom(From), list_to_atom(To), { Id , Length , Capacity , Freespeed });
+			digraph:add_edge(Graph, list_to_atom(From), list_to_atom(To), { Id , Length , Capacity , Freespeed }),
+            [ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
+            GraphManagerPid ! { add_edge, list_to_atom( From ), list_to_atom( To ) },
+            GraphManagerPid ! { print_graph_edges };
 
 		_ ->
 			ok
