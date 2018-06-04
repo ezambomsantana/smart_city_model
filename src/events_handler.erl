@@ -53,8 +53,9 @@ test() ->
 listen_for_events() ->
 	setup(),
 
-    {ok, Connection} = amqp_connection:start(#amqp_params_network{}),
-    {ok, Channel} = amqp_connection:open_channel(Connection),
+	Hostname = os:getenv("RABBITMQ_HOST", "localhost"),
+	{ok, Connection} = amqp_connection:start(#amqp_params_network{host=Hostname}),
+	{ok, Channel} = amqp_connection:open_channel(Connection),
 
     X = <<"traffic_sign">>,
     BindKey = <<"#">>,
