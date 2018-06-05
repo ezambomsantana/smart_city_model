@@ -102,7 +102,6 @@ extract_node(Node , Graph ) ->
                     Long = children( Attributes , y ),	
                     [ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
                     GraphManagerPid ! { add_vertex, Id },
-                    GraphManagerPid ! { print_graph_vertices },
                     digraph:add_vertex(Graph, list_to_atom(Id), { Lat , Long });	
 
                 _ ->
@@ -129,8 +128,7 @@ extract_link(Link , Graph ) ->
                     Freespeed = children( Attributes , freespeed ),
                     digraph:add_edge(Graph, list_to_atom(From), list_to_atom(To), { Id , Length , Capacity , Freespeed }),
                     [ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
-                    GraphManagerPid ! { add_edge, list_to_atom( From ), list_to_atom( To ) },
-                    GraphManagerPid ! { print_graph_edges };
+                    GraphManagerPid ! { add_edge, list_to_atom( From ), list_to_atom( To ) };
 
                 _ ->
                     ok
