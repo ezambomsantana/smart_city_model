@@ -154,9 +154,11 @@ get_hour_minute() ->
 publish_data( Topic, RoutingKey, Message ) ->
 
 	%{ ok, Connection } = amqp_connection:start( #amqp_params_network{host="192.168.33.254"} ),
-	Hostname = os:getenv("RABBITMQ_HOST", "localhost"),
-	{ok, Connection} = amqp_connection:start(#amqp_params_network{host=Hostname}),
-	{ ok, Channel } = amqp_connection:open_channel( Connection ),
+	%Hostname = os:getenv("RABBITMQ_HOST", "localhost"),
+	%{ok, Connection} = amqp_connection:start(#amqp_params_network{host=Hostname}),
+	%{ ok, Channel } = amqp_connection:open_channel( Connection ),
+
+	Channel = ets:lookup(options, rabbitmq_channel),
 
 	Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ),
 									type = <<"topic">> },
