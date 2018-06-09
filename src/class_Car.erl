@@ -260,7 +260,8 @@ get_next_vertex( State , Path , _Mode ) ->
                       "\", \"tick\": " ++ TickSimulated ++ " }",
 
             %print:publish_data( "data_stream", RoutingKey, Message ),
-            spawn( print, publish_data, [ "data_stream", RoutingKey, Message ] ),
+            %spawn( print, publish_data, [ "data_stream", RoutingKey, Message ] ),
+            message_sender ! { send_data, "data_stream", RoutingKey, Message },
 
 			executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
 

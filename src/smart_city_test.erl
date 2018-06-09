@@ -193,6 +193,9 @@ run() ->
 
 	create_buses( ListBuses , CityGraph  ),
 
+	Pid = spawn( message_sender, publish_data, [] ),
+	register( message_sender, Pid),
+
 	ListEvents = events_parser:read_csv( element( 9 , Config ) ),
 
 	case ListEvents of
