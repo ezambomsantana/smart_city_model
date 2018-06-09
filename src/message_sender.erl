@@ -41,6 +41,6 @@ send( Connection, Topic, RoutingKey, Message ) ->
 
 loop( Connection ) ->
 	receive
-		{ send_data, Topic, RoutingKey, Message } -> send(Connection, Topic, RoutingKey, Message)
+		{ send_data, Topic, RoutingKey, Message } -> send( Connection, Topic, RoutingKey, Message )
 	end,
 	loop( Connection ).
