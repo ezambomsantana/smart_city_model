@@ -45,10 +45,12 @@ construct( State, ?wooper_construct_parameters ) ->
         end,
 
 	case ets:info(traffic_events) of
-	    undefined ->
-	        ets:new(traffic_events, [public, set, named_table]),
-	        spawn(events_handler, listen_for_events, []);
-	    _ -> ok
+		undefined ->
+			ets:new(traffic_events, [public, set, named_table, {read_concurrency, false}]),
+			spawn(events_handler, listen_for_events, []),
+			Pid = spawn( message_sender, publish_data, [] ),
+			ets:insert( traffic_events, { sender_pid, Pid } );
+		_ -> ok
 	end,
 
 	iterate_list( ListEdges ),

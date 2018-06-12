@@ -261,7 +261,11 @@ get_next_vertex( State , Path , _Mode ) ->
 
             %print:publish_data( "data_stream", RoutingKey, Message ),
             %spawn( print, publish_data, [ "data_stream", RoutingKey, Message ] ),
-            message_sender_agent ! { send_data, "data_stream", RoutingKey, Message },
+            %SenderPid = whereis(message_sender_agent),
+            [ { _, SenderPid } ] = ets:lookup( traffic_events, sender_pid ),
+            %io:format("REGISTERED PROCESS: ~w~n", [registered()]),
+            %io:format("SENDER PID: ~w~n", [SenderPid]),
+            SenderPid ! { send_data, "data_stream", RoutingKey, Message },
 
 			executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
 
