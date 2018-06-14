@@ -26,6 +26,8 @@
 % Allows to define WOOPER base variables and methods for that class:
 -include("wooper.hrl").
 
+-include_lib("../deps/amqp_client/include/amqp_client.hrl").
+
 % Creates a new metro graph actor
 -spec construct( wooper:state(), class_Actor:actor_settings(),
 				class_Actor:name() , sensor_type() ) -> wooper:state().
@@ -42,6 +44,11 @@ construct( State, ?wooper_construct_parameters ) ->
 	ets:insert(options, { city_pid , self() }),
 	ets:insert(options, { city_graph , CityGraph }),
 	
+    Hostname = os:getenv( "RABBITMQ_HOST", "localhost" ),
+	{ok, Connection} = amqp_connection:start(#amqp_params_network{host=Hostname}),
+	{ ok, Channel } = amqp_connection:open_channel( Connection ),
+	ets:insert(options, { rabbitmq_channel, Channel }),
+
 	setAttributes( ActorState, [ { graph , CityGraph } ] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
