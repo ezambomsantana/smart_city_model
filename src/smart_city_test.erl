@@ -183,7 +183,12 @@ run() ->
 		class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots ] )
 	end,
 
-	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" , "car7" , "car8" ],
+	case ets:info(path) of
+		undefined -> ets:new(path, [set, named_table, public, {write_concurrency, true} ]);
+                _ -> ok
+        end,
+
+	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" , "car7" , "car8", "car9", "car10" ],
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 

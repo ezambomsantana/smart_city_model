@@ -36,7 +36,16 @@ create_person( Car , Graph ) ->
 			list_to_atom( Mode ) % Otherwise, car or walk.
 	end,
 
-	NewPath = digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) ),
+	PathKey = list_to_atom(string:concat(Origin, Destination)),
+
+	NewPath = case ets:lookup( path , PathKey ) of
+		[] ->
+			Path = digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) ),
+			ets:insert( path, { PathKey, Path } ),
+			Path;
+		[ { PathKey , BestPath } ] ->
+			BestPath
+	end,
 
 	ListTripsFinal = [ { ModeFinal , NewPath , LinkOrigin } ],
 
