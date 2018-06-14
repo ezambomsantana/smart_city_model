@@ -143,8 +143,10 @@ actSpontaneous( State ) ->
 %	io:format("Current Tick: ~w       ----    tempo: ~w\n ", [ NewTickOffset , Diff ] ),
 
 	State.
+    %executeOneway( State , addSpontaneousTick , class_Actor:get_current_tick_offset( State ) + 1 ).
 
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
 
 	?wooper_return_state_only( State ).
+    %executeOneway( State , addSpontaneousTick , class_Actor:get_current_tick_offset( State ) + 1 ).

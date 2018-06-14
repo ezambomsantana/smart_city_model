@@ -1,12 +1,15 @@
 -module(print).
 
+-include_lib("../deps/amqp_client/include/amqp_client.hrl").
+
 -export([
          write_final_message/8,
 	 write_final_message_bus/5,
 	 write_initial_message/6,
 	 write_movement_car_message/6,
 	 write_movement_bus_metro_message/7,
-	 write_sensor_data/3
+	 write_sensor_data/3,
+	 formatAndPublish/3
         ]).
 
 %%%% CAR MESSAGES %%%%
@@ -145,6 +148,25 @@ get_hour_minute() ->
 	TS = os:timestamp(),
 	{{_,_,_},{Hour,Minute,_}} = calendar:now_to_universal_time(TS),
 	{ Hour , Minute }.
+
+formatAndPublish( Uuid, NodeId, Tick ) ->
+    Topic = "data_stream",
+    Message = lists:flatten( io_lib:format( "{ \"uuid\": ~p, \"nodeID\": ~p, \"tick\": ~p }", [ Uuid, NodeId, Tick ] ) ),
+
+	RoutingKey = string:concat( Uuid, ".current_location.simulated" ),
+
+    [ { _, Channel } ] = ets:lookup( options, rabbitmq_channel ),
+
+	Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ),
+									type = <<"topic">> },
+	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
+
+	Publish = #'basic.publish'{ exchange = list_to_binary( Topic ),
+								routing_key = list_to_binary( RoutingKey ) },
+
+	amqp_channel:cast( Channel,
+					   Publish,
+					   #amqp_msg{ payload = list_to_binary( Message ) }).
 
 % Receive a message from an agent and saves it in the log file.
 %-spec publish_data( wooper:state() , parameter() , pid() ) -> wooper:state().
