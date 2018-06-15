@@ -166,7 +166,21 @@ get_next_vertex( State , [ Current | Path ] , Mode ) when Mode == walk ->
 
 get_next_vertex( State , Path , _Mode ) ->
 
-	Vertices = list_to_atom( lists:concat( [ lists:nth( 1 , Path )  , lists:nth( 2 , Path ) ] )),
+	Origin = lists:nth( 1 , Path ),
+	Vertices = list_to_atom( lists:concat( [ Origin  , lists:nth( 2 , Path ) ] )),
+
+	ModifiedPath = case ets:info(events) of
+			       undefined ->
+				       Path;
+			       _ ->
+				       case ets:lookup( events, Vertices ) of
+					       [{ _ , _ }] ->
+						       [ { _, Graph } ] = ets:lookup( graph, mygraph ),
+						       [ Destination ] = lists:nthtail(length(Path)-1, Path),
+						       digraph:get_short_path( Graph , Origin , Destination );
+					       _ -> Path
+				       end
+		       end,
 
 	CurrentTick = class_Actor:get_current_tick_offset( State ),
 	
@@ -189,7 +203,7 @@ get_next_vertex( State , Path , _Mode ) ->
 	
 		true ->
 
-			FinalState = setAttribute( State , wait , true ),
+			FinalState = setAttributes( State , [ { wait, true }, { path, ModifiedPath } ] ),
 			executeOneway( FinalState , addSpontaneousTick , CurrentTick + 1 );
 
 		false ->
@@ -204,7 +218,10 @@ get_next_vertex( State , Path , _Mode ) ->
 
 			ets:update_counter( list_streets , Vertices , { 6 , 1 }),
 
-			NewPath = lists:nthtail( 1 , Path ),
+			NewPath = case ModifiedPath of
+					  [_] -> lists:nthtail( 1 , ModifiedPath );
+					  _   -> []
+				  end,
 		
 			ets:update_counter( list_streets , Vertices , { 9 , 1 }),
 

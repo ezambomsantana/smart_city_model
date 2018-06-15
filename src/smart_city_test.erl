@@ -183,6 +183,14 @@ run() ->
 		class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots ] )
 	end,
 
+	ListEvents = events_parser:read_csv( element( 9 , Config ) ),
+	io:format("LIST EVENTS: ~p~n", [ListEvents]),
+
+	case ListEvents of
+		ok -> ok;
+		_  -> class_Actor:create_initial_actor( class_EventsManager, [ "EventsManager", ListEvents ] )
+	end,
+
 	case ets:info(path) of
 		undefined -> ets:new(path, [set, named_table, public, {write_concurrency, true} ]);
                 _ -> ok
@@ -197,13 +205,6 @@ run() ->
 	collectResults( Names ),
 
 	create_buses( ListBuses , CityGraph  ),
-
-	ListEvents = events_parser:read_csv( element( 9 , Config ) ),
-
-	case ListEvents of
-		ok -> ok;
-		_  -> class_Actor:create_initial_actor( class_EventsManager, [ "EventsManager", ListEvents ] )
-	end,
 
 	SimulationDuration = element( 1 , string:to_integer(element( 2 , Config ) ) ),
 

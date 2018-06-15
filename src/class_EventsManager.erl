@@ -34,13 +34,16 @@
 				class_Actor:name() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
     
-    Events = dict:from_list( ListOfEvents ),
+	Events = dict:from_list( ListOfEvents ),
 
-    ActorState = class_Actor:construct( State, ActorSettings , EventsName ),
+	ActorState = class_Actor:construct( State, ActorSettings , EventsName ),
 
-    ets:new( events, [public, set, named_table] ),
+	case ets:info(events) of
+		undefined -> ets:new(events, [public, set, named_table]);
+		_ -> ok
+	end,
 
-    setAttributes( ActorState, [ { events , Events } ] ).
+	setAttributes( ActorState, [ { events , Events } ] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
 destruct( State ) ->
@@ -50,98 +53,88 @@ destruct( State ) ->
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
 actSpontaneous( State ) ->
 
-    Events = getAttribute( State, events ),
+	Events = getAttribute( State, events ),
 	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
 
-    NewState = case dict:find(  CurrentTickOffset, Events ) of
-      {ok, EventsList} -> iterate_events( State, EventsList );
-      error -> State
-    end,
+	NewState = case dict:find(  CurrentTickOffset, Events ) of
+			   {ok, EventsList} -> iterate_events( State, EventsList );
+			   error -> State
+		   end,
 
-    executeOneway( NewState , addSpontaneousTick, CurrentTickOffset + 1 ).
+	executeOneway( NewState , addSpontaneousTick, CurrentTickOffset + 1 ).
 
-find_edge( Graph, V1, V2 ) ->
-    EdgesList = digraph:out_edges( Graph, V1 ),
-    iterate_edges( Graph, EdgesList, V2 ).
-
-iterate_edges( _Graph, [], _V ) ->
-    ok;
-iterate_edges( Graph, [Edge|EdgesList], V ) ->
-    { Vertex, _ } = digraph:vertex( Graph, V ),
-    EdgeToCheck = digraph:edge( Graph, Edge ),
-
-    case EdgeToCheck of
-        { Edge, _, Vertex, _ } -> EdgeToCheck;
-        _ -> iterate_edges( Graph, EdgesList, V )
-    end.
 
 iterate_events( State, [] ) ->
-    State;
+	State;
 iterate_events( State, [ Event | Events ] ) ->
 	NewState = case element( 1, Event ) of
-				   "open_street" ->
-					   EdgeID = element( 2, Event ),
+			   "open_street" ->
+				   io:format("OPEN STREET~n"),
 
-					   [ { _, { Edge, V1, V2, Label } } ] = ets:lookup( events, EdgeID ),
-					   [ { _ , CityGraph } ] = ets:lookup( options , city_graph ),
-					   Vertex1 = digraph:vertex( CityGraph, V1 ),
-					   Vertex2 = digraph:vertex( CityGraph, V2 ),
-					   digraph:add_edge( CityGraph, Edge, Vertex1, Vertex2, Label ),
-					   ets:insert( options, { city_graph, CityGraph } ),
-					   ets:delete( events, EdgeID ),
-					   State;
+				   V1 = element( 2, Event ),
+				   V2 = element( 3, Event ),
 
-				   "close_street" ->
-					   V1 = element( 2, Event ),
-					   V2 = element( 3, Event ),
-					   Duration = element( 4, Event ),
+				   [ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
 
-					   [ { _ , CityGraph } ] = ets:lookup( options , city_graph ),
-					   EdgeToRemove = find_edge( CityGraph, V1, V2),
-					   digraph:del_edge( CityGraph, EdgeToRemove ),
-					   ets:insert( options, { city_graph, CityGraph } ),
+				   GraphManagerPid ! { add_edge, V1, V2 },
 
-					   EdgeID = list_to_atom( string:concat(atom_to_list(V1), atom_to_list(V2)) ),
-					   ets:insert( events, { EdgeID , EdgeToRemove }),
+				   EdgeID = list_to_atom( string:concat(atom_to_list(V1), atom_to_list(V2)) ),
+				   ets:delete( events, EdgeID ),
 
-					   OpenStreetEvent = { "open_street", EdgeID },
-					   CurrentTickOffset = class_Actor:get_current_tick_offset( State ),
-					   EventsDict = getAttribute( State, events ),
-					   NewEvents = dict:append( CurrentTickOffset + Duration, OpenStreetEvent, EventsDict ),
-					   setAttribute( State, events, NewEvents );
+				   State;
 
+			   "close_street" ->
+				   io:format("CLOSE STREET~n"),
 
-				   "restore_capacity" ->
-					   EdgeID = element( 2, Event ),
-					   CapacityFactor = element( 3 , Event ),
-					   CAPACITY_INDEX = 4,
-					   Street = lists:nth( 1, ets:lookup( list_streets, EdgeID )),
-					   Capacity = element( CAPACITY_INDEX, Street ),
-					   RestoredCapacity = Capacity * ( 100.0 / CapacityFactor ),
-					   ets:update_element( list_streets, EdgeID, [ { CAPACITY_INDEX, RestoredCapacity } ] ),
-					   State;
+				   V1 = element( 2, Event ),
+				   V2 = element( 3, Event ),
+				   Duration = element( 4, Event ),
 
-				   "reduce_capacity" ->
-					   V1 = atom_to_list( element( 2, Event ) ),
-					   V2 = atom_to_list( element( 3, Event ) ),
-					   EdgeID = list_to_atom( string:concat(V1, V2) ),
-					   Duration = element( 4, Event ),
-					   CapacityFactor = element( 5, Event ),
-					   CAPACITY_INDEX = 4,
+				   [ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
 
-					   Street = lists:nth( 1, ets:lookup( list_streets, EdgeID )),
-					   Capacity = element( CAPACITY_INDEX, Street ),
-					   ReducedCapacity = Capacity * ( CapacityFactor / 100.0 ),
-					   ets:update_element( list_streets, EdgeID, [ { CAPACITY_INDEX, ReducedCapacity } ] ),
+				   GraphManagerPid ! { delete_edge, V1, V2 },
+
+				   EdgeID = list_to_atom( string:concat(atom_to_list(V1), atom_to_list(V2)) ),
+				   ets:insert( events, { EdgeID , remove }),
+
+				   OpenStreetEvent = { "open_street", V1, V2 },
+				   CurrentTickOffset = class_Actor:get_current_tick_offset( State ),
+				   EventsDict = getAttribute( State, events ),
+				   NewEvents = dict:append( CurrentTickOffset + Duration, OpenStreetEvent, EventsDict ),
+				   setAttribute( State, events, NewEvents );
 
 
-					   RestoreCapacityEvent = { "restore_capacity", EdgeID, CapacityFactor },
-					   CurrentTickOffset = class_Actor:get_current_tick_offset( State ),
-					   EventsDict = getAttribute( State, events ),
-					   NewEvents = dict:append( CurrentTickOffset + Duration, RestoreCapacityEvent, EventsDict ),
-					   setAttribute( State, events, NewEvents )
+			   "restore_capacity" ->
+				   EdgeID = element( 2, Event ),
+				   CapacityFactor = element( 3 , Event ),
+				   CAPACITY_INDEX = 4,
+				   Street = lists:nth( 1, ets:lookup( list_streets, EdgeID )),
+				   Capacity = element( CAPACITY_INDEX, Street ),
+				   RestoredCapacity = Capacity * ( 100.0 / CapacityFactor ),
+				   ets:update_element( list_streets, EdgeID, [ { CAPACITY_INDEX, RestoredCapacity } ] ),
+				   State;
 
-			   end,
+			   "reduce_capacity" ->
+				   V1 = atom_to_list( element( 2, Event ) ),
+				   V2 = atom_to_list( element( 3, Event ) ),
+				   EdgeID = list_to_atom( string:concat(V1, V2) ),
+				   Duration = element( 4, Event ),
+				   CapacityFactor = element( 5, Event ),
+				   CAPACITY_INDEX = 4,
+
+				   Street = lists:nth( 1, ets:lookup( list_streets, EdgeID )),
+				   Capacity = element( CAPACITY_INDEX, Street ),
+				   ReducedCapacity = Capacity * ( CapacityFactor / 100.0 ),
+				   ets:update_element( list_streets, EdgeID, [ { CAPACITY_INDEX, ReducedCapacity } ] ),
+
+
+				   RestoreCapacityEvent = { "restore_capacity", EdgeID, CapacityFactor },
+				   CurrentTickOffset = class_Actor:get_current_tick_offset( State ),
+				   EventsDict = getAttribute( State, events ),
+				   NewEvents = dict:append( CurrentTickOffset + Duration, RestoreCapacityEvent, EventsDict ),
+				   setAttribute( State, events, NewEvents )
+
+		   end,
 	iterate_events( NewState, Events ).
     
 % Simply schedules this just created actor at the next tick (diasca 0).
@@ -152,8 +145,8 @@ iterate_events( State, [ Event | Events ] ) ->
 onFirstDiasca( State, _SendingActorPid ) ->
 
 	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
-	ScheduledState = executeOneway( State , addSpontaneousTick, CurrentTickOffset + 1 ),
+	executeOneway( State , addSpontaneousTick, CurrentTickOffset + 1 ).
 
-	?wooper_return_state_only( ScheduledState ).
+	%?wooper_return_state_only( ScheduledState ).
 
 
