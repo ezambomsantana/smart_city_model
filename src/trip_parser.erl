@@ -36,8 +36,8 @@ read_line( Count , [ Data | ListRest ] ) ->
 			Type = ok,
 			Mode = lists:nth( 7 , TextSplit ),
 			Park = ok,
-			%Uuid = lists:nth( 8 , TextSplit ),
-			%Element = { Origin, Destination, CarCount, Start, LinkOrigin, Type, Mode, Name, Park, Uuid },
-			Element = { Origin, Destination, CarCount, Start, LinkOrigin, Type, Mode, Name, Park },
+			Uuid = lists:nth( 8 , TextSplit ),
+			Element = { Origin, Destination, CarCount, Start, LinkOrigin, Type, Mode, Name, Park, Uuid },
+			%Element = { Origin, Destination, CarCount, Start, LinkOrigin, Type, Mode, Name, Park },
 			[ Element | read_line( Count +1 , ListRest ) ]
 	end.

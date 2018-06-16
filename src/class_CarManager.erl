@@ -71,37 +71,42 @@ init_cars( [ Car | Cars ] , State ) ->
 
 	{ CarName , ListTripsFinal , Type, Park , Mode , Count, Uuid } = Car,	
 
-	NewState = case Mode of
-		car ->
-			create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode, Uuid );
-		walk ->	
-			create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode, Uuid );
-		_ ->
-			create_person_public( Count , State , CarName , ListTripsFinal , Type , Mode )
-	end,
-	init_cars( Cars , NewState ).
-
-
-create_person_car( 0 , State , _CarName , _ListTripsFinal , _Type , _Park , _Mode, _Uuid ) -> State;
-create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode, Uuid ) ->
 	CarFinalName = io_lib:format( "~s_~B", [ CarName , Count ] ),
-	StartTime = class_RandomManager:get_uniform_value( 1200 ),
+	StartTime = class_RandomManager:get_uniform_value( 2200 ),
 
 	NewState = class_Actor:create_actor( class_Car,
 		[ CarFinalName , ListTripsFinal , StartTime , Type , Park , Mode, Uuid ] , State ),
+	%NewState = case Mode of
+	%	car ->
+	%		create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode, Uuid );
+	%	walk ->	
+	%		create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode, Uuid );
+	%	_ ->
+	%		create_person_public( Count , State , CarName , ListTripsFinal , Type , Mode )
+	%end,
+	init_cars( Cars , NewState ).
 
-	create_person_car( Count - 1 , NewState , CarName , ListTripsFinal , Type , Park , Mode, Uuid ).
 
-
-create_person_public( _Count = 0 , State , _CarName , _ListTripsFinal , _Type , _Mode ) -> State;
-create_person_public( Count , State , CarName , ListTripsFinal , Type , Mode ) ->
-	CarFinalName = io_lib:format( "~s_~B", [ CarName , Count ] ),
-	StartTime = class_RandomManager:get_uniform_value( 1200 ),
-
-	NewState = class_Actor:create_actor( class_Person,
-		[ CarFinalName , ListTripsFinal , StartTime , Type , Mode ]  , State ),
-
-	create_person_public( Count - 1 , NewState , CarName , ListTripsFinal , Type , Mode ).
+%create_person_car( 0 , State , _CarName , _ListTripsFinal , _Type , _Park , _Mode, _Uuid ) -> State;
+%create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode, Uuid ) ->
+%	CarFinalName = io_lib:format( "~s_~B", [ CarName , Count ] ),
+%	StartTime = class_RandomManager:get_uniform_value( 1200 ),
+%
+%	NewState = class_Actor:create_actor( class_Car,
+%		[ CarFinalName , ListTripsFinal , StartTime , Type , Park , Mode, Uuid ] , State ),
+%
+%	create_person_car( Count - 1 , NewState , CarName , ListTripsFinal , Type , Park , Mode, Uuid ).
+%
+%
+%create_person_public( _Count = 0 , State , _CarName , _ListTripsFinal , _Type , _Mode ) -> State;
+%create_person_public( Count , State , CarName , ListTripsFinal , Type , Mode ) ->
+%	CarFinalName = io_lib:format( "~s_~B", [ CarName , Count ] ),
+%	StartTime = class_RandomManager:get_uniform_value( 1200 ),
+%
+%	NewState = class_Actor:create_actor( class_Person,
+%		[ CarFinalName , ListTripsFinal , StartTime , Type , Mode ]  , State ),
+%
+%	create_person_public( Count - 1 , NewState , CarName , ListTripsFinal , Type , Mode ).
 
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->

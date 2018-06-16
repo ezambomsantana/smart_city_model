@@ -235,7 +235,7 @@ get_next_vertex( State , Path , _Mode ) ->
 
 			Uuid = getAttribute( FinalState, uuid ),
 
-			io:format("SPAWN PROCESS TO UPDATE ~p~n", [ Uuid ] ),
+			%io:format("SPAWN PROCESS TO UPDATE ~p~n", [ Uuid ] ),
 			spawn( print, formatAndPublish, [ Uuid, atom_to_list(Id), CurrentTick ] ),
 
 			executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
@@ -264,8 +264,8 @@ set_new_path( State , NewPath , _CityPID ) ->
 
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
-	StartTime = getAttribute( State , start_time ),
-    	FirstActionTime = class_Actor:get_current_tick_offset( State ) + StartTime,   	
+	%StartTime = getAttribute( State , start_time ),
+    	FirstActionTime = class_Actor:get_current_tick_offset( State ) + getAttribute( State , start_time ),   	
 	NewState = setAttribute( State , start_time , FirstActionTime ),
 	executeOneway( NewState , addSpontaneousTick , FirstActionTime ).
 
