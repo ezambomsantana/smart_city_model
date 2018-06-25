@@ -12,7 +12,6 @@
 
 % Init the XML processing
 show(Infilename , Print) ->
-    spawn( graph_manager, init, []),
     {Doc, _Misc} = xmerl_scan:file(Infilename),
     Graph = digraph:new(),
     init( Doc , Graph ),

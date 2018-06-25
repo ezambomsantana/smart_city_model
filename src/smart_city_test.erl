@@ -138,6 +138,8 @@ run() ->
 
 	ConfigPath = readConfigPath(),
 
+	GraphManagerPid = spawn( graph_manager, init, []),
+
 	Config = config_parser:show( ConfigPath ),
 
 	ListCars = trip_parser:show( element( 4 , Config ) ), % Read the cars from the trips.xml file
@@ -188,7 +190,7 @@ run() ->
 
 	case ListEvents of
 		ok -> ok;
-		_  -> class_Actor:create_initial_actor( class_EventsManager, [ "EventsManager", ListEvents ] )
+		_  -> class_Actor:create_initial_actor( class_EventsManager, [ "EventsManager", ListEvents, GraphManagerPid ] )
 	end,
 
 	case ets:info(path) of
