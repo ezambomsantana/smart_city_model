@@ -4,17 +4,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Park , Mode ).
+-define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Park , Mode, GraphManagerPid ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/7, new_link/7,
-		 synchronous_new/7, synchronous_new_link/7,
-		 synchronous_timed_new/7, synchronous_timed_new_link/7,
-		 remote_new/8, remote_new_link/8, remote_synchronous_new/8,
-		 remote_synchronous_new_link/8, remote_synchronisable_new_link/8,
-		 remote_synchronous_timed_new/8, remote_synchronous_timed_new_link/8,
-		 construct/8, destruct/1 ).
+-define( wooper_construct_export, new/8, new_link/8,
+		 synchronous_new/8, synchronous_new_link/8,
+		 synchronous_timed_new/8, synchronous_timed_new_link/8,
+		 remote_new/9, remote_new_link/9, remote_synchronous_new/9,
+		 remote_synchronous_new_link/9, remote_synchronisable_new_link/9,
+		 remote_synchronous_timed_new/9, remote_synchronous_timed_new_link/9,
+		 construct/9, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, get_parking_spot/3 , set_new_path/3 ).
@@ -27,7 +27,7 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter(), parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
@@ -46,7 +46,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ mode , Mode },
 		{ last_vertex_pid , ok },
 		{ coordFrom , ok },
-		{ wait , false }
+		{ wait , false },
+		{ graph_manager, GraphManagerPid }
 						] ),
 
 	case Park of
@@ -171,69 +172,79 @@ get_next_vertex( State , Path , _Mode ) ->
 
 	CurrentTick = class_Actor:get_current_tick_offset( State ),
 
-	case ets:info(events) of
-		undefined ->
-			ok;
-		_ ->
-			case ets:lookup( events, Vertices ) of
-				[{ _ , _ }] ->
-					[ { _, Graph } ] = ets:lookup( graph, mygraph ),
-					[ Destination ] = lists:nthtail(length(Path)-1, Path),
-					BestPath = digraph:get_short_path( Graph , Origin , Destination ),
-					ChangedState = setAttributes( State , [ { wait, true }, { path, BestPath } ] ),
-					executeOneway( ChangedState , addSpontaneousTick , CurrentTick + 1 );
-				_ ->
+	PathChangedState = case ets:info(events) of
+				   undefined ->
+					   ok;
+				   _ ->
+					   case ets:lookup( events, Vertices ) of
+						   [{ _ , _ }] ->
+							   GraphManagerPid = getAttribute( State, graph_manager ),
+
+							   [ Destination ] = lists:nthtail(length(Path)-1, Path),
+
+							   GraphManagerPid ! { get_best_path, Origin, Destination, self() }, 
+							   BestPath = receive
+									      { best_path, PathCalculated } -> PathCalculated
+								      end,
+
+							   setAttributes( State , [ { path, BestPath } ] );
+						   _ ->
+							   ok
+					   end
+			   end,
+
+	case PathChangedState of
+		ok ->
+			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
+			{ _ , _ , _ , _ , _ , _ , From , _ , NumCars , Tick , MaxCar } = Data,
+
+			case Tick /= CurrentTick of 
+				true ->
+
+					ets:update_element( list_streets , Vertices , { 9 , 0 }),
+					ets:update_element( list_streets , Vertices , { 10 , CurrentTick });
+
+				false ->
+
 					ok
-			end
-	end,
 
-	Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
-	{ _ , _ , _ , _ , _ , _ , From , _ , NumCars , Tick , MaxCar } = Data,
+			end,
 
-	case Tick /= CurrentTick of 
-		true ->
+			case NumCars >= MaxCar of
 
-			ets:update_element( list_streets , Vertices , { 9 , 0 }),
-			ets:update_element( list_streets , Vertices , { 10 , CurrentTick });
-	
-		false ->
+				true ->
 
-			ok
+					FinalState = setAttributes( State , [ { wait, true } ] ),
+					executeOneway( FinalState , addSpontaneousTick , CurrentTick + 1 );
 
-	end,
+				false ->
 
-	case NumCars >= MaxCar of
-	
-		true ->
+					DecrementVertex = getAttribute( State , last_vertex_pid ),
+					case DecrementVertex of
+						ok ->
+							ok;
+						_ ->
+							ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
+					end,	
 
-			FinalState = setAttributes( State , [ { wait, true } ] ),
-			executeOneway( FinalState , addSpontaneousTick , CurrentTick + 1 );
+					ets:update_counter( list_streets , Vertices , { 6 , 1 }),
 
-		false ->
+					NewPath = lists:nthtail( 1 , Path ),
 
-			DecrementVertex = getAttribute( State , last_vertex_pid ),
-			case DecrementVertex of
-				ok ->
-					ok;
-				_ ->
-					ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
-			end,	
+					ets:update_counter( list_streets , Vertices , { 9 , 1 }),
 
-			ets:update_counter( list_streets , Vertices , { 6 , 1 }),
+					{ Id , Time , Distance } = traffic_models:get_speed_car( Data ),
 
-			NewPath = lists:nthtail( 1 , Path ),
-		
-			ets:update_counter( list_streets , Vertices , { 9 , 1 }),
+					TotalLength = getAttribute( State , distance ) + Distance,
+					FinalState = setAttributes( State , [{ wait , false } , {distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , NewPath},  { coordFrom , From } ] ), 
 
-			{ Id , Time , Distance } = traffic_models:get_speed_car( Data ),
+					%	send data to rabbitMQ, including the From lat/long
 
-			TotalLength = getAttribute( State , distance ) + Distance,
-			FinalState = setAttributes( State , [{ wait , false } , {distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , NewPath},  { coordFrom , From } ] ), 
+					executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
 
-			%	send data to rabbitMQ, including the From lat/long
-	
-			executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
-
+			end;
+		NewState ->
+			executeOneway( NewState , addSpontaneousTick , CurrentTick + 1 )
 	end.
 
 

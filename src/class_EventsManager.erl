@@ -27,6 +27,10 @@
 % Allows to define WOOPER base variables and methods for that class:
 -include("wooper.hrl").
 
+events_to_dict( [], Dict ) -> Dict;
+events_to_dict( [ Event | List ], Dict ) ->
+	Dict2 = dict:append( element( 1, Event ), lists:nth( 1, element( 2, Event ) ), Dict ),
+	events_to_dict( List, Dict2 ).
 
 % Creates a list with the parking spots in the city
 %
@@ -34,7 +38,8 @@
 				class_Actor:name() , parameter(), parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
     
-	Events = dict:from_list( ListOfEvents ),
+	Events = events_to_dict( ListOfEvents, dict:new() ),
+	io:format("EVENTS DICT: ~p~n", [Events]),
 
 	ActorState = class_Actor:construct( State, ActorSettings , EventsName ),
 

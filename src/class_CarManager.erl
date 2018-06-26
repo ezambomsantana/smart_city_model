@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName , CarList ).
+-define( wooper_construct_parameters, ActorSettings, CarName , CarList, GraphManagerPid ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/3, new_link/3,
-		 synchronous_new/3, synchronous_new_link/3,
-		 synchronous_timed_new/3, synchronous_timed_new_link/3,
-		 remote_new/4, remote_new_link/4, remote_synchronous_new/4,
-		 remote_synchronous_new_link/4, remote_synchronisable_new_link/4,
-		 remote_synchronous_timed_new/4, remote_synchronous_timed_new_link/4,
-		 construct/4, destruct/1 ).
+-define( wooper_construct_export, new/4, new_link/4,
+		 synchronous_new/4, synchronous_new_link/4,
+		 synchronous_timed_new/4, synchronous_timed_new_link/4,
+		 remote_new/5, remote_new_link/5, remote_synchronous_new/5,
+		 remote_synchronous_new_link/5, remote_synchronisable_new_link/5,
+		 remote_synchronous_timed_new/5, remote_synchronous_timed_new_link/5,
+		 construct/5, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2 ).
@@ -28,11 +28,11 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name() , parameter() ) -> wooper:state().
+				class_Actor:name() , parameter(), parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
         DictCars = create_dict( dict:new() , CarList ),
-	setAttributes( ActorState, [ { car_list, DictCars } ] ).
+	setAttributes( ActorState, [ { car_list, DictCars }, { graph_manager, GraphManagerPid } ] ).
 
 create_dict( Dict , [] ) -> Dict;
 create_dict( Dict , [ Car | CarList ] ) ->
@@ -87,8 +87,9 @@ create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode
 	CarFinalName = io_lib:format( "~s_~B", [ CarName , Count ] ),
 	StartTime = class_RandomManager:get_uniform_value( 1200 ),
 
+	GraphManagerPid = getAttribute( State, graph_manager ),
 	NewState = class_Actor:create_actor( class_Car,
-		[ CarFinalName , ListTripsFinal , StartTime , Type , Park , Mode ] , State ),
+		[ CarFinalName , ListTripsFinal , StartTime , Type , Park , Mode, GraphManagerPid ] , State ),
 
 	create_person_car( Count - 1 , NewState , CarName , ListTripsFinal , Type , Park , Mode ).
 

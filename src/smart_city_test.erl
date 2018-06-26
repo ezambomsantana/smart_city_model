@@ -67,12 +67,12 @@ calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 			Path
 	end.	
 
-spaw_proccess( [] , _CityGraph ) -> ok;
-spaw_proccess( [ List | MoreLists ] , CityGraph ) ->
+spaw_proccess( [] , _CityGraph, _GraphManagerPid ) -> ok;
+spaw_proccess( [ List | MoreLists ] , CityGraph, GraphManagerPid ) ->
 	{ Name , ListTrips } = List,
 
-	spawn( create_agents, iterate_list , [ 1 , ListTrips , CityGraph , Name , self() ]),
-	spaw_proccess( MoreLists , CityGraph ).
+	spawn( create_agents, iterate_list , [ 1 , ListTrips , CityGraph , Name , self(), GraphManagerPid ]),
+	spaw_proccess( MoreLists , CityGraph, GraphManagerPid ).
 
 split_list( [] , _NumberLists , _ListSplit , ListReturn ) -> ListReturn;
 split_list( [ Name | Names ] , NumberLists , ListSplit , ListReturn ) ->
@@ -202,7 +202,7 @@ run() ->
 
 	List = split_list( Names , length ( Names ) , ListCars , []  ),   
 
-	spaw_proccess( List , CityGraph ),
+	spaw_proccess( List , CityGraph, GraphManagerPid ),
  
 	collectResults( Names ),
 

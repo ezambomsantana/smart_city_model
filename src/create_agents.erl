@@ -1,12 +1,12 @@
 -module(create_agents).
 
 -export([
-         iterate_list/5
+         iterate_list/6
         ]).
 
-iterate_list( ListCount , Lista , Graph , Name , MainPID ) -> 
+iterate_list( ListCount , Lista , Graph , Name , MainPID, GraphManagerPid ) -> 
 	ListaFinal = verify_list( ListCount , Lista , Graph , Name , MainPID ),
-	class_Actor:create_initial_actor( class_CarManager, [ Name , ListaFinal ] ),
+	class_Actor:create_initial_actor( class_CarManager, [ Name , ListaFinal, GraphManagerPid ] ),
 	MainPID ! { Name }.
 
 verify_list( _ListCount , [ ] , _Graph , _Name , _MainPID ) -> [];
