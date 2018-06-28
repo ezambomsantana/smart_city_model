@@ -25,6 +25,8 @@
 % Allows to define WOOPER base variables and methods for that class:
 -include("wooper.hrl").
 
+-include_lib("../deps/amqp_client/include/amqp_client.hrl").
+
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
 				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter(), parameter(), parameter() ) -> wooper:state().
@@ -34,6 +36,10 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	InitialTrip = lists:nth( 1 , ListTripsFinal ),	
 	Path = element( 2 , InitialTrip ),
+
+	Hostname = os:getenv( "RABBITMQ_HOST", "localhost" ),
+	{ok, Connection} = amqp_connection:start(#amqp_params_network{host=Hostname}),
+	{ ok, Channel } = amqp_connection:open_channel( Connection ),
 
 	NewState = setAttributes( ActorState, [
 		{ car_name, CarName },
@@ -48,7 +54,9 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ coordFrom , ok },
 		{ wait , false },
 		{ graph_manager, GraphManagerPid },
-		{ uuid, Uuid }
+		{ uuid, Uuid },
+		{ channel, Channel },
+		{ connection, Connection }
 						] ),
 
 	case Park of
@@ -60,6 +68,10 @@ construct( State, ?wooper_construct_parameters ) ->
 
 -spec destruct( wooper:state() ) -> wooper:state().
 destruct( State ) ->
+	Channel = getAttribute( State, channel ),
+	Connection = getAttribute( State, connection ),
+	amqp_channel:close(Channel),
+	amqp_connection:close(Connection),
 	State.
 
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
@@ -241,8 +253,10 @@ get_next_vertex( State , Path , _Mode ) ->
 
 					%	send data to rabbitMQ, including the From lat/long
 
+					io:format("."),
 					Uuid = getAttribute( FinalState, uuid ),
-					spawn( print, formatAndPublish, [ Uuid, atom_to_list(Id), CurrentTick ] ),
+					Channel = getAttribute( FinalState, channel ),
+					spawn( print, formatAndPublish, [ Uuid, atom_to_list(Id), CurrentTick, Channel ] ),
 
 					executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
 

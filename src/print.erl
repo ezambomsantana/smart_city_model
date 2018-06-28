@@ -9,7 +9,7 @@
 	 write_movement_car_message/6,
 	 write_movement_bus_metro_message/7,
 	 write_sensor_data/3,
-	 formatAndPublish/3
+	 formatAndPublish/4
         ]).
 
 %%%% CAR MESSAGES %%%%
@@ -170,12 +170,10 @@ get_hour_minute() ->
 %					   Publish,
 %					   #amqp_msg{ payload = list_to_binary( Message ) }).
 
-formatAndPublish( Uuid, NodeId, Tick ) ->
+formatAndPublish( Uuid, NodeId, Tick, Channel ) ->
 	Topic = "data_stream",
 	Message = lists:flatten( io_lib:format( "{ \"uuid\": ~p, \"nodeID\": ~p, \"tick\": ~p }", [ Uuid, NodeId, Tick ] ) ),
 	RoutingKey = string:concat( Uuid, ".current_location.simulated" ),
-
-	[ { _, Channel } ] = ets:lookup( options, rabbitmq_channel ),
 
 	Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ), type = <<"topic">> },
 	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),

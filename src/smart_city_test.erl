@@ -144,7 +144,7 @@ run() ->
 
 	ListCars = trip_parser:show( element( 4 , Config ) ), % Read the cars from the trips.xml file
 
-	CityGraph = map_parser:show( element( 3 , Config ) , false ), % Read the map from the map.xml file
+	CityGraph = map_parser:show( element( 3 , Config ) , false, GraphManagerPid ), % Read the map from the map.xml file
 
 	MetroFile = element( 5 , Config ), % Read the metro graph from the city. TODO: verify if this configurition does not exist.
 
@@ -173,7 +173,7 @@ run() ->
 
 	case element( 8 , Config ) of % verify if it is necessary to generate the city graph actor 
 		"true" ->
-			 class_Actor:create_initial_actor( class_City, [ "City" , { string:concat( OutputPath, element( 3 , Config ) ) } ] );
+			 class_Actor:create_initial_actor( class_City, [ "City" , { string:concat( OutputPath, element( 3 , Config ) ) }, GraphManagerPid ] );
 		_ ->
 			ok
 	end,

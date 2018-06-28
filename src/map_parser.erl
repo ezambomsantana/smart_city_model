@@ -7,14 +7,14 @@
 % osm_parser:show("map.osm").
 
 -export([
-         show/2
+         show/3
         ]).
 
 % Init the XML processing
-show(Infilename , Print) ->
+show(Infilename , Print, GraphManagerPid) ->
     {Doc, _Misc} = xmerl_scan:file(Infilename),
     Graph = digraph:new(),
-    init( Doc , Graph ),
+    init( Doc , Graph, GraphManagerPid ),
     case Print of 
 	true ->
     		print_graph( Graph );
@@ -24,7 +24,7 @@ show(Infilename , Print) ->
     Graph.
 
 % read the OSM tag and extract all children
-init( Node, Graph ) ->
+init( Node, Graph, GraphManagerPid ) ->
     case Node of
         #xmlElement{name=Name, content=Content} ->
             
@@ -32,7 +32,7 @@ init( Node, Graph ) ->
 		
 		network -> 
 
-			nodes_links(Content , Graph);
+			nodes_links(Content , Graph, GraphManagerPid);
 			
 		_ -> ok
 
@@ -40,16 +40,16 @@ init( Node, Graph ) ->
             _ -> ok
     end.
 
-nodes_links([] , _Graph) ->
+nodes_links([] , _Graph, _GraphManagerPid) ->
     ok;
 
-nodes_links([Node | MoreNodes], Graph) ->
-    extract_nodes( Node , Graph ),
-    nodes_links(MoreNodes , Graph).
+nodes_links([Node | MoreNodes], Graph, GraphManagerPid) ->
+    extract_nodes( Node , Graph, GraphManagerPid ),
+    nodes_links(MoreNodes , Graph, GraphManagerPid ).
 
 %
 % Show a node/element and then the children of that node.
-extract_nodes(Node , Graph ) ->
+extract_nodes(Node , Graph, GraphManagerPid ) ->
 
     case Node of
         #xmlElement{name=Name, content=Content} ->
@@ -58,11 +58,11 @@ extract_nodes(Node , Graph ) ->
 		
 		nodes -> 
 			
-			get_nodes(Content , Graph );
+			get_nodes(Content , Graph, GraphManagerPid );
 
 		links ->
 
-			get_links(Content , Graph );		
+			get_links(Content , Graph, GraphManagerPid );
 
 		_ ->
 			ok
@@ -71,23 +71,23 @@ extract_nodes(Node , Graph ) ->
             _ -> ok
     end.
 
-get_nodes([] , _Graph ) ->
+get_nodes([] , _Graph, _GraphManagerPid ) ->
     ok;
 
-get_nodes([Node | MoreNodes] , Graph ) ->
-    extract_node(Node , Graph ),
-    get_nodes( MoreNodes , Graph ).
+get_nodes([Node | MoreNodes] , Graph, GraphManagerPid ) ->
+    extract_node(Node , Graph, GraphManagerPid ),
+    get_nodes( MoreNodes , Graph, GraphManagerPid ).
 
 
-get_links([] , _Graph ) ->
+get_links([] , _Graph, _GraphManagerPid ) ->
     ok;
 
-get_links([ Link | MoreLinks ] , Graph ) ->
-    extract_link(Link , Graph ),
-    get_links( MoreLinks , Graph ).
+get_links([ Link | MoreLinks ] , Graph, GraphManagerPid ) ->
+    extract_link(Link , Graph, GraphManagerPid ),
+    get_links( MoreLinks , Graph, GraphManagerPid ).
 
 % Show a node/element and then the children of that node.
-extract_node(Node , Graph ) ->
+extract_node(Node , Graph, GraphManagerPid ) ->
 
     case Node of
         #xmlElement{name=Name, attributes=Attributes} ->
@@ -99,7 +99,6 @@ extract_node(Node , Graph ) ->
 			Id = children( Attributes , id ),
 			Lat = children( Attributes , x ),
 			Long = children( Attributes , y ),	
-			[ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
 			GraphManagerPid ! { add_vertex, Id },
 			digraph:add_vertex(Graph, list_to_atom(Id), { Lat , Long });	
 
@@ -110,7 +109,7 @@ extract_node(Node , Graph ) ->
             _ -> ok
     end.
 
-extract_link(Link , Graph ) ->
+extract_link(Link , Graph, GraphManagerPid ) ->
 
     case Link of
         #xmlElement{name=Name, attributes=Attributes} ->
@@ -125,7 +124,6 @@ extract_link(Link , Graph ) ->
 			Length = children( Attributes , length ),
 			Capacity = children ( Attributes , capacity ),
 			Freespeed = children( Attributes , freespeed ),
-			[ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
 			GraphManagerPid ! { add_edge, list_to_atom( From ), list_to_atom( To ) },
 			digraph:add_edge(Graph, list_to_atom(From), list_to_atom(To), { Id , Length , Capacity , Freespeed });
 
