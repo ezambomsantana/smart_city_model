@@ -4,17 +4,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Park , Mode, GraphManagerPid ).
+-define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Park , Mode, GraphManagerPid, Uuid ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/8, new_link/8,
-		 synchronous_new/8, synchronous_new_link/8,
-		 synchronous_timed_new/8, synchronous_timed_new_link/8,
-		 remote_new/9, remote_new_link/9, remote_synchronous_new/9,
-		 remote_synchronous_new_link/9, remote_synchronisable_new_link/9,
-		 remote_synchronous_timed_new/9, remote_synchronous_timed_new_link/9,
-		 construct/9, destruct/1 ).
+-define( wooper_construct_export, new/9, new_link/9,
+		 synchronous_new/9, synchronous_new_link/9,
+		 synchronous_timed_new/9, synchronous_timed_new_link/9,
+		 remote_new/10, remote_new_link/10, remote_synchronous_new/10,
+		 remote_synchronous_new_link/10, remote_synchronisable_new_link/10,
+		 remote_synchronous_timed_new/10, remote_synchronous_timed_new_link/10,
+		 construct/10, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, get_parking_spot/3 , set_new_path/3 ).
@@ -27,7 +27,7 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter(), parameter() ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter(), parameter(), parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
@@ -47,7 +47,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ last_vertex_pid , ok },
 		{ coordFrom , ok },
 		{ wait , false },
-		{ graph_manager, GraphManagerPid }
+		{ graph_manager, GraphManagerPid },
+		{ uuid, Uuid }
 						] ),
 
 	case Park of
@@ -239,6 +240,9 @@ get_next_vertex( State , Path , _Mode ) ->
 					FinalState = setAttributes( State , [{ wait , false } , {distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , NewPath},  { coordFrom , From } ] ), 
 
 					%	send data to rabbitMQ, including the From lat/long
+
+					Uuid = getAttribute( FinalState, uuid ),
+					spawn( print, formatAndPublish, [ Uuid, atom_to_list(Id), CurrentTick ] ),
 
 					executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
 
