@@ -186,27 +186,31 @@ get_next_vertex( State , Path , _Mode ) ->
 	CurrentTick = class_Actor:get_current_tick_offset( State ),
 
 	PathChangedState = case ets:info(events) of
-				   undefined ->
-					   ok;
+				   undefined -> ok;
 				   _ ->
 					   case ets:lookup( events, Vertices ) of
-						   [{ _ , _ }] ->
-							   GraphManagerPid = getAttribute( State, graph_manager ),
-
-							   [ Destination ] = lists:nthtail(length(Path)-1, Path),
-
-							   GraphManagerPid ! { get_best_path, Origin, Destination, self() }, 
-							   BestPath = receive
-									      { best_path, PathCalculated } -> PathCalculated
-								      end,
-
-							   setAttributes( State , [ { path, BestPath } ] );
-						   _ ->
-							   ok
+						   [{ _ , _ }] -> best_path( State, Path, Origin );
+						   _ -> ok
 					   end
 			   end,
 
-	case PathChangedState of
+	IntermediateState = case PathChangedState of
+				    ok -> case ets:info(traffic_events) of
+						  undefined -> ok;
+						  _ ->
+							  case ets:lookup( traffic_events, Origin ) of
+								  [{ _ , { FromNode, ToNode } }] ->
+									  case edgeInPath( Path, FromNode, ToNode ) of
+										  true -> best_path( State, Path, Origin );
+										  false -> ok
+									  end;
+								  _ -> ok
+							  end
+					  end;
+				    ChangedState -> ChangedState
+			    end,
+
+	case IntermediateState of
 		ok ->
 			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
 			{ _ , _ , _ , _ , _ , _ , From , _ , NumCars , Tick , MaxCar } = Data,
@@ -265,6 +269,30 @@ get_next_vertex( State , Path , _Mode ) ->
 			executeOneway( NewState , addSpontaneousTick , CurrentTick + 1 )
 	end.
 
+
+best_path( State, Path, Origin ) ->
+	GraphManagerPid = getAttribute( State, graph_manager ),
+
+	[ Destination ] = lists:nthtail(length(Path)-1, Path),
+
+	GraphManagerPid ! { get_best_path, Origin, Destination, self() }, 
+	BestPath = receive
+			   { best_path, PathCalculated } -> PathCalculated
+		   end,
+
+	setAttributes( State , [ { path, BestPath } ] ).
+
+
+edgeInPath( [], _From, _To ) -> false;
+edgeInPath( [ Node | Path ], From, To ) ->
+	case Node =:= From of
+		true ->
+			case lists:nth( 1 , Path ) =:= To of
+				true -> true;
+				false -> false
+			end;
+		false -> edgeInPath( Path, From, To)
+	end.
 
 
 get_parking_spot( State , IdNode , _ParkingPID ) ->
