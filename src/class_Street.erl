@@ -44,6 +44,15 @@ construct( State, ?wooper_construct_parameters ) ->
                 _ -> ok
         end,
 
+	case ets:info(traffic_events) of
+		undefined ->
+			ets:new(traffic_events, [public, set, named_table, {read_concurrency, false}]),
+			spawn(events_handler, listen_for_events, []),
+			Pid = spawn( message_sender, publish_data, [] ),
+			ets:insert( traffic_events, { sender_pid, Pid } );
+		_ -> ok
+	end,
+
 	iterate_list( ListEdges ),
 
 	create_option_table( LogName , Paths ),
@@ -89,9 +98,9 @@ iterate_list([]) -> ok;
 iterate_list([ Element | List ]) ->
 	
 	Vertices = element( 1, Element),
-	{ Id , Length , Capacity , Freespeed , Count } = element(2, Element),
+	{ Id , Length , Capacity , Freespeed , Count , From , To } = element(2, Element),
 
-	ets:insert(list_streets, {Vertices,  Id , Length , Capacity , Freespeed , Count }),
+	ets:insert(list_streets, {Vertices,  Id , Length , Capacity , Freespeed , Count , From , To , 0 , 1 , 4 }),
 
 	iterate_list( List ).
 
@@ -117,12 +126,41 @@ destruct( State ) ->
 
 	State.
 
+-spec get_timestamp() -> integer().
+get_timestamp() ->
+    {Mega, Sec, Micro} = os:timestamp(),
+    (Mega*1000000 + Sec)*1000 + round(Micro/1000).
+
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
 actSpontaneous( State ) ->
 
-	State.
+%       CurrentTick = class_Actor:get_current_tick_offset( State ),
+
+	CurrentTime = get_timestamp(),
+
+	Time = ets:lookup_element(options, current_time, 2 ),
+
+	Diff = CurrentTime - Time,
+
+	io:format("Diff: ~w", [ Diff ] ),
+	
+	timer:sleep(970 - Diff),
+
+
+% Adicionar no arquivo /sim-diasca/src/core/src/scheduling/class_TimeManager.erl beginTimeManagerTick 1880
+%	CurrentTime = get_timestamp(),
+%	LastTime = getAttribute( State , last_time ),
+
+%	ets:insert(options, {current_time, CurrentTime }),
+
+%	Diff = CurrentTime - LastTime,
+%	io:format("Current Tick: ~w       ----    tempo: ~w\n ", [ NewTickOffset , Diff ] ),
+
+	executeOneway( State , addSpontaneousTick , class_Actor:get_current_tick_offset( State ) + 1 ).
+	%State.
 
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
 
-	?wooper_return_state_only( State ).
+	%?wooper_return_state_only( State ).
+	executeOneway( State , addSpontaneousTick , class_Actor:get_current_tick_offset( State ) + 1 ).

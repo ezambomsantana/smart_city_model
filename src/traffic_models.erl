@@ -7,9 +7,9 @@
 
 get_speed_car( LinkData ) ->
 
-	{ _ , Id , Length , Capacity , Freespeed , NumberCars } = LinkData,
+	{ _ , Id , Length , Capacity , Freespeed , NumberCars , _ , _ , _ , _ , _ } = LinkData,
 
-	MinimumDensity = (Capacity * 0.3) 	 ,
+	MinimumDensity = (Capacity * 0.3),
 	Speed = case NumberCars > MinimumDensity of
 
 		true ->

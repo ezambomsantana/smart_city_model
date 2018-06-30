@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE network SYSTEM "http://www.matsim.org/files/dtd/network_v1.dtd">
+<network>
+
+<!-- ====================================================================== -->
+
+	<nodes>
+		<node id="1" x="2819741.636735585" y="7204646.500622427" />
+		<node id="2" x="2819776.4661007267" y="7204525.699384628" />
+		<node id="3" x="2819809.6189024015" y="7204568.48750438" />
+		<node id="4" x="2814939.6971275257" y="7203583.539704077" />
+		<node id="5" x="2814988.779757035" y="7203717.03761317" />
+		<node id="6" x="2829076.414230121" y="7201636.3169748355" />
+	</nodes>
+
+<!-- ====================================================================== -->
+
+	<links capperiod="01:00:00" effectivecellsize="7.5" effectivelanewidth="3.75">
+		<link id="1" from="1" to="2" length="236.36256690270284" freespeed="4.166666666666667" capacity="600.0" permlanes="1.0" oneway="1" modes="car" origid="94307741" type="residential" />
+		<link id="2" from="2" to="3" length="77.46301172099112" freespeed="4.166666666666667" capacity="600.0" permlanes="1.0" oneway="1" modes="car" origid="94307739" type="residential" />
+		<link id="3" from="3" to="4" length="100.16716031210389" freespeed="4.166666666666667" capacity="600.0" permlanes="1.0" oneway="1" modes="car" origid="94307719" type="residential" />
+		<link id="3" from="3" to="5" length="100.16716031210389" freespeed="4.166666666666667" capacity="600.0" permlanes="1.0" oneway="1" modes="car" origid="94307719" type="residential" />
+		<link id="4" from="4" to="5" length="118.43775534039864" freespeed="8.333333333333334" capacity="1000.0" permlanes="1.0" oneway="1" modes="car" origid="343938393" type="secondary" />
+		<link id="5" from="5" to="6" length="69.26792960086325" freespeed="4.166666666666667" capacity="600.0" permlanes="1.0" oneway="1" modes="car" origid="145887249" type="residential" />
+	</links>
+
+<!-- ====================================================================== -->
+
+</network>

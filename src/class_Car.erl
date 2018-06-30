@@ -4,17 +4,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Park , Mode ).
+-define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Park , Mode, Uuid ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/7, new_link/7,
-		 synchronous_new/7, synchronous_new_link/7,
-		 synchronous_timed_new/7, synchronous_timed_new_link/7,
-		 remote_new/8, remote_new_link/8, remote_synchronous_new/8,
-		 remote_synchronous_new_link/8, remote_synchronisable_new_link/8,
-		 remote_synchronous_timed_new/8, remote_synchronous_timed_new_link/8,
-		 construct/8, destruct/1 ).
+-define( wooper_construct_export, new/8, new_link/8,
+		 synchronous_new/8, synchronous_new_link/8,
+		 synchronous_timed_new/8, synchronous_timed_new_link/8,
+		 remote_new/9, remote_new_link/9, remote_synchronous_new/9,
+		 remote_synchronous_new_link/9, remote_synchronisable_new_link/9,
+		 remote_synchronous_timed_new/9, remote_synchronous_timed_new_link/9,
+		 construct/9, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, get_parking_spot/3 , set_new_path/3 ).
@@ -27,7 +27,7 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter() ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter(), parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
@@ -44,7 +44,10 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ start_time , StartTime },
 		{ path , Path },
 		{ mode , Mode },
-		{ last_vertex_pid , ok }
+		{ last_vertex_pid , ok },
+		{ coordFrom , ok },
+		{ wait , false },
+		{ uuid, Uuid }
 						] ),
 
 	case Park of
@@ -61,20 +64,25 @@ destruct( State ) ->
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
 actSpontaneous( State ) ->	
 	Trips = getAttribute( State , trips ), 
+	Wait = getAttribute( State , wait ), 
 	Path = getAttribute( State , path ), 
-	verify_next_action( State , Trips , Path ).
+	verify_next_action( State , Trips , Path , Wait ).
 
-verify_next_action( State , _Trip , Path ) when Path == false ->
-	executeOneway( State , declareTermination );
-
-verify_next_action( State , Trips , Path ) when length( Trips ) == 0, Path == finish -> 
-	executeOneway( State , declareTermination );
-
-verify_next_action( State , Trips , Path ) when length( Trips ) > 0 ->
+verify_next_action( State , Trips , Path , Wait ) when Wait == true ->
 	CurrentTrip = lists:nth( 1 , Trips ),		
 	?wooper_return_state_only( request_position( State , CurrentTrip , Path ) );
 
-verify_next_action( State , _Trips , _Path ) ->
+verify_next_action( State , _Trip , Path , _Wait ) when Path == false ->
+	executeOneway( State , declareTermination );
+
+verify_next_action( State , Trips , Path , _Wait ) when length( Trips ) == 0, Path == finish -> 
+	executeOneway( State , declareTermination );
+
+verify_next_action( State , Trips , Path , _Wait ) when length( Trips ) > 0 ->
+	CurrentTrip = lists:nth( 1 , Trips ),		
+	?wooper_return_state_only( request_position( State , CurrentTrip , Path ) );
+
+verify_next_action( State , _Trips , _Path , _Wait  ) ->
 	Type = getAttribute( State , type ),						
 	TotalLength = getAttribute( State , distance ),
 	StartTime = getAttribute( State , start_time ),
@@ -149,7 +157,7 @@ get_next_vertex( State , [ Current | Path ] , Mode ) when Mode == walk ->
 	
 	Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
 	{ Id , Time , Distance } = traffic_models:get_speed_walk( Data ),
-
+	
 	TotalLength = getAttribute( State , distance ) + Distance,
 	FinalState = setAttributes( State , [ { distance , TotalLength } , { car_position , Id } , { path , Path } ] ), 
 
@@ -157,28 +165,128 @@ get_next_vertex( State , [ Current | Path ] , Mode ) when Mode == walk ->
 
 	executeOneway( FinalState , addSpontaneousTick , class_Actor:get_current_tick_offset( FinalState ) + Time );
 
-get_next_vertex( State , [ Current | Path ] , _Mode ) ->
-	Vertices = list_to_atom( lists:concat( [ Current , lists:nth( 1 , Path ) ] )),
+get_next_vertex( State , Path , _Mode ) ->
+
+	Vertices = list_to_atom( lists:concat( [ lists:nth( 1 , Path )  , lists:nth( 2 , Path ) ] )),
+
+	CurrentTick = class_Actor:get_current_tick_offset( State ),
 	
-	DecrementVertex = getAttribute( State , last_vertex_pid ),
-	case DecrementVertex of
-		ok ->
-			ok;
-		_ ->
-			ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
-	end,	
-
-	ets:update_counter( list_streets , Vertices , { 6 , 1 }),
 	Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
+	{ _ , _ , _ , _ , _ , _ , From , _ , NumCars , Tick , MaxCar } = Data,
 
-	{ Id , Time , Distance } = traffic_models:get_speed_car( Data ),
+	case Tick /= CurrentTick of 
+		true ->
 
-	TotalLength = getAttribute( State , distance ) + Distance,
-	FinalState = setAttributes( State , [{distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , Path}] ), 
+			ets:update_element( list_streets , Vertices , { 9 , 0 }),
+			ets:update_element( list_streets , Vertices , { 10 , CurrentTick });
+	
+		false ->
 
-%	print_movement( FinalState ),
+			ok
 
-	executeOneway( FinalState , addSpontaneousTick , class_Actor:get_current_tick_offset( FinalState ) + Time ).
+	end,
+
+	case NumCars >= MaxCar of
+	
+		true ->
+
+			FinalState = setAttribute( State , wait , true ),
+			executeOneway( FinalState , addSpontaneousTick , CurrentTick + 1 );
+
+		false ->
+
+			DecrementVertex = getAttribute( State , last_vertex_pid ),
+			case DecrementVertex of
+				ok ->
+					ok;
+				_ ->
+					ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
+			end,	
+
+			ets:update_counter( list_streets , Vertices , { 6 , 1 }),
+
+            CurrentNode = lists:nth( 1 , Path ),
+            CarName = getAttribute( State, car_name),
+            EventEdge = ets:lookup( traffic_events, CurrentNode ),
+
+            NewPath = case EventEdge of
+                [ { CurrentNode, { FromNodeID, ToNodeID } } ] ->
+                    case edgeInPath( Path, FromNodeID, ToNodeID ) of
+                        true ->
+                            io:format("PATH DO CARRO ~p MUDOU!~n", [CarName]),
+                            [ { _ , CityGraph } ] = ets:lookup( graph , mygraph ),
+                            [ { _, Origin } ] = ets:lookup(graph, atom_to_list(CurrentNode)),
+                            [ ToNode | _ ] = lists:reverse( Path ),
+                            [ { _, Destination } ] = ets:lookup(graph, atom_to_list(ToNode)),
+                            NewVertices = digraph:get_short_path( CityGraph , Origin , Destination ),
+                            Ids = getVerticesIds( CityGraph, NewVertices, [] ),
+                            io:format("Path do ~p: ~p~n", [CarName, Ids]),
+                            Ids;
+                        false -> Path
+                    end;
+                _ -> Path
+            end,
+
+			FinalPath = lists:nthtail( 1 , NewPath ),
+		
+			ets:update_counter( list_streets , Vertices , { 9 , 1 }),
+
+			{ Id , Time , Distance } = traffic_models:get_speed_car( Data ),
+
+			TotalLength = getAttribute( State , distance ) + Distance,
+			FinalState = setAttributes( State , [{ wait , false } , {distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , FinalPath},  { coordFrom , From } ] ), 
+
+			%	send data to rabbitMQ, including the From lat/long
+	
+            { Lat, Lon } = From,
+            LAT = lists:flatten( io_lib:format( "~p", [ Lat ] ) ),
+            LON = lists:flatten( io_lib:format( "~p", [ Lon ] ) ),
+            Uuid = getAttribute( State , uuid ),
+            UUID = lists:flatten( io_lib:format( "~p", [ Uuid ] ) ),
+            ID = lists:flatten( io_lib:format( "~p", [ atom_to_list(Id) ] ) ),
+            TickSimulated = lists:flatten( io_lib:format( "~p", [ CurrentTick ] ) ),
+
+            { { Year, Month, Day }, { Hour, Minute, Second } } = calendar:local_time(),
+            Timestamp = lists:flatten( io_lib:format( "~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w",
+                                                  [ Year, Month, Day, Hour, Minute, Second ] ) ),
+
+            RoutingKey = string:concat( Uuid, ".current_location.simulated" ),
+
+            Message = "{ \"uuid\": " ++ UUID ++
+                      ", \"nodeID\": " ++ ID ++
+                      ", \"lat\": " ++ LAT ++
+                      ", \"lon\": " ++ LON ++
+                      ", \"timestamp\": \"" ++ Timestamp ++
+                      "\", \"tick\": " ++ TickSimulated ++ " }",
+
+            %print:publish_data( "data_stream", RoutingKey, Message ),
+            %spawn( print, publish_data, [ "data_stream", RoutingKey, Message ] ),
+            %SenderPid = whereis(message_sender_agent),
+            [ { _, SenderPid } ] = ets:lookup( traffic_events, sender_pid ),
+            %io:format("REGISTERED PROCESS: ~w~n", [registered()]),
+            %io:format("SENDER PID: ~w~n", [SenderPid]),
+            SenderPid ! { send_data, "data_stream", RoutingKey, Message },
+
+			executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
+
+	end.
+
+getVerticesIds( _G, [], Ids ) ->
+    Ids;
+getVerticesIds( G, [ Vertex | Vertices ], Ids ) ->
+    { _, { Id } } = digraph:vertex( G, Vertex),
+    getVerticesIds( G, Vertices, lists:append( Ids, [ list_to_atom( Id ) ]) ).
+
+edgeInPath( [], _From, _To ) -> false;
+edgeInPath( [ Node | Path ], From, To ) ->
+    case Node =:= From of
+        true ->
+		    case lists:nth( 1 , Path ) =:= To of
+                true -> true;
+				false -> false
+			end;
+		false -> edgeInPath( Path, From, To)
+	end.
 
 get_parking_spot( State , IdNode , _ParkingPID ) ->
 	Node = element( 1 , IdNode ),

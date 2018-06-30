@@ -1,12 +1,15 @@
 -module(print).
 
+-include_lib("../deps/amqp_client/include/amqp_client.hrl").
+
 -export([
          write_final_message/8,
 	 write_final_message_bus/5,
 	 write_initial_message/6,
 	 write_movement_car_message/6,
 	 write_movement_bus_metro_message/7,
-	 write_sensor_data/3
+	 write_sensor_data/3,
+	 publish_data/3
         ]).
 
 %%%% CAR MESSAGES %%%%
@@ -88,9 +91,7 @@ write_movement_car_message( CarId , _LastPosition , _Type , CurrentTickOffset , 
 
 %%%%%% BUS FUNCTIONS %%%%%%
 
-write_final_message_bus( CurrentTickOffset , BusId , LastPosition , StartTime , xml ) ->
-	
-	_ =   CurrentTickOffset - StartTime, 	
+write_final_message_bus( CurrentTickOffset , BusId , LastPosition , _StartTime , xml ) ->
 
 	LeavesTraffic = io_lib:format( "<event time=\"~w\" type=\"vehicle leaves traffic\" person=\"~s\" link=\"~s\" vehicle=\"~s\" relativePosition=\"1.0\" />\n", [ CurrentTickOffset , BusId , LastPosition , BusId ] ),
 	
@@ -150,21 +151,22 @@ get_hour_minute() ->
 
 % Receive a message from an agent and saves it in the log file.
 %-spec publish_data( wooper:state() , parameter() , pid() ) -> wooper:state().
-%publish_data( State , Data , _Pid ) ->
+publish_data( Topic, RoutingKey, Message ) ->
 
-%	Channel = ?getAttr(channel),
+	%{ ok, Connection } = amqp_connection:start( #amqp_params_network{host="192.168.33.254"} ),
+	%Hostname = os:getenv("RABBITMQ_HOST", "localhost"),
+	%{ok, Connection} = amqp_connection:start(#amqp_params_network{host=Hostname}),
+	%{ ok, Channel } = amqp_connection:open_channel( Connection ),
 
-%	Topic = element ( 1, Data ),
-%	RoutingKey = element( 2, Data ),
-%	Message = element( 3, Data ),
+	Channel = ets:lookup(options, rabbitmq_channel),
 
-%	Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ),
-%									type = <<"topic">> },
-%	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
+	Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ),
+									type = <<"topic">> },
+	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
 
-%	Publish = #'basic.publish'{ exchange = list_to_binary( Topic ),
-%								routing_key = list_to_binary( RoutingKey ) },
+	Publish = #'basic.publish'{ exchange = list_to_binary( Topic ),
+								routing_key = list_to_binary( RoutingKey ) },
 
-%	amqp_channel:cast( Channel,
-%					   Publish,
-%					   #amqp_msg{ payload = list_to_binary( Message ) }).
+	amqp_channel:cast( Channel,
+					   Publish,
+					   #amqp_msg{ payload = list_to_binary( Message ) }).

@@ -1,0 +1,7 @@
+<scsimulator_matrix>
+   <trip name="0" origin="1" destination="6" link_origin="12" count="1000" start="1" mode="car" />
+   <trip name="1" origin="1" destination="6" link_origin="12" count="1000" start="200" mode="car" />
+   <trip name="2" origin="1" destination="6" link_origin="12" count="1000" start="400" mode="car" />
+   <trip name="3" origin="1" destination="6" link_origin="12" count="1000" start="600" mode="car" />
+   <trip name="4" origin="1" destination="6" link_origin="12" count="1000" start="800" mode="car" />
+</scsimulator_matrix>
