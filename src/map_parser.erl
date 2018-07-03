@@ -62,7 +62,7 @@ extract_nodes(Node , Graph, GraphManagerPid ) ->
 
 		links ->
 
-			get_links(Content , Graph, GraphManagerPid );
+			get_links(Content , Graph, GraphManagerPid );		
 
 		_ ->
 			ok

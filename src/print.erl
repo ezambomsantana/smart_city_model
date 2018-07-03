@@ -172,8 +172,12 @@ get_hour_minute() ->
 
 formatAndPublish( Uuid, NodeId, Tick, Channel ) ->
 	Topic = "data_stream",
-	Message = lists:flatten( io_lib:format( "{ \"uuid\": ~p, \"nodeID\": ~p, \"tick\": ~p }", [ Uuid, NodeId, Tick ] ) ),
 	RoutingKey = string:concat( Uuid, ".current_location.simulated" ),
+
+	{ { Year, Month, Day }, { Hour, Minute, Second } } = calendar:local_time(),
+        Timestamp = lists:flatten( io_lib:format( "~4..0w-~2..0w-~2..0wT~2..0w:~2..0w:~2..0w", [ Year, Month, Day, Hour, Minute, Second ] ) ),
+
+	Message = lists:flatten( io_lib:format( "{ \"uuid\": ~p, \"nodeID\": ~p, \"tick\": ~p, \"date\": ~p }", [ Uuid, NodeId, Tick, Timestamp ] ) ),
 
 	Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ), type = <<"topic">> },
 	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),

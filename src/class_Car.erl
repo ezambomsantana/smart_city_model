@@ -4,17 +4,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Park , Mode, GraphManagerPid, Uuid ).
+-define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Park , Mode, GraphManagerPid, Uuid, Channel ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/9, new_link/9,
-		 synchronous_new/9, synchronous_new_link/9,
-		 synchronous_timed_new/9, synchronous_timed_new_link/9,
-		 remote_new/10, remote_new_link/10, remote_synchronous_new/10,
-		 remote_synchronous_new_link/10, remote_synchronisable_new_link/10,
-		 remote_synchronous_timed_new/10, remote_synchronous_timed_new_link/10,
-		 construct/10, destruct/1 ).
+-define( wooper_construct_export, new/10, new_link/10,
+		 synchronous_new/10, synchronous_new_link/10,
+		 synchronous_timed_new/10, synchronous_timed_new_link/10,
+		 remote_new/11, remote_new_link/11, remote_synchronous_new/11,
+		 remote_synchronous_new_link/11, remote_synchronisable_new_link/11,
+		 remote_synchronous_timed_new/11, remote_synchronous_timed_new_link/11,
+		 construct/11, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, get_parking_spot/3 , set_new_path/3 ).
@@ -25,21 +25,15 @@
 % Allows to define WOOPER base variables and methods for that class:
 -include("wooper.hrl").
 
--include_lib("../deps/amqp_client/include/amqp_client.hrl").
-
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter(), parameter(), parameter() ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter() , parameter(), parameter(), parameter(), parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
 
 	InitialTrip = lists:nth( 1 , ListTripsFinal ),	
 	Path = element( 2 , InitialTrip ),
-
-	Hostname = os:getenv( "RABBITMQ_HOST", "localhost" ),
-	{ok, Connection} = amqp_connection:start(#amqp_params_network{host=Hostname}),
-	{ ok, Channel } = amqp_connection:open_channel( Connection ),
 
 	NewState = setAttributes( ActorState, [
 		{ car_name, CarName },
@@ -55,8 +49,7 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ wait , false },
 		{ graph_manager, GraphManagerPid },
 		{ uuid, Uuid },
-		{ channel, Channel },
-		{ connection, Connection }
+		{ channel, Channel }
 						] ),
 
 	case Park of
@@ -68,10 +61,6 @@ construct( State, ?wooper_construct_parameters ) ->
 
 -spec destruct( wooper:state() ) -> wooper:state().
 destruct( State ) ->
-	Channel = getAttribute( State, channel ),
-	Connection = getAttribute( State, connection ),
-	amqp_channel:close(Channel),
-	amqp_connection:close(Connection),
 	State.
 
 -spec actSpontaneous( wooper:state() ) -> oneway_return().
