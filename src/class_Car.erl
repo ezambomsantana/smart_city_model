@@ -278,7 +278,7 @@ edgeInPath( [ Node | Path ], From, To ) ->
 		true ->
 			case lists:nth( 1 , Path ) =:= To of
 				true -> true;
-				false -> false
+				false -> edgeInPath( Path, From, To)
 			end;
 		false -> edgeInPath( Path, From, To)
 	end.
