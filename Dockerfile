@@ -1,18 +1,14 @@
-FROM erlang:20
+#InterSCSimulator Dockerfile
+FROM erlang:20-alpine
 
-RUN apt update && apt install -y \
-  make \
-  uuid-runtime 
+RUN apk add --update make
 
-WORKDIR /interscsimulator
-COPY . .
-RUN rm -r mock-simulators/smart_city_model
-RUN make all
+RUN apk add util-linux-dev
 
-COPY mock-simulators/smart_city_model mock-simulators/smart_city_model
-WORKDIR mock-simulators/smart_city_model/src
-RUN make all
+ADD . /src
+RUN cd /src && make all
 
-ENV USER root
 
-CMD ["make", "smart_city_run", "CMD_LINE_OPT='--batch'"]
+CMD [ "make", "smart_city_run", "CMD_LINE_OPT='--batch'" ]
+
+#RUN sudo docker run -t -w /src/mock-simulators/smart_city_model/src --net="host" -v /home/eduardo/volume2:/src/mock-simulators/smart_city_model/output -e USER=root image
