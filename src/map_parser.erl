@@ -6,9 +6,7 @@
 % l(osm_parser).
 % osm_parser:show("map.osm").
 
--export([
-         show/2
-        ]).
+-export([show/2]).
 
 % Init the XML processing
 show(Infilename , Print) ->
@@ -16,10 +14,8 @@ show(Infilename , Print) ->
     Graph = digraph:new(),
     init( Doc , Graph ),
     case Print of 
-	true ->
-    		print_graph( Graph );
-	_ ->
-		ok
+		true -> print_graph( Graph );
+		_ -> ok
     end,
     Graph.
 
@@ -27,21 +23,14 @@ show(Infilename , Print) ->
 init( Node, Graph ) ->
     case Node of
         #xmlElement{name=Name, content=Content} ->
-            
-	    case Name of
-		
-		network -> 
-
-			nodes_links(Content , Graph);
-			
+	    	case Name of
+				network -> nodes_links(Content , Graph);
+				_ -> ok
+			end;
 		_ -> ok
-
-	    end;
-            _ -> ok
     end.
 
-nodes_links([] , _Graph) ->
-    ok;
+nodes_links([] , _Graph) -> ok;
 
 nodes_links([Node | MoreNodes], Graph) ->
     extract_nodes( Node , Graph ),
@@ -50,37 +39,23 @@ nodes_links([Node | MoreNodes], Graph) ->
 %
 % Show a node/element and then the children of that node.
 extract_nodes(Node , Graph ) ->
-
     case Node of
         #xmlElement{name=Name, content=Content} ->
-            
-	    case Name of
-		
-		nodes -> 
-			
-			get_nodes(Content , Graph );
-
-		links ->
-
-			get_links(Content , Graph );		
-
-		_ ->
-			ok
-	    end;
-
+	    	case Name of
+				nodes -> get_nodes(Content , Graph );
+				links -> get_links(Content , Graph );		
+				_ -> ok
+	    	end;
             _ -> ok
     end.
 
-get_nodes([] , _Graph ) ->
-    ok;
+get_nodes([] , _Graph ) -> ok;
 
 get_nodes([Node | MoreNodes] , Graph ) ->
     extract_node(Node , Graph ),
     get_nodes( MoreNodes , Graph ).
 
-
-get_links([] , _Graph ) ->
-    ok;
+get_links([] , _Graph ) -> ok;
 
 get_links([ Link | MoreLinks ] , Graph ) ->
     extract_link(Link , Graph ),
@@ -88,103 +63,69 @@ get_links([ Link | MoreLinks ] , Graph ) ->
 
 % Show a node/element and then the children of that node.
 extract_node(Node , Graph ) ->
-
     case Node of
         #xmlElement{name=Name, attributes=Attributes} ->
-            
 	    case Name of
-		
-		node -> 
-			
-			Id = children( Attributes , id ),	
-			digraph:add_vertex(Graph, list_to_atom(Id));	
-
-		_ ->
-			ok
-	    end;
-
-            _ -> ok
+			node -> 
+				Id = children( Attributes , id ),	
+				digraph:add_vertex(Graph, list_to_atom(Id));	
+			_ -> ok
+	    end;    
+		_ -> ok
     end.
 
 extract_link(Link , Graph ) ->
-
     case Link of
         #xmlElement{name=Name, attributes=Attributes} ->
-            
-	    case Name of
-		
-		link -> 
-			
-			Id = children( Attributes , id ),	
-			From = children( Attributes , from ),
-			To = children( Attributes , to ),
-			Length = children( Attributes , length ),
-			Capacity = children ( Attributes , capacity ),
-			Freespeed = children( Attributes , freespeed ),
-			digraph:add_edge(Graph, list_to_atom(From), list_to_atom(To), { Id , Length , Capacity , Freespeed });
-
-		_ ->
-			ok
+			case Name of
+				link -> 
+					Id = children( Attributes , id ),	
+					From = children( Attributes , from ),
+					To = children( Attributes , to ),
+					Length = children( Attributes , length ),
+					Capacity = children ( Attributes , capacity ),
+					Freespeed = children( Attributes , freespeed ),
+					Lanes = children( Attributes , permlanes ),
+					RestrictedNextLinks = string:tokens(children(Attributes, restricted_next_links), ","),
+					digraph:add_edge(Graph, list_to_atom(From), list_to_atom(To), { Id , Length , Capacity , Freespeed, Lanes, RestrictedNextLinks });
+				_ -> ok
 	    end;
-
-            _ -> ok
+		_ -> ok
     end.
 
-
-children( [] , _Type ) ->
-    ok;
+children( [] , restricted_next_links ) -> "";
+children( [] , _Type ) -> ok;
 
 children( [Node | MoreNodes] , Type ) ->
     Element = extract_children( Node , Type ),
     case Element of
-
-	ok ->
-    		
-		children( MoreNodes , Type );
-
-	_ ->
-		Element
-
+		ok -> children( MoreNodes , Type );
+		_ -> Element
     end.
-
 
 extract_children( Node , Type ) ->
-
     case Node of
-        #xmlAttribute{name=Name, value=Value} ->
-            
-	    case Name of
-		
-		Type -> 
-
-			Value;
-
-		_ -> ok
-
-	    end;
-            _ -> ok
+        #xmlAttribute{name=Name, value=Value} ->    
+			case Name of
+				Type -> Value;
+				_ -> ok
+			end;
+			_ -> ok
     end.
 
-print_graph( Graph ) ->
-	
+print_graph( Graph ) ->	
 	Vertices = digraph:vertices( Graph ),
 	Edges = digraph:edges( Graph ),
 	print_vertices( Vertices  ),
 	print_edges( Graph , Edges ).
 
-
-
-print_vertices([]) ->
-	ok;
+print_vertices([]) -> ok;
 
 print_vertices([Element | MoreElements]) ->
 	io:format("vertice: ~s~n", [ Element ]),
 	print_vertices(MoreElements).
 
-
-
-print_edges(_Graph , []) ->
-	ok;
+print_edges(_Graph , []) -> ok;
 
 print_edges(Graph, [Element | MoreElements]) ->
 	Edge = digraph:edge(Graph, Element),

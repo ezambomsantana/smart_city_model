@@ -12,31 +12,18 @@ run() ->
 	
 	% Use default simulation settings (50Hz, batch reproducible):
 	SimulationSettings = #simulation_settings{
-
-							simulation_name = "Sim-Diasca Smart City Integration Test",
-
-							tick_duration = 1
-
-							% We leave it to the default specification (all_outputs):
-							% result_specification =
-							%  [ { targeted_patterns, [ {".*",[data_and_plot]} ] },
-							%    { blacklisted_patterns, ["^Second" ] } ]
-
-							%result_specification = [ { targeted_patterns, [ {".*",data_only} ] } ]
-
-						   },
+		simulation_name = "Sim-Diasca Smart City Integration Test",
+		tick_duration = 1,
+		result_specification = no_output
+	},
 
 
 	DeploymentSettings = #deployment_settings{
-
-							computing_hosts = { use_host_file_otherwise_local,
-												"sim-diasca-host-candidates.txt" },
-
-							additional_elements_to_deploy = [ { ".", code } ],
-
-							enable_performance_tracker = false
-
-						   },
+		computing_hosts = localhost_only,
+		additional_elements_to_deploy = [ { ".", code } ],
+		enable_performance_tracker = false,
+		enable_data_logger = false
+	},
 
 	% Default load balancing settings (round-robin placement heuristic):
 	LoadBalancingSettings = #load_balancing_settings{},
@@ -56,8 +43,11 @@ run() ->
 
 	ListBuses = bus_parser:show( element( 6 , Config ) ), % Read the list of buses. TODO: verify if this configurition does not exist.
 
-	io:format("read parks"),
 	ParkSpots = park_parser:read_csv( element( 7 , Config ) ), 
+
+	TrafficSignals = traffic_signals_parser:show(os:getenv("INTERSCSIMULATOR_PATH"), element(8, Config )),
+
+	DigitalRails = digital_rails_parser:show(element(9, Config )),
 
 	ListEdges = create_scenario:create_street_list( CityGraph ),
 
@@ -70,9 +60,11 @@ run() ->
 			string:concat( AmqpClientPath, "/ebin" ),
 			string:concat( AmqpClientPath, "/include/rabbit_common/ebin" )
 		],
-        class_Actor:create_initial_actor( class_Street,  [ "Street" , ListEdges , LogName , Paths ] ),
+	class_Actor:create_initial_actor( class_Street,  [ "Street" , ListEdges , LogName , Paths ] ),
 
 	class_Actor:create_initial_actor( class_Metro, [ "MetroCity" , string:concat( OutputPath , MetroFile ) ] ), 
+
+	class_Actor:create_initial_actor( class_DigitalRails,  [ DigitalRails ] ),
 
 	case element( 8 , Config ) of % verify if it is necessary to generate the city graph actor 
 		"true" ->
@@ -98,6 +90,8 @@ run() ->
 
 	create_scenario:create_buses( ListBuses , CityGraph  ),
 
+	create_scenario:create_traffic_signals(TrafficSignals),
+
 	SimulationDuration = element( 1 , string:to_integer(element( 2 , Config ) ) ),
 
 	DeploymentManagerPid ! { getRootTimeManager, [], self() },
@@ -108,19 +102,10 @@ run() ->
 
 	RootTimeManagerPid ! { startFor, [ SimulationDuration, self() ] },
 
-	?test_info( "Waiting for the simulation to end, "
-				"since having been declared as a simulation listener." ),
-
 	receive
-
 		simulation_stopped ->
-
 			?test_info( "Simulation stopped spontaneously, "
 						"specified stop tick must have been reached." )
-
 	end,
-
-	?test_info( "Browsing the report results, if in batch mode." ),
-	class_ResultManager:browse_reports(),
 
 	?test_stop.

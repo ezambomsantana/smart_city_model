@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Mode ).
+-define( wooper_construct_parameters, ActorSettings, CarName , ListTripsFinal , StartTime , Type , Mode, TrafficModel ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/6, new_link/6,
-		 synchronous_new/6, synchronous_new_link/6,
-		 synchronous_timed_new/6, synchronous_timed_new_link/6,
-		 remote_new/7, remote_new_link/7, remote_synchronous_new/7,
-		 remote_synchronous_new_link/7, remote_synchronisable_new_link/7,
-		 remote_synchronous_timed_new/7, remote_synchronous_timed_new_link/7,
-		 construct/7, destruct/1 ).
+-define( wooper_construct_export, new/7, new_link/7,
+		 synchronous_new/7, synchronous_new_link/7,
+		 synchronous_timed_new/7, synchronous_timed_new_link/7,
+		 remote_new/8, remote_new_link/8, remote_synchronous_new/8,
+		 remote_synchronous_new_link/8, remote_synchronisable_new_link/8,
+		 remote_synchronous_timed_new/8, remote_synchronous_timed_new_link/8,
+		 construct/8, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2, metro_go/3 , bus_go/3 ).
@@ -29,7 +29,7 @@
 
 % Creates a new agent that is a person that moves around the city
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name(), pid() , parameter() , parameter() , parameter() ) -> wooper:state().
+				class_Actor:name(), pid() , parameter() , parameter() , parameter(), parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	ActorState = class_Actor:construct( State, ActorSettings, CarName ),
@@ -43,7 +43,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ start_time , StartTime },
 		{ path , ok },
 		{ mode , Mode },
-		{ pt_status , start } %public transport -> bus or metro
+		{ pt_status , start }, %public transport -> bus or metro
+		{ traffic_model, TrafficModel}
 						] ).
 
 -spec destruct( wooper:state() ) -> wooper:state().
@@ -263,8 +264,9 @@ request_position( State , Trip ) ->
 
 					FinalState = setAttribute( PathState , path, list_utils:remove_element_at( Path , 1 ) ), % remove the current element of the path
 
+					
 					Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
-					StreetData = traffic_models:get_speed_walk( Data ),
+					StreetData = traffic_models:get_speed_walk( Data, getAttribute( PathState, traffic_model) ),
                         		go( FinalState , StreetData );
 
 				false ->							

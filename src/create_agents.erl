@@ -1,33 +1,23 @@
 -module(create_agents).
 
--export([
-         iterate_list/5
-        ]).
+-export([iterate_list/6]).
 
-iterate_list( ListCount , Lista , Graph , Name , MainPID ) -> 
-	ListaFinal = verify_list( ListCount , Lista , Graph , Name , MainPID ),
+iterate_list( ListCount , Lista , Graph , Name , MainPID, DigitalRails ) -> 
+	ListaFinal = verify_list( ListCount , Lista , Graph , Name , MainPID, DigitalRails ),
 	class_Actor:create_initial_actor( class_CarManager, [ Name , ListaFinal ] ),
 	MainPID ! { Name }.
 
-verify_list( _ListCount , [ ] , _Graph , _Name , _MainPID ) -> [];
-verify_list( ListCount , [ Car | MoreCars] , Graph , Name , MainPID ) ->
+verify_list( _ListCount , [ ] , _Graph , _Name , _MainPID, _DigitalRails ) -> [];
+verify_list( ListCount , [ Car | MoreCars] , Graph , Name , MainPID, DigitalRails ) ->
 
-	Element = case size( Car ) == 9 of
-		true ->
-			create_person( Car , Graph );
-		false ->			
-			create_person_multi_trip( Car , Graph )
-	end,
+	Element = create_person( Car , Graph, DigitalRails ),
+	[ Element | verify_list( ListCount + 1 , MoreCars , Graph , Name , MainPID, DigitalRails ) ].
 
-	[ Element | verify_list( ListCount + 1 , MoreCars , Graph , Name , MainPID ) ].
-
-create_person( Car , Graph ) ->
-	{ Origin , Destination , CarCount , ST , LinkOrigin , Type , Mode , NameFile , Park } = Car,
+create_person( Car , Graph, DigitalRails ) ->
+	{ Origin , Destination , CarCount , ST , LinkOrigin , Type , Mode , NameFile , Park, TrafficModel } = Car,
         { STInteger , _ } = string:to_integer( ST ),
-	StartTime = case STInteger > 800 of
-		true -> STInteger - 800 + class_RandomManager:get_uniform_value( 200 );
-		false -> STInteger + class_RandomManager:get_uniform_value( 200 )
-	end,
+
+	StartTime = STInteger,
 
 	ModeFinal = case Mode of
 		ok ->
@@ -36,61 +26,83 @@ create_person( Car , Graph ) ->
 			list_to_atom( Mode ) % Otherwise, car or walk.
 	end,
 
-	NewPath = digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) ),
+	DrEdges = create_dr_edge_list(DigitalRails),
+	NewPath = case Destination of 
+		"random_walk" -> digital_rails_random_walk(Graph, list_to_atom(Origin), false, [], 5, DrEdges);
+		_ -> digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) )
+	end,
+
+	% io:format("Path: ~p ~n", [NewPath]),
 
 	ListTripsFinal = [ { ModeFinal , NewPath , LinkOrigin } ],
 
-	{ StartTime , [ { NameFile , ListTripsFinal , Type , Park , ModeFinal , element (1 , string:to_integer(CarCount)) } ] }.
+	{ StartTime , [ { NameFile , ListTripsFinal , Type , Park , ModeFinal , element (1 , string:to_integer(CarCount)), list_to_atom(TrafficModel) } ] }.
 
-create_person_multi_trip( Car , Graph  ) ->
+random_element(List) -> lists:nth(rand:uniform(length(List)), List).
 
-	{ ST , Type , CarCount , ListTrips , NameFile , Mode } = Car,
-        { STInteger , _ } = string:to_integer( ST ),
-	StartTime = case STInteger > 800 of
-		true -> STInteger - 800 + class_RandomManager:get_uniform_value( 200 );
-		false -> STInteger + class_RandomManager:get_uniform_value( 200 )
-	end,
-	
-	ListTripsFinal = create_single_trip( ListTrips , [] , Graph ),
+digital_rails_random_walk(_Graph, Origin, _UsedDigitalRails, _RestrictedLinks, 0, _) ->
+	[Origin];
 
-	{ StartTime , [ { NameFile , ListTripsFinal , Type , ok , Mode , element (1 , string:to_integer(CarCount)) } ] }.
+digital_rails_random_walk(Graph, Origin, UsedDigitalRails, RestrictedLinks, RemainingLinks, DrEdges) ->
+	AllOutboundEdges = lists:map(fun(E) -> digraph:edge(Graph, E) end, digraph:out_edges(Graph, Origin)),
+	AllowedOutboundEdges = lists:filter(fun (E) -> not lists:member(element(1, element(4, E)), RestrictedLinks) end, AllOutboundEdges),
 
-create_single_trip( [] , ListTripsFinal , _Graph ) -> ListTripsFinal;
-create_single_trip( [ Trip |  ListTrips ] , ListTripsFinal , Graph ) ->
+	DigitalRailsOutboundEdges = lists:filter(fun (E) -> is_edge_digital_rail(E, DrEdges) end, AllowedOutboundEdges),
+	RegularOutboundEdges = lists:filter(fun (E) -> not is_edge_digital_rail(E, DrEdges) end, AllowedOutboundEdges),
 
-	{ Origin , Destination , LinkOrigin , Mode , LinkDestination , Line } = Trip,
-	
-	case Mode of
+	case length(DigitalRailsOutboundEdges) == 0 of
+		true -> 
+			{_, _, Destination, {_, _, _, _, _, RestrictedNextLinks}} = random_element(RegularOutboundEdges),
+			case UsedDigitalRails of
+				true ->
+					% io:format("No outbound Digital rails and already used DR, ending trip (~p) ~n", [RegularOutboundEdges]),
+					[Origin, Destination];
+				false ->
+					% io:format("No outbound Digital rails and have not used DR (~p) ~n", [RegularOutboundEdges]),
+					[Origin] ++ digital_rails_random_walk(Graph, Destination, false, RestrictedNextLinks, RemainingLinks - 1, DrEdges)
+				end;
+		false -> 
+			case length(RegularOutboundEdges) == 0 of
+				true -> 
+					% io:format("No choice but to stay in digital rails (~p) ~n", DigitalRailsOutboundEdges),
+					{_, _, Destination, {_, _, _, _, _, RestrictedNextLinks}} = lists:nth(1, DigitalRailsOutboundEdges),
+					[Origin] ++ digital_rails_random_walk(Graph, Destination, true, RestrictedNextLinks, RemainingLinks, DrEdges);
+				false -> 
+					StayStraightProbability = case UsedDigitalRails of
+						true -> 0.9;
+						false -> 0.70
+					end,
 
-		"metro" ->
-
-			TripCreated = [ { Mode , Origin , LinkOrigin , Destination , LinkDestination } ],
-			
-			create_single_trip( ListTrips , ListTripsFinal ++  TripCreated , Graph );
-
-		"bus" ->
-		
-			TripCreated = [ { Mode , Origin , Destination , Line , LinkOrigin , LinkDestination } ],
-
-			create_single_trip( ListTrips , ListTripsFinal ++  TripCreated , Graph );
-
-		_ -> % car and walk have the same behaviour.
-
-			Path = digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) ),		
-
-			TripCreated = case Mode of
-
-				ok ->
-				
-					[ { "car" , Origin , LinkOrigin , Destination , Path , ok } ]; % if the mode is not set in the input file, "car" is the default value. Ok because doesn't have a park spot
-
-				_ ->
-
-					[ { Mode , Origin , LinkOrigin , Destination , Path , ok } ] % Otherwise, car or walk.
-
-			end,
-			
-			create_single_trip( ListTrips ,  ListTripsFinal ++  TripCreated , Graph )
-	
-
+					case rand:uniform() < StayStraightProbability of
+						true -> 
+							% io:format("Remaining in digital rails (~p) ~n", DigitalRailsOutboundEdges),
+							{_, _, Destination, {_, _, _, _, _, RestrictedNextLinks}} = lists:nth(1, DigitalRailsOutboundEdges),
+							[Origin] ++ digital_rails_random_walk(Graph, Destination, true, RestrictedNextLinks, RemainingLinks, DrEdges);
+						false -> 
+							% io:format("Leaving digital rails and ending trip (~p) ~n", [RegularOutboundEdges]),
+							{_, _, Destination, _} = random_element(RegularOutboundEdges),
+							[Origin, Destination]
+					end
+			end
 	end.
+
+create_dr_edge_list([]) -> [];
+
+create_dr_edge_list([{rail, [{cycle, _}], [{links, Links}]} | Rails]) ->
+	filter_dr_links(Links) ++ create_dr_edge_list(Rails);
+	
+create_dr_edge_list([_ | Rails]) ->
+	create_dr_edge_list(Rails).
+
+filter_dr_links([]) -> [];
+filter_dr_links([{link, [{origin, Origin}, {destination, Destination}], _} | Links]) ->
+	[{Origin, Destination}] ++  filter_dr_links(Links);
+
+filter_dr_links([{link, [{origin, Origin}, {destination, Destination}, {signalized, _}, {offset, _}], _} | Links]) ->
+	[{Origin, Destination}] ++  filter_dr_links(Links);
+
+filter_dr_links([_ | Links]) ->
+	filter_dr_links(Links).
+
+is_edge_digital_rail({_, Origin, Destination, _}, DrEdges) ->
+	lists:member({atom_to_list(Origin), atom_to_list(Destination)}, DrEdges).

@@ -5,10 +5,11 @@
             create_street_list/1,
             create_buses/2,
             calculate_bus_path/3,
-            spaw_proccess/2,
+            spaw_proccess/3,
             split_list/4,
             collectResults/1,
-            readConfigPath/0
+						readConfigPath/0,
+						create_traffic_signals/1
         ]).
 
 % for each vertex is necessary to save its out links
@@ -20,11 +21,12 @@ create_map_list([Element | MoreElements] , Graph ) ->
 	Id = element( 1 , Label),
 	Length = element( 1 , string:to_float(element( 2 , Label))), % Link Length	
 	Capacity = element( 1 , string:to_float(element( 3 , Label))),
-	Freespeed = element( 1 , string:to_float(element( 4 , Label))), 		
+	Freespeed = element( 1 , string:to_float(element( 4 , Label))), 
+	Lanes = element(1, string:to_float(element(5, Label))),		
 	
 	Vertices = list_to_atom( lists:concat( [ V1 , V2 ] )),
 
-	NewElement = { Vertices , { list_to_atom( Id ) , Length , Capacity , Freespeed , 0 } },  % 0 is the number of cars in the link
+	NewElement = { Vertices , { list_to_atom( Id ) , Length , Capacity , Freespeed , 0, Lanes, {}} },  % 0 is the number of cars in the link
 
 	[ NewElement | create_map_list( MoreElements , Graph ) ].
 
@@ -70,12 +72,23 @@ calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
 			Path
 	end.	
 
-spaw_proccess( [] , _CityGraph ) -> ok;
-spaw_proccess( [ List | MoreLists ] , CityGraph ) ->
+create_traffic_signals([]) -> ok;
+create_traffic_signals([{signal, SignalAttribs, SignalContent} | Signals]) ->
+	[{nodes, [{node, [{id, NodeId}], _} | _]}, _] = SignalContent,
+	class_Actor:create_initial_actor(class_TrafficSignals, 
+		[string:concat("traffic-signals-at-node-", NodeId), {signal, SignalAttribs, SignalContent}]),
+
+	create_traffic_signals(Signals);
+
+create_traffic_signals([_ | Signals]) ->
+	create_traffic_signals(Signals).
+
+spaw_proccess( [] , _CityGraph, _DigitalRails ) -> ok;
+spaw_proccess( [ List | MoreLists ] , CityGraph, DigitalRails ) ->
 	{ Name , ListTrips } = List,
 
-	spawn( create_agents, iterate_list , [ 1 , ListTrips , CityGraph , Name , self() ]),
-	spaw_proccess( MoreLists , CityGraph ).
+	spawn( create_agents, iterate_list , [ 1 , ListTrips , CityGraph , Name , self(), DigitalRails ]),
+	spaw_proccess( MoreLists , CityGraph, DigitalRails ).
 
 split_list( [] , _NumberLists , _ListSplit , ListReturn ) -> ListReturn;
 split_list( [ Name | Names ] , NumberLists , ListSplit , ListReturn ) ->

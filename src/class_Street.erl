@@ -48,6 +48,9 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	create_option_table( LogName , Paths ),
 
+	InitFile = ets:lookup_element(options, log_file, 2 ),
+	file_utils:write( InitFile, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<events version=\"1.0\">\n" ),
+
 	class_Actor:construct( State, ActorSettings, StreetName ).
 
 create_option_table( LogName , Paths ) ->
@@ -89,9 +92,13 @@ iterate_list([]) -> ok;
 iterate_list([ Element | List ]) ->
 	
 	Vertices = element( 1, Element),
-	{ Id , Length , Capacity , Freespeed , Count } = element(2, Element),
+	{ Id , Length , _ , Freespeed , Count, Lanes, {} } = element(2, Element),
 
-	ets:insert(list_streets, {Vertices,  Id , Length , Capacity , Freespeed , Count }),
+	% CellSize = 7.5, % Cell size of 7.5m according to MATSim user guide
+	CellSize = 7.5,
+
+	StorageCapacity = math:ceil(Lanes * Length / CellSize),
+	ets:insert(list_streets, {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {} }),
 
 	iterate_list( List ).
 
@@ -112,8 +119,9 @@ destruct( State ) ->
 	%ok = amqp_channel:close(Channel),
 	%ok = amqp_connection:close(Connection),
 
-%	file_utils:write( InitFile, "</events>" ),
-	file_utils:close( ets:lookup_element(options, log_file, 2 ) ),
+	InitFile = ets:lookup_element(options, log_file, 2 ),
+	file_utils:write( InitFile, "</events>" ),
+	file_utils:close( InitFile ),
 
 	State.
 
