@@ -5,95 +5,6 @@
 % For all facilities common to all tests:
 -include("test_constructs.hrl").	
 
-% for each vertex is necessary to save its out links
-create_map_list([] , _Graph ) -> [];
-create_map_list([Element | MoreElements] , Graph ) ->
-	
-	{_, V1, V2, Label} = digraph:edge( Graph , Element ),
-
-	Id = element( 1 , Label),
-	Length = element( 1 , string:to_float(element( 2 , Label))), % Link Length	
-	Capacity = element( 1 , string:to_float(element( 3 , Label))),
-	Freespeed = element( 1 , string:to_float(element( 4 , Label))), 		
-	
-	Vertices = list_to_atom( lists:concat( [ V1 , V2 ] )),
-
-	NewElement = { Vertices , { list_to_atom( Id ) , Length , Capacity , Freespeed , 0 } },  % 0 is the number of cars in the link
-
-	[ NewElement | create_map_list( MoreElements , Graph ) ].
-
-create_street_list( Graph ) ->	
-	Vertices = digraph:vertices( Graph ),
-	create_street_list( Vertices , [] , Graph ).
-
-create_street_list([] , List , _Graph ) -> List;
-create_street_list([Element | MoreElements] , List , Graph) ->
-	Edges = digraph:out_edges( Graph , Element ),
-	ListEdges = create_map_list( Edges , Graph ),
-	create_street_list( MoreElements , List ++ ListEdges , Graph ).
-
-create_buses( [] , _CityGraph  ) -> ok;
-create_buses( [ Bus | Buses ] , CityGraph  ) -> 
-
-	Id = element( 1 , Bus ),
-	Interval = element( 2 , Bus ),
-	Stops = element( 3 , Bus ),
-	StartTime = element( 4 , Bus ),
-
-	Path = calculate_bus_path( Stops , CityGraph , [] ),
-
-	FinalStartTime = element( 1 , string:to_integer( StartTime ) ) - 600 + class_RandomManager:get_uniform_value( 1200 ),
-
-	class_Actor:create_initial_actor( class_Bus,
-		[ Id , Path , FinalStartTime , Interval , Stops ] ),
-
-	create_buses( Buses , CityGraph  ).
-
-calculate_bus_path( [ Stop | List ] , CityGraph  , Path ) ->
-	case length( List ) >= 1 of 
-		true ->
-			NextStop = lists:nth( 1 , List ),
-			ParcialPath = case length( List ) == 1 of 
-			   true -> 
-				digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) );	
-			   false ->					
-				lists:droplast( digraph:get_short_path( CityGraph , list_to_atom( Stop ) , list_to_atom( NextStop ) ) )		
-			end,
-			calculate_bus_path( List , CityGraph , Path ++ ParcialPath);
-		false ->
-			Path
-	end.	
-
-spaw_proccess( [] , _CityGraph ) -> ok;
-spaw_proccess( [ List | MoreLists ] , CityGraph ) ->
-	{ Name , ListTrips } = List,
-
-	spawn( create_agents, iterate_list , [ 1 , ListTrips , CityGraph , Name , self() ]),
-	spaw_proccess( MoreLists , CityGraph ).
-
-split_list( [] , _NumberLists , _ListSplit , ListReturn ) -> ListReturn;
-split_list( [ Name | Names ] , NumberLists , ListSplit , ListReturn ) ->
-
-	{List , ListCars } = lists:split(round (length (ListSplit) / NumberLists), ListSplit),
-
-	Element = [ { Name , List } ],
-
-	split_list( Names , length ( Names ) , ListCars , ListReturn ++ Element ).
-
-collectResults( [] ) -> ok;
-collectResults( ListNames ) ->
-  receive
-    { Name } ->
-      collectResults( ListNames -- [Name] );
-    _ ->
-      collectResults( ListNames )
-  end.
-
-readConfigPath() ->
-	{ok, Device} = file:open('../interscsimulator.conf', [read]),
-	{ok, Data} = file:read_line(Device),
-	string:chomp(Data).
-
 -spec run() -> no_return().
 run() ->	
 
@@ -133,7 +44,7 @@ run() ->
 	% A deployment manager is created directly on the user node:
 	DeploymentManagerPid = sim_diasca:init( SimulationSettings, DeploymentSettings, LoadBalancingSettings ),
 
-	ConfigPath = readConfigPath(),
+	ConfigPath = create_scenario:readConfigPath(),
 
 	Config = config_parser:show( ConfigPath ),
 
@@ -148,7 +59,7 @@ run() ->
 	io:format("read parks"),
 	ParkSpots = park_parser:read_csv( element( 7 , Config ) ), 
 
-	ListEdges = create_street_list( CityGraph ),
+	ListEdges = create_scenario:create_street_list( CityGraph ),
 
 	{ _ , Pwd } = file:get_cwd(),
 	OutputPath = string:concat( Pwd, "/" ),
@@ -179,13 +90,13 @@ run() ->
 
 	Names = [ "car1" , "car2" , "car3" , "car4" , "car5" , "car6" , "car7" , "car8" ],
 
-	List = split_list( Names , length ( Names ) , ListCars , []  ),   
+	List = create_scenario:split_list( Names , length ( Names ) , ListCars , []  ),   
 
-	spaw_proccess( List , CityGraph ),
+	create_scenario:spaw_proccess( List , CityGraph ),
  
-	collectResults( Names ),
+	create_scenario:collectResults( Names ),
 
-	create_buses( ListBuses , CityGraph  ),
+	create_scenario:create_buses( ListBuses , CityGraph  ),
 
 	SimulationDuration = element( 1 , string:to_integer(element( 2 , Config ) ) ),
 
