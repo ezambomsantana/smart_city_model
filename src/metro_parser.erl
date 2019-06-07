@@ -16,10 +16,8 @@ show(Infilename , Print) ->
     Graph = digraph:new(),
     init( Doc , Graph ),
     case Print of 
-	true ->
-    		print_graph( Graph );
-	_ ->
-		ok
+		true -> print_graph( Graph );
+		_ -> ok
     end,
     Graph.
 
