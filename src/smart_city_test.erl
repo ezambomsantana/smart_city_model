@@ -45,7 +45,7 @@ run() ->
 
 	ParkSpots = park_parser:read_csv( element( 7 , Config ) ), 
 
-	TrafficSignals = traffic_signals_parser:show(os:getenv("INTERSCSIMULATOR_PATH"), element(8, Config )),
+	TrafficSignals = traffic_signal_parser:show( element(8, Config ) ),
 
 	DigitalRails = digital_rails_parser:show(element(9, Config )),
 
@@ -84,13 +84,13 @@ run() ->
 
 	List = create_scenario:split_list( Names , length ( Names ) , ListCars , []  ),   
 
-	create_scenario:spaw_proccess( List , CityGraph ),
+	create_scenario:spaw_proccess( List , CityGraph , DigitalRails ),
  
 	create_scenario:collectResults( Names ),
 
-	create_scenario:create_buses( ListBuses , CityGraph  ),
+	create_scenario:create_buses( ListBuses , CityGraph ),
 
-	create_scenario:create_traffic_signals(TrafficSignals),
+	create_scenario:create_traffic_signals( TrafficSignals ),
 
 	SimulationDuration = element( 1 , string:to_integer(element( 2 , Config ) ) ),
 

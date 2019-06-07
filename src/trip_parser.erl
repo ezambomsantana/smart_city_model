@@ -31,16 +31,11 @@ trips([], List , _Multi ) -> List;
 trips([Node | MoreNodes] , List , Multi ) ->
     Element = extract_node( Node , Multi ),
     case Element of
-
-	ok ->
-    		
-		trips( MoreNodes , List , Multi);
-
-	_ ->
-		NewList = List ++ Element,
-		trips( MoreNodes , NewList , Multi)
-
-    end.
+		ok -> trips( MoreNodes , List , Multi);
+		_ ->
+			NewList = List ++ Element,
+			trips( MoreNodes , NewList , Multi)
+		end.
 
 %
 % Show a node/element and then the children of that node.
@@ -66,7 +61,8 @@ extract_node( Node , Multi ) ->
 					Type = children( Attributes , type ),
 					Mode = children( Attributes , mode ),
 					Park = children( Attributes , park ),
-					[ { Origin , Destination , Count , StartTime , LinkOrigin , Type , Mode , NamePerson , Park } ];
+					DigitalRails = children( Attributes , digital_rails_capable ),
+					[ { Origin , Destination , Count , StartTime , LinkOrigin , Type , Mode , NamePerson , Park , DigitalRails } ];
 
 				true ->
 

@@ -15,7 +15,7 @@ verify_list( ListCount , [ Car | MoreCars] , Graph , Name , MainPID, DigitalRail
 
 create_person( Car , Graph, DigitalRails ) ->
 	{ Origin , Destination , CarCount , ST , LinkOrigin , Type , Mode , NameFile , Park, TrafficModel } = Car,
-        { STInteger , _ } = string:to_integer( ST ),
+    { STInteger , _ } = string:to_integer( ST ),
 
 	StartTime = STInteger,
 
@@ -26,7 +26,7 @@ create_person( Car , Graph, DigitalRails ) ->
 			list_to_atom( Mode ) % Otherwise, car or walk.
 	end,
 
-	DrEdges = create_dr_edge_list(DigitalRails),
+	DrEdges = create_dr_edge_list( DigitalRails ),
 	NewPath = case Destination of 
 		"random_walk" -> digital_rails_random_walk(Graph, list_to_atom(Origin), false, [], 5, DrEdges);
 		_ -> digraph:get_short_path( Graph , list_to_atom(Origin) , list_to_atom(Destination) )
