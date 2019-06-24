@@ -1,0 +1,9 @@
+<scsimulator_config>
+  <config 
+    trip_file="scenarios/digital-rails-av-paulista/peak_dr_algo_0_0/trips.xml" 
+    map_file="scenarios/digital-rails-av-paulista/network.xml" 
+    output_file="scenarios/digital-rails-av-paulista/peak_dr_algo_0_0/events-without-signals.xml" 
+    traffic_signals_file="scenarios/digital-rails-av-paulista/peak_dr_algo_0_0/empty-signals.xml"
+    digital_rails_file="scenarios/digital-rails-av-paulista/peak_dr_algo_0_0/empty-digital-rails.xml"
+    simulation_time="86400"/>
+</scsimulator_config>
