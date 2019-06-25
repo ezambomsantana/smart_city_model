@@ -86,7 +86,7 @@ verify_next_action( State , _Trips , _Path ) ->
 	Mode = getAttribute( State , mode ), 
 
 	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
-	print:write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , Mode , xml ),
+	print:write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , Mode , csv ),
 	PathFinish = setAttribute( State , path , finish ),
 
 	executeOneway( PathFinish , scheduleNextSpontaneousTick ).
