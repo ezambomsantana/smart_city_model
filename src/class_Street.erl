@@ -37,6 +37,11 @@ construct( State, ?wooper_construct_parameters ) ->
 	case ets:info(list_streets) of
 		undefined -> ets:new(list_streets, [public, set, named_table]);
                 _ -> ok
+		end,
+		
+	case ets:info(list_streets_dr) of
+		undefined -> ets:new(list_streets_dr, [public, set, named_table]);
+                _ -> ok
         end,
 
 	case ets:info(waiting_bus) of
@@ -96,9 +101,13 @@ iterate_list([ Element | List ]) ->
 
 	% CellSize = 7.5, % Cell size of 7.5m according to MATSim user guide
 	CellSize = 7.5,
+	CellSizeDR = 5,
 
-	StorageCapacity = math:ceil(Lanes * Length / CellSize),
+	StorageCapacity = math:ceil((Lanes) * Length / CellSize),
 	ets:insert(list_streets, {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {} }),
+
+	StorageCapacityDR = math:ceil(1 * Length / CellSizeDR ),
+	ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {} }),
 
 	iterate_list( List ).
 
