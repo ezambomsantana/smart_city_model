@@ -200,8 +200,12 @@ get_next_vertex( State, [ _CurrentVertex | _ ], _Mode) ->
 	case length(Matches) of
 		0 -> move_to_next_vertex(State);
 	 	_ -> 	
-	 		{_, TrafficSignalsPid} = lists:nth(1, Matches),
-	 		class_Actor:send_actor_message(TrafficSignalsPid, {querySignalState, LastVertex}, State)
+			case LastVertex of
+				ok -> move_to_next_vertex(State);
+				_ ->
+					{_, TrafficSignalsPid} = lists:nth(1, Matches),
+					class_Actor:send_actor_message(TrafficSignalsPid, {querySignalState, LastVertex}, State)
+			end
 	 end.
 	%move_to_next_vertex(State).
 

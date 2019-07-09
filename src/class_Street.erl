@@ -53,8 +53,8 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	create_option_table( LogName , Paths ),
 
-	InitFile = ets:lookup_element(options, log_file, 2 ),
-	file_utils:write( InitFile, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<events version=\"1.0\">\n" ),
+%	InitFile = ets:lookup_element(options, log_file, 2 ),
+%	file_utils:write( InitFile, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<events version=\"1.0\">\n" ),
 
 	class_Actor:construct( State, ActorSettings, StreetName ).
 
@@ -101,13 +101,22 @@ iterate_list([ Element | List ]) ->
 
 	% CellSize = 7.5, % Cell size of 7.5m according to MATSim user guide
 	CellSize = 7.5,
-	CellSizeDR = 5,
+	CellSizeDR = 4.0,
 
-	StorageCapacity = math:ceil((Lanes) * Length / CellSize),
-	ets:insert(list_streets, {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {} }),
+	case Lanes == 1 of
+		true ->
+			StorageCapacity = math:ceil((Lanes) * Length / CellSize),
+			ets:insert(list_streets, {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {} }),
+	
+			StorageCapacityDR = math:ceil(1 * Length / CellSizeDR ),
+			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {} });
+		false ->
+			StorageCapacity = math:ceil((Lanes - 1) * Length / CellSize),
+			ets:insert(list_streets, {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {} }),
 
-	StorageCapacityDR = math:ceil(1 * Length / CellSizeDR ),
-	ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {} }),
+			StorageCapacityDR = math:ceil(1 * Length / CellSizeDR ),
+			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {} })
+	end,
 
 	iterate_list( List ).
 
@@ -128,9 +137,9 @@ destruct( State ) ->
 	%ok = amqp_channel:close(Channel),
 	%ok = amqp_connection:close(Connection),
 
-	InitFile = ets:lookup_element(options, log_file, 2 ),
-	file_utils:write( InitFile, "</events>" ),
-	file_utils:close( InitFile ),
+%	InitFile = ets:lookup_element(options, log_file, 2 ),
+%	file_utils:write( InitFile, "</events>" ),
+%	file_utils:close( InitFile ),
 
 	State.
 
