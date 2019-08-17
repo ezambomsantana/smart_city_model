@@ -76,6 +76,8 @@ init_cars( [ Car | Cars ] , State ) ->
 			create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode, DigitalRailsCapable );
 		walk ->	
 			create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode, DigitalRailsCapable );
+		platoon ->
+			create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode, DigitalRailsCapable );
 		_ ->
 			create_person_public( Count , State , CarName , ListTripsFinal , Type , Mode, DigitalRailsCapable )
 	end,

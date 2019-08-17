@@ -1,0 +1,9 @@
+<scsimulator_config>
+ <config 
+      trip_file="../scenario4/5/trips20.xml"
+      map_file="../scenario4/network.xml"
+      output_file="../output/events.xml"
+      traffic_signals_file="../scenario4/signals.xml"
+      digital_rails_file="../scenario4/empty-digital-rails.xml"
+      simulation_time="86400"/>
+ </scsimulator_config>

@@ -1,0 +1,9 @@
+<traffic-signals>
+  <signal cycle_duration="90" offset="0"> 
+    <nodes>
+      <node id="empty"/>
+    </nodes>
+    <phases>
+    </phases>
+  </signal>
+</traffic-signals>

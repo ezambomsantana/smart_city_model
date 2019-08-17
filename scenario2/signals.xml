@@ -1,0 +1,200 @@
+<traffic-signals>
+  <!-- Paulista x Bela Cintra -->
+  <signal cycle_duration="150" offset="0"> 
+    <nodes>
+      <node id="2098758071"/>
+      <node id="60609643"/>
+    </nodes>
+    <phases>
+      <phase origin="4236712736" green_duration="68" green_start="0" />
+      <phase origin="5381067434" green_duration="68" green_start="0"/>
+
+      <phase origin="60624635" green_duration="61" green_start="87"/>
+      <phase origin="2098758071" green_duration="61" green_start="87"/>
+    </phases>
+  </signal>
+
+  <!-- Paulista x Haddock Lobo -->
+  <signal cycle_duration="150" offset="126"> 
+    <nodes>
+      <node id="1953466362"/>
+      <node id="1953466364"/>
+    </nodes>
+    <phases>
+      <phase origin="1819616337" green_duration="85" green_start="0" />
+      <phase origin="4124282297" green_duration="85" green_start="0"/>
+
+      <phase origin="1953466362" green_duration="43" green_start="104"/>
+      <phase origin="2006973647" green_duration="43" green_start="104"/>
+    </phases>
+  </signal>
+
+  <!-- Paulista x Augusta -->
+  <signal cycle_duration="150" offset="8"> 
+    <nodes>
+      <node id="1953466363"/>
+      <node id="1953466357"/>
+    </nodes>
+    <phases>
+      <phase origin="165466550" green_duration="83" green_start="0" />
+      <phase origin="165459105" green_duration="83" green_start="0"/>
+
+      <phase origin="60624611" green_duration="41" green_start="103"/>
+      <phase origin="165467520" green_duration="41" green_start="103"/>
+      <phase origin="1953466363" green_duration="41" green_start="103"/>
+      <phase origin="1953466357" green_duration="41" green_start="103"/>
+    </phases>
+  </signal>
+
+  <!-- Paulista x Min. Rocha Azevedo -->
+  <signal cycle_duration="150" offset="8"> 
+    <nodes>
+      <node id="1953466367"/>
+      <node id="1953466365"/>
+    </nodes>
+    <phases>
+      <phase origin="1953466375" green_duration="83" green_start="0" />
+      <phase origin="60609673" green_duration="83" green_start="0"/>
+
+      <phase origin="1953466367" green_duration="48" green_start="99"/>
+      <phase origin="60624571" green_duration="48" green_start="99"/>
+    </phases>
+  </signal>
+
+  <!-- Paulista x R. Peixoto Gomide -->
+  <signal cycle_duration="150" offset="4"> 
+    <nodes>
+      <node id="1953466375"/>
+      <node id="1953466354"/>
+    </nodes>
+    <phases>
+      <phase origin="1953466367" green_duration="85" green_start="0" />
+      <phase origin="165463204" green_duration="85" green_start="0"/>
+
+      <phase origin="1953466375" green_duration="46" green_start="101"/>
+      <phase origin="1735978065" green_duration="46" green_start="101"/>
+    </phases>
+  </signal>
+
+  <!-- Paulista x Al. Casa Branca -->
+  <signal cycle_duration="150" offset="2"> 
+    <nodes>
+      <node id="60609692"/>
+      <node id="60609697"/>
+    </nodes>
+    <phases>
+      <phase origin="2352453476" green_duration="89" green_start="0" />
+      <phase origin="2869020072" green_duration="89" green_start="0"/>
+
+      <phase origin="60609692" green_duration="43" green_start="104"/>
+      <phase origin="60609766" green_duration="43" green_start="104"/>
+    </phases>
+  </signal>
+
+  <!-- Paulista x Pamplona -->
+  <signal cycle_duration="150" offset="13"> 
+    <nodes>
+      <node id="1990911134"/>
+      <node id="1990911135"/>
+    </nodes>
+    <phases>
+      <phase origin="60609692" green_duration="83" green_start="0" />
+      <phase origin="1953466360" green_duration="83" green_start="0"/>
+
+      <phase origin="1990911134" green_duration="46" green_start="101"/>
+      <phase origin="4259655865" green_duration="46" green_start="101"/>
+    </phases>
+  </signal>
+
+  <!-- Paulista x Al. Campinas -->
+  <signal cycle_duration="150" offset="4"> 
+    <nodes>
+      <node id="1953466370"/>
+      <node id="1953466360"/>
+    </nodes>
+    <phases>
+      <phase origin="1990911135" green_duration="76" green_start="0" />
+      <phase origin="1990934597" green_duration="76" green_start="0"/>
+
+      <phase origin="1953466370" green_duration="55" green_start="92"/>
+      <phase origin="4259655877" green_duration="55" green_start="92"/>
+    </phases>
+  </signal>
+
+  <!-- Paulista x Joaquim Eugênio de Lima -->
+  <signal cycle_duration="150" offset="148"> 
+    <nodes>
+      <node id="1990934597"/>
+      <node id="1990934598"/>
+    </nodes>
+    <phases>
+      <phase origin="1953466370" green_duration="78" green_start="0" />
+      <phase origin="1953466359" green_duration="78" green_start="0"/>
+
+      <phase origin="1990934597" green_duration="53" green_start="94"/>
+      <phase origin="1990934596" green_duration="53" green_start="94"/>
+    </phases>
+  </signal>
+
+  <!-- Paulista x Av. Brigadeiro Luís Antônio -->
+  <signal cycle_duration="150" offset="5"> 
+    <nodes>
+      <node id="1953466361"/>
+      <node id="1953466359"/>
+    </nodes>
+    <phases>
+      <phase origin="1990934598" green_duration="78" green_start="0" />
+      <phase origin="1953466378" green_duration="78" green_start="0"/>
+
+      <phase origin="1953466361" green_duration="62" green_start="82"/>
+      <phase origin="142808169" green_duration="62" green_start="82"/>
+      <phase origin="2397319383" green_duration="62" green_start="82"/>
+      <phase origin="1953466359" green_duration="62" green_start="82"/>
+    </phases>
+  </signal>
+
+  <!-- Paulista x Carlos Sampaio -->
+  <signal cycle_duration="150" offset="2"> 
+    <nodes>
+      <node id="1953466378"/>
+      <node id="1953466358"/>
+    </nodes>
+    <phases>
+      <phase origin="856727276" green_duration="99" green_start="0" />
+      <phase origin="303863647" green_duration="99" green_start="0"/>
+
+      <phase origin="1953466378" green_duration="34" green_start="113"/>
+      <phase origin="457593046" green_duration="34" green_start="113"/>
+    </phases>
+  </signal>
+
+  <!-- Paulista x Teixeira da Silva -->
+  <signal cycle_duration="150" offset="0"> 
+    <nodes>
+      <node id="1953466373"/>
+      <node id="303863647"/>
+    </nodes>
+    <phases>
+      <phase origin="1953466358" green_duration="80" green_start="0" />
+      <phase origin="60609822" green_duration="80" green_start="0"/>
+
+      <phase origin="1953466373" green_duration="50" green_start="90"/>
+      <phase origin="303863292" green_duration="50" green_start="90"/>
+    </phases>
+  </signal>
+
+  <!-- Paulista x Pç Oswaldo Cruz -->
+  <signal cycle_duration="150" offset="0"> 
+    <nodes>
+      <node id="60609822"/>
+      <node id="60609866"/>
+    </nodes>
+    <phases>
+      <phase origin="303863453" green_duration="80" green_start="0" />
+      <phase origin="60609819" green_duration="80" green_start="0"/>
+
+      <phase origin="4962324520" green_duration="50" green_start="90"/>
+      <phase origin="60609822" green_duration="50" green_start="90"/>
+    </phases>
+  </signal>
+</traffic-signals>

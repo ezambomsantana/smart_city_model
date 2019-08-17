@@ -31,9 +31,13 @@ run() ->
 	% A deployment manager is created directly on the user node:
 	DeploymentManagerPid = sim_diasca:init( SimulationSettings, DeploymentSettings, LoadBalancingSettings ),
 
-	ConfigPath = create_scenario:readConfigPath(),
+	ConfigPath = os:getenv( "CONFIG_PATH" ),
+	
+	io:format("Path: ~s", [ ConfigPath ] ),
 
 	Config = config_parser:show( ConfigPath ),
+
+	io:format("Trips: ~s", [ element( 4 , Config ) ] ),
 
 	ListCars = trip_parser:show( element( 4 , Config ) ), % Read the cars from the trips.xml file
 
@@ -84,12 +88,9 @@ run() ->
 
 	List = create_scenario:split_list( Names , length ( Names ) , ListCars , []  ),   
 
-	create_scenario:spaw_proccess( List , CityGraph , DigitalRails ),
- 
+	create_scenario:spaw_proccess( List , CityGraph , DigitalRails ), 
 	create_scenario:collectResults( Names ),
-
 	create_scenario:create_buses( ListBuses , CityGraph ),
-
 	create_scenario:create_traffic_signals( TrafficSignals ),
 
 	SimulationDuration = element( 1 , string:to_integer(element( 2 , Config ) ) ),
