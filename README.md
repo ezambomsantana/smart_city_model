@@ -27,8 +27,10 @@ docker network create interscity
 
 Run the simulator container mouting a volume from the desired scenario directory:
 ```
-docker run -it --network interscity --hostname interscity.local -v $(pwd)/mock-simulators/smart_city_model/simple_scenario/:/interscsimulator/mock-simulators/smart_city_model/simple_scenario interscitysimulator
+docker run -it --network interscity --hostname interscity.local -v $(pwd)/mock-simulators/smart_city_model/simple_scenario/:/interscsimulator/mock-simulators/smart_city_model/simple_scenario -e CONFIG_PATH=/src/mock-simulators/smart_city_model/base_scenario/config.xml interscitysimulator
 ```
+
+The variable CONFIG_PATH is the path to the config.xml file that configures the scenarios that will be executed.
 
 ## Running InterSCSimulator on Linux ##
 ### Prerequisites ### 
