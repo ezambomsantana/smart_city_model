@@ -67,8 +67,18 @@ extract_node(Node , Graph ) ->
         #xmlElement{name=Name, attributes=Attributes} ->
 	    case Name of
 			node -> 
-				Id = children( Attributes , id ),	
-				digraph:add_vertex(Graph, list_to_atom(Id));	
+				Id = children( Attributes , id ),
+				Z = children( Attributes , z ),
+				DefaultSaoPauloAltitude = 760,
+				Altitude = case Z of 
+					ok -> DefaultSaoPauloAltitude;
+					_ -> case string:to_float(Z) of
+									{error,no_float} -> list_to_integer(Z);
+									{F,_Rest} -> F
+								end
+				end,
+				NodeData = { Altitude }, 
+				digraph:add_vertex(Graph, list_to_atom(Id), NodeData);	
 			_ -> ok
 	    end;    
 		_ -> ok
@@ -82,12 +92,19 @@ extract_link(Link , Graph ) ->
 					Id = children( Attributes , id ),	
 					From = children( Attributes , from ),
 					To = children( Attributes , to ),
+					{_IdFrom, {AltitudeFrom}} = digraph:vertex(Graph, list_to_atom(From)),
+					{_IdTo, {AltitudeTo}} = digraph:vertex(Graph, list_to_atom(To)),
 					Length = children( Attributes , length ),
+					{LengthFloat, _} = string:to_float(Length),
+					Inclination = (AltitudeTo - AltitudeFrom) / LengthFloat,
 					Capacity = children ( Attributes , capacity ),
 					Freespeed = children( Attributes , freespeed ),
 					Lanes = children( Attributes , permlanes ),
+          IsCycleway = children( Attributes , cycleway ) == "true",
+          IsCyclelane = children( Attributes , cyclelane ) == "true",
 					RestrictedNextLinks = string:tokens(children(Attributes, restricted_next_links), ","),
-					digraph:add_edge(Graph, list_to_atom(From), list_to_atom(To), { Id , Length , Capacity , Freespeed, Lanes, RestrictedNextLinks });
+					LinkData = { Id , Length , Capacity , Freespeed, Lanes, RestrictedNextLinks, IsCycleway, IsCyclelane, Inclination },
+					digraph:add_edge(Graph, list_to_atom(From), list_to_atom(To), LinkData);
 				_ -> ok
 	    end;
 		_ -> ok
