@@ -5,5 +5,7 @@
 
 <trip name="paraiso_regular_1" origin="1" destination="6" link_origin="12" count="1" start="1" mode="car" digital_rails_capable="false"/>
 
+<trip name="paraiso_bike_1" origin="1" destination="6" link_origin="12" count="1" start="1" mode="bike" digital_rails_capable="false"/>
+
 </scsimulator_matrix>
 
