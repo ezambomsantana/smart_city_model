@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<scsimulator_matrix>
+
+<trip name="car1" origin="1" destination="4" link_origin="0102" count="1" start="1" mode="car" digital_rails_capable="false"/>
+
+<trip name="bike1" origin="1" destination="4" link_origin="0102" count="1" start="1" mode="bike" digital_rails_capable="false"/>
+
+<trip name="bike-in-cicleway" origin="1" destination="7" link_origin="0105" count="1" start="1" mode="bike" digital_rails_capable="false"/>
+
+<trip name="bike-in-ciclelane" origin="1" destination="10" link_origin="0108" count="1" start="1" mode="bike" digital_rails_capable="false"/>
+
+<trip name="bike-ascending" origin="1" destination="13" link_origin="0111" count="1" start="1" mode="bike" digital_rails_capable="false"/>
+
+<trip name="bike-descending" origin="1" destination="16" link_origin="0114" count="1" start="1" mode="bike" digital_rails_capable="false"/>
+
+</scsimulator_matrix>
+
