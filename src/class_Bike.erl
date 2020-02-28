@@ -173,16 +173,17 @@ move_to_next_vertex( State ) ->
     LinkData = lists:nth(1, ets:lookup(list_streets , Edge)),
     {_, Id, Length, Capacity, _Freespeed, Occupation, _Lanes, _DR, IsCycleway, IsCyclelane, Inclination} = LinkData,
 
-    Ocupation = if 
-        % Cellsize do carro = 7,5 e cellsize da bike = 3
-        % Cellsize é o comprimento do veículo mais a distância de segurança
-        % Considera também que em uma faixa de carro passam duas bikes uma do lado da outra 
-        % Na ciclovia ou ciclofaixa é uma bike atrás da outra
-        (IsCycleway or IsCyclelane) -> 
-            1/2.5;
-        true ->
-            1/5
-    end,
+		Ocupation = 1, % TODO update counter dá pau com não inteiro (Issue #32)
+    % Ocupation = if 
+    %     % Cellsize do carro = 7,5 e cellsize da bike = 3
+    %     % Cellsize é o comprimento do veículo mais a distância de segurança
+    %     % Considera também que em uma faixa de carro passam duas bikes uma do lado da outra 
+    %     % Na ciclovia ou ciclofaixa é uma bike atrás da outra
+    %     (IsCycleway or IsCyclelane) -> 
+    %         1/2.5;
+    %     true ->
+    %         1/5
+    % end,
 		
 	case DecrementVertex of
 		ok -> ok;
