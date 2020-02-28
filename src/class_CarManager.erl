@@ -78,6 +78,8 @@ init_cars( [ Car | Cars ] , State ) ->
 			create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode, DigitalRailsCapable );
 		platoon ->
 			create_person_car( Count , State , CarName , ListTripsFinal , Type , Park , Mode, DigitalRailsCapable );
+		bike ->
+			create_person_bike( Count , State , CarName , ListTripsFinal , Type , Park , Mode, DigitalRailsCapable );
 		_ ->
 			create_person_public( Count , State , CarName , ListTripsFinal , Type , Mode, DigitalRailsCapable )
 	end,
@@ -108,6 +110,20 @@ create_person_public( Count , State , CarName , ListTripsFinal , Type , Mode, Di
 		[ CarFinalName , ListTripsFinal , StartTime , Type , Mode, DigitalRailsCapable ]  , State ),
 
 	create_person_public( Count - 1 , NewState , CarName , ListTripsFinal , Type , Mode, DigitalRailsCapable ).
+
+
+create_person_bike( 0 , State , _CarName , _ListTripsFinal , _Type , _Park , _Mode, _DigitalRailsCapable ) -> State;
+create_person_bike( Count , State , CarName , ListTripsFinal , Type , Park , Mode, DigitalRailsCapable ) ->
+	CarFinalName = io_lib:format( "~s_~B", [ CarName , Count ] ),
+	% StartTime = class_RandomManager:get_uniform_value( 1200 ),
+	% TODO: Should be > 0. Why?
+	StartTime = 1,
+
+	NewState = class_Actor:create_actor( class_Bike,
+		[ CarFinalName , ListTripsFinal , StartTime , Type , Park , Mode, DigitalRailsCapable ] , State ),
+
+	create_person_bike( Count - 1 , NewState , CarName , ListTripsFinal , Type , Park , Mode, DigitalRailsCapable ).
+
 
 -spec onFirstDiasca( wooper:state(), pid() ) -> oneway_return().
 onFirstDiasca( State, _SendingActorPid ) ->
