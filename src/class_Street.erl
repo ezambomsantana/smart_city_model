@@ -102,7 +102,7 @@ iterate_list([]) -> ok;
 iterate_list([ Element | List ]) ->
 	
 	Vertices = element( 1, Element),
-	{ Id , Length , _ , Freespeed , Count, Lanes, {} } = element(2, Element),
+	{ Id , Length , _ , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination } = element(2, Element),
 
 	% CellSize = 7.5, % Cell size of 7.5m according to MATSim user guide
 	CellSize = 7.5,
@@ -113,16 +113,16 @@ iterate_list([ Element | List ]) ->
 	case Lanes == 1 of
 		true ->
 			StorageCapacity = math:ceil((Lanes) * Length / CellSize),
-			ets:insert(list_streets, {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {} }),
+			ets:insert(list_streets, {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination }),
 	
 			StorageCapacityDR = math:ceil(1 * Length / CellSizeDR ),
-			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {} });
+			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination });
 		false ->
 			StorageCapacity = math:ceil((Lanes - 1) * Length / CellSize),
-			ets:insert(list_streets, {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {} }),
+			ets:insert(list_streets, {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination }),
 
 			StorageCapacityDR = math:ceil(1 * Length / CellSizeDR ),
-			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {} })
+			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination })
 	end,
 
 	iterate_list( List ).
