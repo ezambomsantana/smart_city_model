@@ -7,19 +7,19 @@
 %                             1/2.5 for cicleways and cyclelanes.
 %             It is the "Count" of the link.
 % There is DR in link and car can use it:
-get_speed_car({_, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {_DRName, _DigitalRailsLanes, _Cycle, _Bandwidth, _Signalized, _Offset}}, true) ->
+get_speed_car({_, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {_DRName, _DigitalRailsLanes, _Cycle, _Bandwidth, _Signalized, _Offset}, _IsCycleway, _IsCyclelane, _Inclination}, true) ->
 	link_density_speed(Id, Length, RawCapacity, Occupation, Freespeed, Lanes);
 
 % There is DR but not effective:
-get_speed_car({Whatever, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {_DRName, _DigitalRailsLanes, _Cycle, _Bandwidth, _Signalized, _Offset}}, noeffect) ->
+get_speed_car({Whatever, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {_DRName, _DigitalRailsLanes, _Cycle, _Bandwidth, _Signalized, _Offset}, _IsCycleway, _IsCyclelane, _Inclination}, noeffect) ->
 	get_speed_car({Whatever, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {}}, noeffect);
 
 % There is DR but car cannot use it:
-get_speed_car({_, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {_DRName, _DigitalRailsLanes, _Cycle, _Bandwidth, _Signalized, _Offset}}, false) ->
+get_speed_car({_, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {_DRName, _DigitalRailsLanes, _Cycle, _Bandwidth, _Signalized, _Offset}, _IsCycleway, _IsCyclelane, _Inclination}, false) ->
 	link_density_speed(Id, Length, RawCapacity, Occupation, Freespeed, Lanes);
 
 % There is no DR:
-get_speed_car({_, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {}}, _) ->
+get_speed_car({_, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {}, _IsCycleway, _IsCyclelane, _Inclination}, _) ->
 	link_density_speed(Id, Length, RawCapacity, Occupation, Freespeed, Lanes).
 
 link_density_speed(Id, Length, Capacity, Occupation, Freespeed, _Lanes) ->
