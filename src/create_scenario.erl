@@ -20,7 +20,8 @@ create_map_list([Element | MoreElements] , Graph ) ->
 
 	Id = element( 1 , Label),
 	Length = element( 1 , string:to_float(element( 2 , Label))), % Link Length	
-	Capacity = element( 1 , string:to_float(element( 3 , Label))),
+	CapacityXml = element( 1 , string:to_float(element( 3 , Label))),
+	Capacity = CapacityXml*5, % xml unit is in "cars", and the internal unit is "bikes"
 	Freespeed = element( 1 , string:to_float(element( 4 , Label))), 
 	Lanes = element(1, string:to_float(element(5, Label))),		
 	IsCycleway = element(7, Label),

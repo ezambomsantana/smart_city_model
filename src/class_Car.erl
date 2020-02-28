@@ -48,7 +48,8 @@ construct( State, ?wooper_construct_parameters ) ->
 		{ last_vertex_pid , ok },
 		{ previous_dr_name, nil },
 		{ in_platoon, false },
-		{ digital_rails_capable, DigitalRailsCapable}] 
+		{ digital_rails_capable, DigitalRailsCapable},
+		{ occupation, 5 }] % one car occupies the space of 5 bikes 
 	),
 
 	case Park of
@@ -120,8 +121,9 @@ verify_park( State , Mode ) when Mode == walk ->
 
 
 verify_park( State , _Mode ) ->						
+	CarOccupation = getAttribute( State , occupation ),	
 	DecrementVertex = getAttribute( State , last_vertex_pid ),	
-	ets:update_counter( list_streets , DecrementVertex , { 6 , -1 }),
+	ets:update_counter( list_streets , DecrementVertex , { 6 , -CarOccupation }),
 	ParkStatus = getAttribute( State , park_status ),
 
 	case ParkStatus of
@@ -225,6 +227,8 @@ move_to_next_vertex( State ) ->
 			end;
 	 	_ -> ok
 	end,
+
+	CarOccupation = getAttribute( State , occupation ),
 		
 	{ Data, NewState } = case getAttribute(State, digital_rails_capable) of
 		true ->  
@@ -244,7 +248,7 @@ move_to_next_vertex( State ) ->
 						false -> 
 							case DecrementVertex of
 								ok -> ok;
-								_  -> ets:update_counter( list_streets_dr, DecrementVertex , { 6 , -1 })
+								_  -> ets:update_counter( list_streets_dr, DecrementVertex , { 6 , -CarOccupation })
 							end,	
 							StreetDR = ets:lookup( drs_streets, Edge ),
 							HasDR = lists:nth(1, StreetDR),
@@ -264,9 +268,9 @@ move_to_next_vertex( State ) ->
 		_ -> 
 			case DecrementVertex of
 				ok -> ok;
-				_ -> ets:update_counter( list_streets, DecrementVertex , { 6 , -1 })
+				_ -> ets:update_counter( list_streets, DecrementVertex , { 6 , -CarOccupation })
 			end,	
-			ets:update_counter( list_streets , Edge , { 6 , 1 }),
+			ets:update_counter( list_streets , Edge , { 6 , CarOccupation }),
 			DataReturn = lists:nth(1, ets:lookup(list_streets , Edge)),
 			{DataReturn , State }
 	end,
