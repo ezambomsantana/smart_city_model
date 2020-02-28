@@ -23,10 +23,13 @@ create_map_list([Element | MoreElements] , Graph ) ->
 	Capacity = element( 1 , string:to_float(element( 3 , Label))),
 	Freespeed = element( 1 , string:to_float(element( 4 , Label))), 
 	Lanes = element(1, string:to_float(element(5, Label))),		
+	IsCycleway = element(7, Label),
+  IsCyclelane = element(8, Label),
+  Inclination = element(9, Label),
 	
 	Vertices = list_to_atom( lists:concat( [ V1 , V2 ] )),
 
-	NewElement = { Vertices , { list_to_atom( Id ) , Length , Capacity , Freespeed , 0, Lanes, {}} },  % 0 is the number of cars in the link
+	NewElement = { Vertices , { list_to_atom( Id ) , Length , Capacity , Freespeed , 0, Lanes, {}, IsCycleway, IsCyclelane, Inclination} },  % 0 is the number of cars in the link
 
 	[ NewElement | create_map_list( MoreElements , Graph ) ].
 
