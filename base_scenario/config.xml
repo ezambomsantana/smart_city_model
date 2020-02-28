@@ -1,7 +1,7 @@
 <scsimulator_config>
   <config 
-    trip_file="../base_scenario/trips.xml" 
-    map_file="../base_scenario/network.xml" 
+    trip_file="../base_scenario/mini-trips.xml" 
+    map_file="../base_scenario/mini-map.xml" 
     output_file="../output/events.xml" 
     traffic_signals_file="../base_scenario/signals.xml"
     digital_rails_file="../base_scenario/empty-digital-rails.xml"
