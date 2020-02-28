@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE network SYSTEM "http://www.matsim.org/files/dtd/network_v2.dtd">
+<network>
+
+<!-- ====================================================================== -->
+
+	<nodes>
+		<node id="1001568643" x="-7347433.28816257" y="-2852981.6323715686" z="800">
+		</node>
+		<node id="1001568979" x="-7347522.284498743" y="-2853614.5465874914" z="800.1">
+		</node>
+		<node id="1036648427" x="-7330256.36170953" y="-2853959.906814551" >
+		</node>
+		<node id="95967345" x="-7347966.628430043" y="-2858279.0762352236" >
+		</node>
+	</nodes>
+
+<!-- ====================================================================== -->
+
+	<links capperiod="01:00:00" effectivecellsize="7.5" effectivelanewidth="3.75">
+		<link id="1" from="1001568643" to="1001568979" length="13.539593517363432" freespeed="4.166666666666667" capacity="600.0" permlanes="1.0" oneway="1" modes="car" cycleway="true" cyclelane="false">
+			<attributes>
+				<attribute name="origid" class="java.lang.String" >37134902</attribute>
+				<attribute name="type" class="java.lang.String" >residential</attribute>
+			</attributes>
+		</link>
+		<link id="1" from="1001568643" to="1001568979" length="13.539593517363432" freespeed="4.166666666666667" capacity="600.0" permlanes="1.0" oneway="1" modes="car" >
+			<attributes>
+				<attribute name="origid" class="java.lang.String" >37134902</attribute>
+				<attribute name="type" class="java.lang.String" >residential</attribute>
+			</attributes>
+		</link>
+		<link id="1" from="1036648427" to="95967345" length="13.539593517363432" freespeed="4.166666666666667" capacity="600.0" permlanes="1.0" oneway="1" modes="car" cyclelane="true">
+			<attributes>
+				<attribute name="origid" class="java.lang.String" >37134902</attribute>
+				<attribute name="type" class="java.lang.String" >residential</attribute>
+			</attributes>
+		</link>				
+	</links>
+
+<!-- ====================================================================== -->
+
+</network>
