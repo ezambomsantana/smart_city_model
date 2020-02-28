@@ -64,10 +64,17 @@ get_next_value_from_speeds_distribution() ->
     case lists:member(table_personal_speeds, ets:all()) of
         false -> 
             ets:new(table_personal_speeds, [named_table, protected, set, {keypos, 1}]),
-            Filename = "personal_speed_distribution_for_bikes.csv",
-            {_ok, File} = file:open(Filename, read),
-            ets:insert(table_personal_speeds, {file, File});
-            % we keep the file in the EST, so we keep implicitly together the pointer to the last read line.
+            Filename = "/src/mock-simulators/smart_city_model/src/personal_speed_distribution_for_bikes.csv",
+            {Ok, File} = file:open(Filename, [read]),
+            if 
+                Ok == error -> % esse caso é pra funcionar para os testes de unidade
+                    Filename2 = "personal_speed_distribution_for_bikes.csv",
+                    {_Ok, File2} = file:open(Filename2, [read]),
+                    ets:insert(table_personal_speeds, {file, File2});                
+                true -> % esse caso é pra funcionar no Docker
+                    ets:insert(table_personal_speeds, {file, File})
+                   % we keep the file in the EST, so we keep implicitly together the pointer to the last read line.
+            end;
         _ -> nothing_to_do
     end,
 
