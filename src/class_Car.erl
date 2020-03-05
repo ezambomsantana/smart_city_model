@@ -236,9 +236,9 @@ move_to_next_vertex( State ) ->
 				platoon -> 
 					case DecrementVertex of
 						ok -> ok;
-						_  -> ets:update_counter( list_streets_dr, DecrementVertex , { 6 , -1 })
+						_  -> ets:update_counter( list_streets_dr, DecrementVertex , { 6 , -CarOccupation })
 					end,	
-					ets:update_counter( list_streets_dr , Edge , { 6 , 1 }),
+					ets:update_counter( list_streets_dr , Edge , { 6 , CarOccupation }),
 					State;
 				car ->
 					IsPlatoon = getAttribute( State, in_platoon ),
@@ -256,7 +256,7 @@ move_to_next_vertex( State ) ->
 								true -> 
 									setAttribute( State , in_platoon , true );
 								false -> 
-									ets:update_counter( list_streets_dr , Edge , { 6 , 1 }),
+									ets:update_counter( list_streets_dr , Edge , { 6 , CarOccupation }),
 									State
 							end,
 							StatePlatoon
