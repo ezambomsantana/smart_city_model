@@ -1,6 +1,6 @@
 -module(traffic_models).
 
--export([get_speed_car/2, get_speed_walk/2, get_speed_bike/6, get_personal_bike_speed/0]).
+-export([get_speed_car/2, get_speed_walk/2, get_speed_bike/7, get_personal_bike_speed/0]).
 
 % Occupation: the count of vehicles in the link; one unit corresponds to one car; 
 %             one bike counts 1/5 of occupation for mixed traffic and
@@ -85,16 +85,17 @@ get_next_value_from_speeds_distribution() ->
     SpeedKmh/3.6.
 
 % PersonalSpeed: different people have different speeds; each agent must hold a personal speed generated once for the actor. The personal speed must be generated using the function get_personal_bike_speed.
-% Capacity: how many cars the link supports
+% Length: length of the link (in meters)
+% Capacity: how many vehicles the link supports (one bike occupies one unit)
 % Occupation: the count of vehicles in the link; one unit corresponds to one car; 
 %             one bike counts 1/5 of occupation for mixed traffic and
 %                             1/2.5 for cicleways and cyclelanes.
 % IsCycleway: boolean
 % IsCyclelane: boolean
 % Inclination: (altitude_to - altitude_from) / length 
-get_speed_bike(PersonalSpeed, Capacity, Occupation, IsCycleway, IsCyclelane, Inclination) ->
+get_speed_bike(PersonalSpeed, Length, Capacity, Occupation, IsCycleway, IsCyclelane, Inclination) ->
     Freespeed = get_free_speed_for_bike(PersonalSpeed, IsCycleway, IsCyclelane, Inclination),
-    Speed = speed_for_bike_considering_traffic(Freespeed, Capacity, Occupation),
+    Speed = speed_for_bike_considering_traffic(Freespeed, Length, Capacity, Occupation, IsCycleway, IsCyclelane),
     Speed.
 
 
@@ -133,9 +134,17 @@ get_free_speed_for_bike(PersonalSpeed, IsCycleway, IsCyclelane, Inclination) ->
 
 
 
-speed_for_bike_considering_traffic(BaseSpeed, Capacity, Occupation) ->
+speed_for_bike_considering_traffic(BaseSpeed, Length, Capacity, Occupation, IsCycleway, IsCyclelane) ->
 
-    SaturatedLink = Occupation >= Capacity,
+    ConsideredCapacity = if 
+        IsCycleway or IsCyclelane -> 
+            BikeLength = 1.72, % according to Google
+            SafetySpace = 2 * 1/4 * BikeLength, % front and back
+            Length / (BikeLength + SafetySpace);
+        true ->
+            Capacity
+    end,
+    SaturatedLink = Occupation >= ConsideredCapacity,
 
 	Alpha = 1,
 	Beta = 1,

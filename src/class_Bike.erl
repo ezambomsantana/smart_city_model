@@ -192,7 +192,7 @@ move_to_next_vertex( State ) ->
 	ets:update_counter( list_streets , Edge , { 6 , Ocupation }),
 	
     PersonalSpeed = getAttribute( State , personal_speed ),
-    Speed = traffic_models:get_speed_bike(PersonalSpeed, Capacity, Occupation, IsCycleway, IsCyclelane, Inclination), 
+    Speed = traffic_models:get_speed_bike(PersonalSpeed, Length, Capacity, Occupation, IsCycleway, IsCyclelane, Inclination), 
     Time = round((Length / Speed) + 1),
     Distance = round(Length),
 
