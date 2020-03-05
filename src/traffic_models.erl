@@ -1,34 +1,42 @@
 -module(traffic_models).
 
--export([get_speed_car/2, get_speed_walk/2, get_speed_bike/7, get_personal_bike_speed/0]).
+-export([get_speed_car/2, get_speed_walk/2, get_speed_bike/8, get_personal_bike_speed/0]).
 
 % Occupation: the count of vehicles in the link; one unit corresponds to one car; 
 %             one bike counts 1/5 of occupation for mixed traffic and
 %                             1/2.5 for cicleways and cyclelanes.
 %             It is the "Count" of the link.
 % There is DR in link and car can use it:
-get_speed_car({_, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {_DRName, _DigitalRailsLanes, _Cycle, _Bandwidth, _Signalized, _Offset}, _IsCycleway, _IsCyclelane, _Inclination}, true) ->
-	link_density_speed(Id, Length, RawCapacity, Occupation, Freespeed, Lanes);
+get_speed_car({_, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {_DRName, _DigitalRailsLanes, _Cycle, _Bandwidth, _Signalized, _Offset}, IsCycleway, IsCyclelane, _Inclination, OccupationOnlyBikes}, true) ->
+	link_density_speed(Id, Length, RawCapacity, Occupation, OccupationOnlyBikes, Freespeed, Lanes, IsCycleway, IsCyclelane);
 
 % There is DR but not effective:
-get_speed_car({Whatever, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {_DRName, _DigitalRailsLanes, _Cycle, _Bandwidth, _Signalized, _Offset}, _IsCycleway, _IsCyclelane, _Inclination}, noeffect) ->
-	get_speed_car({Whatever, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {}}, noeffect);
+get_speed_car({Whatever, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {_DRName, _DigitalRailsLanes, _Cycle, _Bandwidth, _Signalized, _Offset}, _IsCycleway, _IsCyclelane, _Inclination, OccupationOnlyBikes}, noeffect) ->
+	get_speed_car({Whatever, Id, Length, RawCapacity, Freespeed, Occupation, OccupationOnlyBikes, Lanes, {}}, noeffect);
 
 % There is DR but car cannot use it:
-get_speed_car({_, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {_DRName, _DigitalRailsLanes, _Cycle, _Bandwidth, _Signalized, _Offset}, _IsCycleway, _IsCyclelane, _Inclination}, false) ->
-	link_density_speed(Id, Length, RawCapacity, Occupation, Freespeed, Lanes);
+get_speed_car({_, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {_DRName, _DigitalRailsLanes, _Cycle, _Bandwidth, _Signalized, _Offset}, IsCycleway, IsCyclelane, _Inclination, OccupationOnlyBikes}, false) ->
+	link_density_speed(Id, Length, RawCapacity, Occupation, OccupationOnlyBikes, Freespeed, Lanes, IsCycleway, IsCyclelane);
 
 % There is no DR:
-get_speed_car({_, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {}, _IsCycleway, _IsCyclelane, _Inclination}, _) ->
-	link_density_speed(Id, Length, RawCapacity, Occupation, Freespeed, Lanes).
+get_speed_car({_, Id, Length, RawCapacity, Freespeed, Occupation, Lanes, {}, IsCycleway, IsCyclelane, _Inclination, OccupationOnlyBikes}, _) ->
+	link_density_speed(Id, Length, RawCapacity, Occupation, OccupationOnlyBikes, Freespeed, Lanes, IsCycleway, IsCyclelane).
 
-link_density_speed(Id, Length, Capacity, Occupation, Freespeed, _Lanes) ->
+link_density_speed(Id, Length, Capacity, Occupation, OccupationOnlyBikes, Freespeed, _Lanes, IsCycleway, IsCyclelane) ->
+
+    ConsideredOccupation =
+        if 
+            IsCycleway or IsCyclelane ->
+                Occupation - OccupationOnlyBikes;
+            true ->
+                Occupation
+        end,
 
 	Alpha = 1,
 	Beta = 1,
-	Speed = case Occupation >= Capacity of
+	Speed = case ConsideredOccupation >= Capacity of
 		true -> 1.0;
-		false -> Freespeed * math:pow(1 - math:pow((Occupation / Capacity), Beta), Alpha)
+		false -> Freespeed * math:pow(1 - math:pow((ConsideredOccupation / Capacity), Beta), Alpha)
 	end,
 
 	Time = (Length / Speed) + 1,
@@ -90,12 +98,13 @@ get_next_value_from_speeds_distribution() ->
 % Occupation: the count of vehicles in the link; one unit corresponds to one car; 
 %             one bike counts 1/5 of occupation for mixed traffic and
 %                             1/2.5 for cicleways and cyclelanes.
+% OccupationOnlyBikes: the number of bikes in the link
 % IsCycleway: boolean
 % IsCyclelane: boolean
 % Inclination: (altitude_to - altitude_from) / length 
-get_speed_bike(PersonalSpeed, Length, Capacity, Occupation, IsCycleway, IsCyclelane, Inclination) ->
+get_speed_bike(PersonalSpeed, Length, Capacity, Occupation, OccupationOnlyBikes, IsCycleway, IsCyclelane, Inclination) ->
     Freespeed = get_free_speed_for_bike(PersonalSpeed, IsCycleway, IsCyclelane, Inclination),
-    Speed = speed_for_bike_considering_traffic(Freespeed, Length, Capacity, Occupation, IsCycleway, IsCyclelane),
+    Speed = speed_for_bike_considering_traffic(Freespeed, Length, Capacity, Occupation, OccupationOnlyBikes, IsCycleway, IsCyclelane),
     Speed.
 
 
@@ -134,17 +143,17 @@ get_free_speed_for_bike(PersonalSpeed, IsCycleway, IsCyclelane, Inclination) ->
 
 
 
-speed_for_bike_considering_traffic(BaseSpeed, Length, Capacity, Occupation, IsCycleway, IsCyclelane) ->
+speed_for_bike_considering_traffic(BaseSpeed, Length, Capacity, Occupation, OccupationOnlyBikes, IsCycleway, IsCyclelane) ->
 
-    ConsideredCapacity = if 
+    SaturatedLink = if 
         IsCycleway or IsCyclelane -> 
             BikeLength = 1.72, % according to Google
             SafetySpace = 2 * 1/4 * BikeLength, % front and back
-            Length / (BikeLength + SafetySpace);
+            CicleLinkCapacity = Length / (BikeLength + SafetySpace),
+            OccupationOnlyBikes >= CicleLinkCapacity;
         true ->
-            Capacity
+            Occupation >= Capacity
     end,
-    SaturatedLink = Occupation >= ConsideredCapacity,
 
 	Alpha = 1,
 	Beta = 1,

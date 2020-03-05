@@ -110,21 +110,22 @@ iterate_list([ Element | List ]) ->
  
 	ets:insert(drs_streets, { Vertices , 0 }),
 	
+	CountOnlyBikes = 0,
 	case Lanes == 1 of
 		true ->
 			StorageCapacity = math:ceil((Lanes) * Length / CellSize),
-			LinkData = {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination },
+			LinkData = {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination, CountOnlyBikes },
 			ets:insert(list_streets, LinkData),
 	
 			StorageCapacityDR = math:ceil(1 * Length / CellSizeDR ),
-			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination });
+			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination, CountOnlyBikes });
 		false ->
 			StorageCapacity = math:ceil((Lanes - 1) * Length / CellSize),
-			LinkData = {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination },
+			LinkData = {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination, CountOnlyBikes },
 			ets:insert(list_streets, LinkData),
 
 			StorageCapacityDR = math:ceil(1 * Length / CellSizeDR ),
-			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination })
+			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination, CountOnlyBikes })
 	end,
 
 	iterate_list( List ).

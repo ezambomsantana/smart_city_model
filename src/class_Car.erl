@@ -180,7 +180,7 @@ get_next_vertex( State, [ _CurrentVertex | _ ], _Mode) ->
 	Edge = list_to_atom(lists:concat([CurrentVertex, NextVertex])),
 
 	LinkData = lists:nth(1, ets:lookup(list_streets, Edge)),
-	{_, _, _, _, _, _, _Lanes, DigitalRailsInfo, _, _, _} = LinkData,
+	{_, _, _, _, _, _, _Lanes, DigitalRailsInfo, _, _, _, _} = LinkData,
 
 	_ChangingDR = is_changing_dr(State, DigitalRailsInfo),
 %	case ChangingDR of 

@@ -171,7 +171,7 @@ move_to_next_vertex( State ) ->
 	DecrementVertex = getAttribute( State , last_vertex_pid ),
 
     LinkData = lists:nth(1, ets:lookup(list_streets , Edge)),
-    {_, Id, Length, Capacity, _Freespeed, Occupation, _Lanes, _DR, IsCycleway, IsCyclelane, Inclination} = LinkData,
+    {_, Id, Length, Capacity, _Freespeed, Occupation, _Lanes, _DR, IsCycleway, IsCyclelane, Inclination, OccupationOnlyBikes} = LinkData,
 
 		Ocupation = 1, % TODO update counter dá pau com não inteiro (Issue #32)
     % Ocupation = if 
@@ -185,14 +185,18 @@ move_to_next_vertex( State ) ->
     %         1/5
     % end,
 		
+	OcupationOnlyBikes = 1,
 	case DecrementVertex of
 		ok -> ok;
-		_ -> ets:update_counter( list_streets, DecrementVertex , { 6 , -Ocupation })
+		_ -> 
+			ets:update_counter( list_streets, DecrementVertex , { 6 , -Ocupation }),
+			ets:update_counter( list_streets, DecrementVertex , { 12 , -OcupationOnlyBikes })
 	end,	
 	ets:update_counter( list_streets , Edge , { 6 , Ocupation }),
+	ets:update_counter( list_streets , Edge , { 12 , OcupationOnlyBikes }),
 	
     PersonalSpeed = getAttribute( State , personal_speed ),
-    Speed = traffic_models:get_speed_bike(PersonalSpeed, Length, Capacity, Occupation, IsCycleway, IsCyclelane, Inclination), 
+    Speed = traffic_models:get_speed_bike(PersonalSpeed, Length, Capacity, Occupation, OccupationOnlyBikes, IsCycleway, IsCyclelane, Inclination), 
     Time = round((Length / Speed) + 1),
     Distance = round(Length),
 
