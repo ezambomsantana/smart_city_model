@@ -208,6 +208,7 @@ move_to_next_vertex( State ) ->
 	% io:format("~p Tick: ~p; ~p => ~p, Dist: ~p, Time: ~p, Avg. Speed: ~p, NextTick: ~p\n", 
 	% 	[getAttribute( State , bike_name ), class_Actor:get_current_tick_offset( State ), CurrentVertex, NextVertex, Distance, Time, Distance / Time, class_Actor:get_current_tick_offset( StateAfterMovement ) + Time]),
 
+	%print_movement(State, StateAfterMovement),
 	executeOneway( StateAfterMovement , addSpontaneousTick , class_Actor:get_current_tick_offset( StateAfterMovement ) + Time ).
 
 
@@ -236,3 +237,20 @@ onFirstDiasca( State, _SendingActorPid ) ->
 	NewState = setAttribute( State , start_time , FirstActionTime ),
 	executeOneway( NewState , addSpontaneousTick , FirstActionTime ).
 
+%print_movement( PreviousState, NextState ) ->
+% 	BikeId = getAttribute( PreviousState, bike_name),
+% 	LastPosition = getAttribute( PreviousState , bike_position ),
+% 	Type = getAttribute( PreviousState , type ),
+% 	CurrentTickOffset = class_Actor:get_current_tick_offset( NextState ),
+% 	NewPosition = getAttribute( NextState, bike_position),
+% 	case LastPosition == -1 of
+% 		false ->
+% 			print:write_movement_car_message( BikeId, LastPosition, Type, CurrentTickOffset, NewPosition, xml );
+% 		true -> 
+% 			CurrentTrip = lists:nth( 1 , getAttribute( PreviousState , trips ) ),
+% 			TripVertices = element(2, CurrentTrip),
+% 			EdgeId = list_to_atom(lists:concat([lists:nth(1, TripVertices), lists:nth(2, TripVertices)])),
+%			Edge = lists:nth(1, ets:lookup(list_streets , EdgeId)),
+% 			LinkOrigin = element(2, Edge),
+% 			print:write_initial_message( BikeId, Type, CurrentTickOffset, LinkOrigin, NewPosition, xml )
+% 	end.
