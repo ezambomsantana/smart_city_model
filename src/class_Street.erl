@@ -105,7 +105,11 @@ iterate_list([ Element | List ]) ->
 	{ Id , Length , _ , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination } = element(2, Element),
 
 	% CellSize = 7.5, % Cell size of 7.5m according to MATSim user guide
-	CellSize = 7.5,
+	CellSize = 5 * 7.5, % Previously capacity was given in "cars",
+                      % so we used CellSzie = 7.5.
+									    % Now the unit is a bike (1/5 of a car),
+											% so the capacity will tell "how many bikes fit in the link".
+										  % Obs: 7.5 is the car cell size.
 	CellSizeDR = 4.0,
  
 	ets:insert(drs_streets, { Vertices , 0 }),
