@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE network SYSTEM "http://www.matsim.org/files/dtd/network_v2.dtd">
+<network>
+
+<!-- ====================================================================== -->
+
+        <nodes>
+                <node id="1" x="0" y="0" z="700"/>
+                <node id="2" x="10" y="50" z="700" />
+                <node id="3" x="20" y="50" z="700" />
+                <node id="4" x="30" y="50" z="700" />
+                <node id="5" x="10" y="20" z="700" />
+                <node id="6" x="20" y="20" z="700" />
+                <node id="7" x="30" y="20" z="700" />
+                <node id="8" x="10" y="0" z="700" />
+                <node id="9" x="20" y="0" z="700" />
+                <node id="10" x="30" y="0" z="700" />
+                <node id="11" x="10" y="-20" z="700" />
+                <node id="12" x="20" y="-20" z="720" />
+                <node id="13" x="30" y="-20" z="740" />
+                <node id="14" x="10" y="-50" z="680" />
+                <node id="15" x="20" y="-50" z="660" />
+                <node id="16" x="30" y="-50" z="640" />
+        </nodes>
+
+        <links>
+
+                <!-- path 1 -->
+                <link id="0102" from="1" to="2" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="0203" from="2" to="3" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="0304" from="3" to="4" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+
+                <!-- path 2 (cycleway) -->
+                <link id="0105" from="1" to="5" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" cycleway="true">
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="0506" from="5" to="6" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" cycleway="true">
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="0607" from="6" to="7" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" cycleway="true">
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+
+                <!-- path 3 (cyclelane) -->
+                <link id="0108" from="1" to="8" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" cyclelane="true">
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="0809" from="8" to="9" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" cyclelane="true">
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="0910" from="9" to="10" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" cyclelane="true">
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+
+                <!-- path 4 (ascending) -->
+                <link id="0111" from="1" to="11" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="1112" from="11" to="12" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="1213" from="12" to="13" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+
+                <!-- path 4 (descending) -->
+                <link id="0114" from="1" to="14" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="1415" from="14" to="15" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="1516" from="15" to="16" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+        </links>
+
+<!-- ====================================================================== -->
+
+</network>
+

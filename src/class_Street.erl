@@ -102,27 +102,34 @@ iterate_list([]) -> ok;
 iterate_list([ Element | List ]) ->
 	
 	Vertices = element( 1, Element),
-	{ Id , Length , _ , Freespeed , Count, Lanes, {} } = element(2, Element),
+	{ Id , Length , _ , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination } = element(2, Element),
 
 	% CellSize = 7.5, % Cell size of 7.5m according to MATSim user guide
-	CellSize = 7.5,
+	CellSize = 5 * 7.5, % Previously capacity was given in "cars",
+                      % so we used CellSzie = 7.5.
+									    % Now the unit is a bike (1/5 of a car),
+											% so the capacity will tell "how many bikes fit in the link".
+										  % Obs: 7.5 is the car cell size.
 	CellSizeDR = 4.0,
  
 	ets:insert(drs_streets, { Vertices , 0 }),
-
+	
+	CountOnlyBikes = 0,
 	case Lanes == 1 of
 		true ->
 			StorageCapacity = math:ceil((Lanes) * Length / CellSize),
-			ets:insert(list_streets, {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {} }),
+			LinkData = {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination, CountOnlyBikes },
+			ets:insert(list_streets, LinkData),
 	
 			StorageCapacityDR = math:ceil(1 * Length / CellSizeDR ),
-			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {} });
+			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination, CountOnlyBikes });
 		false ->
 			StorageCapacity = math:ceil((Lanes - 1) * Length / CellSize),
-			ets:insert(list_streets, {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {} }),
+			LinkData = {Vertices,  Id , Length , StorageCapacity , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination, CountOnlyBikes },
+			ets:insert(list_streets, LinkData),
 
 			StorageCapacityDR = math:ceil(1 * Length / CellSizeDR ),
-			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {} })
+			ets:insert(list_streets_dr, {Vertices,  Id , Length , StorageCapacityDR , Freespeed , Count, Lanes, {}, IsCycleway, IsCyclelane, Inclination, CountOnlyBikes })
 	end,
 
 	iterate_list( List ).

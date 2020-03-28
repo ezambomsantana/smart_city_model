@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE network SYSTEM "http://www.matsim.org/files/dtd/network_v2.dtd">
+<network>
+
+<!-- ====================================================================== -->
+
+        <nodes>
+                <node id="1" x="-7347433.28816257" y="-2852981.6323715686" >
+                </node>
+                <node id="2" x="-7347522.284498743" y="-2853614.5465874914" >
+                </node>
+                <node id="3" x="-7330256.36170953" y="-2853959.906814551" >
+                </node>
+                <node id="4" x="-7330120.828719032" y="-2853699.746066185" >
+                </node>
+                <node id="5" x="-7329440.267125716" y="-2853410.274813917" >
+                </node>
+                <node id="6" x="-7332848.511279438" y="-2852493.3908545393" >
+                </node>
+        </nodes>
+
+        <links>
+                <link id="12" from="1" to="2" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="23" from="2" to="3" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="34" from="3" to="4" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="25" from="2" to="5" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+                <link id="56" from="5" to="6" length="83.11687370503387" freespeed="8.333333333333334" capacity="3000.0" permlanes="3.0" oneway="1" modes="car" >
+                        <attributes>
+                                <attribute name="origid" class="java.lang.String" >262851680</attribute>
+                                <attribute name="type" class="java.lang.String" >secondary</attribute>
+                        </attributes>
+                </link>
+        </links>
+
+<!-- ====================================================================== -->
+
+</network>
+

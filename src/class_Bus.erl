@@ -220,7 +220,7 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 				ok ->
 					State;
 				_ ->
-					ets:update_counter( list_streets, DecrementVertex , { 6 , -3 }),
+					ets:update_counter( list_streets, DecrementVertex , { 6 , -3*5 }),
 					State
 			end,
 
@@ -232,7 +232,7 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 
 			FinalBusState = setAttribute( FinalState , buses , NewDictBuses ),
 
-			ets:update_counter( list_streets , Vertices , { 6 , 3 }),
+			ets:update_counter( list_streets , Vertices , { 6 , 3*5 }),
 			Data = lists:nth( 1, ets:lookup( list_streets , Vertices ) ),
 
 			StreetData = traffic_models:get_speed_car(Data, car_following),
@@ -251,7 +251,7 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 				ok ->
 					State;
 				_ ->
-					ets:update_counter( list_streets, DecrementVertex , { 6 , -3 }),
+					ets:update_counter( list_streets, DecrementVertex , { 6 , -3*5 }),
 					State
 			end
 
