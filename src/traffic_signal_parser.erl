@@ -3,6 +3,9 @@
 
 -export([show/1]).
 
+show(ok) -> 
+  [];
+
 show(Filename) -> 
   HookFun = fun
     (#xmlElement{name=Name, attributes=[], content=Cont}, GS) -> 
