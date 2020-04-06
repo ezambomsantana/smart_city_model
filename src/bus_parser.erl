@@ -10,8 +10,8 @@ show(Infilename) ->
     {Doc, _Misc} = xmerl_scan:file(Infilename),
     Return = init(Doc),
     case Return of
-	ok -> [ ];
-	_-> Return
+		ok -> [ ];
+		_-> Return
     end.
 
 % read the OSM tag and extract all children
