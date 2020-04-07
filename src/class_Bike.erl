@@ -147,9 +147,13 @@ request_position( State , Path ) ->
 get_next_vertex( State, [ CurrentVertex | _ ] ) -> % Baseado no Mode != walk do class_car
 	LastVertex = getAttribute(State, last_vertex),
 
-	% Current vertex is an atom here, but at the ets it is a string. Must convert:
 	CurrentVertexStr = lists:flatten(io_lib:format("~s", [CurrentVertex])),
-	Matches = ets:lookup(traffic_signals, CurrentVertexStr),
+	Matches = case ets:info(traffic_signals) of
+		undefined -> [];
+		_ -> 
+			% Current vertex is an atom here, but at the ets it is a string. Must convert:
+			  ets:lookup(traffic_signals, CurrentVertexStr)
+	end,
 
 	case length(Matches) of
 		0 -> move_to_next_vertex(State);

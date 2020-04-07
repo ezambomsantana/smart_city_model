@@ -36,7 +36,12 @@ create_person( Car , Graph, DigitalRails ) ->
 
 	ListTripsFinal = [ { ModeFinal , NewPath , LinkOrigin } ],
 
-	{ StartTime , [ { NameFile , ListTripsFinal , Type , Park , ModeFinal , element (1 , string:to_integer(CarCount)), list_to_atom(TrafficModel) } ] }.
+	TrafficModelAtom = case TrafficModel of
+		ok -> ok;
+		_ -> list_to_atom(TrafficModel)
+	end,
+
+	{ StartTime , [ { NameFile , ListTripsFinal , Type , Park , ModeFinal , element (1 , string:to_integer(CarCount)), TrafficModelAtom } ] }.
 
 random_element(List) -> lists:nth(rand:uniform(length(List)), List).
 
