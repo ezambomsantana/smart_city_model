@@ -17,8 +17,6 @@ create_person( Car , Graph, DigitalRails ) ->
 	{ Origin , Destination , CarCount , ST , LinkOrigin , Type , Mode , NameFile , Park, TrafficModel } = Car,
     { STInteger , _ } = string:to_integer( ST ),
 
-	StartTime = STInteger,
-
 	ModeFinal = case Mode of
 		ok ->
 			car; % if the mode is not set in the input file, "car" is the default value.
@@ -41,7 +39,7 @@ create_person( Car , Graph, DigitalRails ) ->
 		_ -> list_to_atom(TrafficModel)
 	end,
 
-	{ StartTime , [ { NameFile , ListTripsFinal , Type , Park , ModeFinal , element (1 , string:to_integer(CarCount)), TrafficModelAtom } ] }.
+	{ STInteger , [ { NameFile , ListTripsFinal , Type , Park , ModeFinal , element (1 , string:to_integer(CarCount)), TrafficModelAtom } ] }.
 
 random_element(List) -> lists:nth(rand:uniform(length(List)), List).
 

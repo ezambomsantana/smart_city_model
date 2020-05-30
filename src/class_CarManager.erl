@@ -115,9 +115,7 @@ create_person_public( Count , State , CarName , ListTripsFinal , Type , Mode, Di
 create_person_bike( 0 , State , _CarName , _ListTripsFinal , _Type , _Park , _Mode, _DigitalRailsCapable ) -> State;
 create_person_bike( Count , State , CarName , ListTripsFinal , Type , Park , Mode, DigitalRailsCapable ) ->
 	CarFinalName = io_lib:format( "~s_~B", [ CarName , Count ] ),
-	% StartTime = class_RandomManager:get_uniform_value( 1200 ),
-	% TODO: Should be > 0. Why?
-	StartTime = 1,
+	StartTime = class_RandomManager:get_uniform_value( 1200 ),
 
 	NewState = class_Actor:create_actor( class_Bike,
 		[ CarFinalName , ListTripsFinal , StartTime , Type , Park , Mode, DigitalRailsCapable ] , State ),

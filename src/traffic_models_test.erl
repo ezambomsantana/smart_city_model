@@ -93,10 +93,6 @@ test_mixed_traffic_speed_must_be_greater_than_cycleway_speed() ->
     
     fimDoTestCase().
 
-
-
-
-
 test_descent_speed_must_be_greater_than_plane_speed() ->
 
     CaseTest = "Velocidade na descida tem que ser maior que velocidade no plano",

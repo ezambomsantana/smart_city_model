@@ -90,7 +90,7 @@ get_next_value_from_speeds_distribution() ->
     Line = io:get_line(SpeedsFile, ''), % read next line of the file
     % Obs: if we got at the end of file, the system will crash! But we hope this to not happen!
     {SpeedKmh, _} = string:to_float(Line),
-    SpeedKmh/3.6.
+    SpeedKmh.
 
 % PersonalSpeed: different people have different speeds; each agent must hold a personal speed generated once for the actor. The personal speed must be generated using the function get_personal_bike_speed.
 % Length: length of the link (in meters)
@@ -144,7 +144,7 @@ get_free_speed_for_bike(PersonalSpeed, IsCycleway, IsCyclelane, Inclination) ->
 
 
 speed_for_bike_considering_traffic(BaseSpeed, Length, Capacity, Occupation, OccupationOnlyBikes, IsCycleway, IsCyclelane) ->
-
+    BaseSpeed,
     SaturatedLink = if 
         IsCycleway or IsCyclelane -> 
             BikeLength = 1.72, % according to Google
@@ -159,7 +159,7 @@ speed_for_bike_considering_traffic(BaseSpeed, Length, Capacity, Occupation, Occu
 	Beta = 1,
     if
         SaturatedLink ->
-             1.0;
+             5.0;
         true -> % (não saturado) ou (saturado em tráfego misto)
             BaseSpeed * math:pow(1 - math:pow((Occupation / Capacity), Beta), Alpha)
 	end.
