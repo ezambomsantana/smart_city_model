@@ -86,7 +86,8 @@ actSpontaneous( State ) ->
 
 					Mode = getAttribute( NewState , mode ), 
 
-					print:write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , Mode , csv ),
+					OutputFormat = ets:lookup_element(options, output_format, 2),
+					print:write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , Mode , OutputFormat ),
 
 					executeOneway( NewState, scheduleNextSpontaneousTick )
 
@@ -184,7 +185,9 @@ metro_go( State, PositionTime , _GraphPID ) ->
 
 	CarId = getAttribute( PositionState , car_name ),
   	Type = getAttribute( PositionState , type ),
-	print:write_movement_bus_metro_message( CurrentTickOffset , 0 , CarId , Type , Destination , metro , csv ),
+
+	OutputFormat = ets:lookup_element(options, output_format, 2),
+	print:write_movement_bus_metro_message( CurrentTickOffset , 0 , CarId , Type , Destination , metro , OutputFormat ),
 
 	executeOneway( PositionState , addSpontaneousTick, TotalTime ).
 
@@ -205,7 +208,8 @@ bus_go( State, _PositionTime , _GraphPID ) ->
 	CarId = getAttribute( PositionState , car_name ),
   	Type = getAttribute( PositionState , type ),
 
-	print:write_movement_bus_metro_message( CurrentTickOffset , 0 , CarId , Type , Destination , bus , csv ),
+	OutputFormat = ets:lookup_element(options, output_format, 2),
+	print:write_movement_bus_metro_message( CurrentTickOffset , 0 , CarId , Type , Destination , bus , OutputFormat ),
 
 	executeOneway( PositionState , addSpontaneousTick, CurrentTickOffset + 1 ).
 
@@ -310,18 +314,20 @@ go( State, PositionTime ) ->
 	CarId = getAttribute( LengthState , car_name ),
   	Type = getAttribute( LengthState , type ),
 
+	OutputFormat = ets:lookup_element(options, output_format, 2),
+
 	case LastPosition == -1 of
 
 		false ->
 				
-			print:write_movement_car_message( CarId , LastPosition , Type , CurrentTickOffset , NewPosition , csv  );
+			print:write_movement_car_message( CarId , LastPosition , Type , CurrentTickOffset , NewPosition , OutputFormat  );
  
 
 		true -> 
 				
 			LinkOrigin = element( 3 , CurrentTrip ), 
 
-			print:write_initial_message( CarId , Type , CurrentTickOffset , LinkOrigin , LastPosition , csv )
+			print:write_initial_message( CarId , Type , CurrentTickOffset , LinkOrigin , LastPosition , OutputFormat )
 
 	end,
 

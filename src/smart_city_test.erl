@@ -161,8 +161,13 @@ run() ->
 			string:concat( AmqpClientPath, "/ebin" ),
 			string:concat( AmqpClientPath, "/include/rabbit_common/ebin" )
 		],
-
-	class_Actor:create_initial_actor( class_Street,  [ "Street" , ListEdges , LogName , Paths ] ),
+	
+	OutputFormat = case string:substr( LogName, length(LogName) - 3) of
+		".xml" -> xml;
+		_ -> csv
+	end,
+	
+	class_Actor:create_initial_actor( class_Street,  [ "Street" , ListEdges , LogName , Paths, OutputFormat ] ),
 
 	case MetroFile of
 		ok -> ok;
@@ -183,8 +188,27 @@ run() ->
 		class_Actor:create_initial_actor( class_Parking , [ "Parking" , ParkSpots ] )
 	end,
 
-	ListEvents = events_parser:read_csv( element( 9 , Config ) ),
-	io:format("LIST EVENTS: ~p~n", [ListEvents]),
+	ListInputEvents = events_parser:read_csv( element( 9 , Config ) ),
+	% io:format("LIST EVENTS: ~p~n", [ListInputEvents]),
+
+	ListRainfall = rainfall_parser:read_csv( element( 10 , Config ) ),
+	% io:format("LIST RAINFALL: ~p~n", [ListRainfall]),
+
+	ListFlood = flood_parser:read_csv( element( 11 , Config ) ),
+	% io:format("LIST FLOOD: ~p~n", [ListFlood]),
+
+	ListFloodEvents = case {ListRainfall, ListFlood} of
+		{ok, _} -> ok;
+		{_, ok} -> ok;
+		{Rainfall, Flood} -> flood_parser:get_flood_events( Rainfall, Flood )
+	end,
+
+	ListEvents = case {ListInputEvents, ListFloodEvents} of
+		{ok, ok} -> ok;
+		{InputEvents, ok} -> InputEvents;
+		{ok, FloodEvents}  -> FloodEvents;
+		{InputEvents, FloodEvents} -> lists:flatten([InputEvents, FloodEvents])
+	end,
 
 	case ListEvents of
 		ok -> ok;

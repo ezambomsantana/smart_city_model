@@ -2,6 +2,9 @@
   <config 
     trip_file="../simple_scenario/trips2.xml" 
     map_file="../simple_scenario/fiandeiras.xml" 
-    output_file="../simple_scenario/events.xml" 
-    simulation_time="86400"/>
+    output_file="../output/events.xml" 
+    simulation_time="86400"
+    generate_graph="true"
+    rainfall_file="../simple_scenario/2023-01-05.csv"
+  />
 </scsimulator_config>

@@ -246,7 +246,9 @@ move( State , Path , Position , IdBus , InitialVertice , Bus , CurrentTickOffset
 			StartTime = list_utils:get_element_at( Bus , 3 ),
 
 			DecrementVertex = list_utils:get_element_at( Bus , 5 ),
-			print:write_final_message_bus( CurrentTickOffset , IdBus , LastPosition , StartTime , csv ),
+		
+			OutputFormat = ets:lookup_element(options, output_format, 2),
+			print:write_final_message_bus( CurrentTickOffset , IdBus , LastPosition , StartTime , OutputFormat ),
 			case DecrementVertex of
 				ok ->
 					State;
@@ -359,13 +361,14 @@ go( State, PositionTime , BusId ) ->
 	Bus = element( 2 , dict:find( BusId , Buses ) ), % dict:find returns { ok , Object }
 
 	LastPosition = list_utils:get_element_at( Bus , 4 ),
+	OutputFormat = ets:lookup_element(options, output_format, 2),
 
 	case LastPosition == -1 of
 		false ->
-			print:write_movement_car_message( BusId , LastPosition , "bus" , CurrentTickOffset , NewPosition , csv  );
+			print:write_movement_car_message( BusId , LastPosition , "bus" , CurrentTickOffset , NewPosition , OutputFormat  );
  		true -> 
 			LinkOrigin = "1", % getAttribute( State , link_origin ), 
-			print:write_initial_message( BusId , "bus" , CurrentTickOffset , LinkOrigin , LastPosition , csv )
+			print:write_initial_message( BusId , "bus" , CurrentTickOffset , LinkOrigin , LastPosition , OutputFormat )
 	end,
 
 	NewBus = [ lists:nth( 1 , Bus ) + 1 , lists:nth( 2 , Bus ) , lists:nth( 3 , Bus ), NewPosition , lists:nth( 5 , Bus ) ],

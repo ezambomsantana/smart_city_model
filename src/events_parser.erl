@@ -26,6 +26,6 @@ read_line( Count , [ Data | ListRest ] ) ->
         { Time, _ } = string:to_integer( lists:nth( 4 , TextSplit ) ),
         { Duration, _ } = string:to_integer( lists:nth( 5 , TextSplit ) ),
         { Capacity, _ } = string:to_integer( lists:nth( 6 , TextSplit ) ),
-        Element = { Time, [ { Type, V1, V2, Duration, Capacity } ] },
+        Element = { Time, { Type, V1, V2, Duration, Capacity } },
         [ Element | read_line( Count +1 , ListRest ) ]
     end.

@@ -4,8 +4,9 @@
 
 DEPENDENCIES_DIR='deps'
 ROOT_DIR=`pwd`
-RABBITMQ_URL='https://www.rabbitmq.com/releases/rabbitmq-erlang-client'
-RABBITMQ_VERSION='3.6.11'
+RABBITMQ_URL='https://github.com/rabbitmq/rabbitmq-server/releases/download'
+RABBITMQ_VERSION_UNDERSCORE='3_6_11'
+RABBITMQ_VERSION_DOT='3.6.11'
 
 if [[ ! -e $DEPENDENCIES_DIR ]]; then
 	mkdir -p $DEPENDENCIES_DIR
@@ -13,11 +14,11 @@ if [[ ! -e $DEPENDENCIES_DIR ]]; then
 else
 	echo "You already have the _build directory, if you want to reinstall it,"
 	echo "please, remove it before run this script!"
-	exit -5
+	exit -0
 fi
 
-wget "$RABBITMQ_URL/v$RABBITMQ_VERSION/rabbit_common-$RABBITMQ_VERSION.ez" 2> /dev/null
-wget "$RABBITMQ_URL/v$RABBITMQ_VERSION/amqp_client-$RABBITMQ_VERSION.ez" 2> /dev/null
+wget "$RABBITMQ_URL/rabbitmq_v$RABBITMQ_VERSION_UNDERSCORE/rabbit_common-$RABBITMQ_VERSION_DOT.ez"
+wget "$RABBITMQ_URL/rabbitmq_v$RABBITMQ_VERSION_UNDERSCORE/amqp_client-$RABBITMQ_VERSION_DOT.ez"
 
 if [[ $? != 0 ]]; then
 	echo "Error during the download of .ez files!"
@@ -26,8 +27,8 @@ else
 	echo "I: .ez files were downloaded"
 fi
 
-unzip -q "rabbit_common-$RABBITMQ_VERSION.ez"
-unzip -q "amqp_client-$RABBITMQ_VERSION.ez"
+unzip -q "rabbit_common-$RABBITMQ_VERSION_DOT.ez"
+unzip -q "amqp_client-$RABBITMQ_VERSION_DOT.ez"
 
 if [[ $? != 0 ]]; then
 	echo "Error during the descompress of .ez files!"
@@ -36,9 +37,9 @@ else
 	echo "I: .ez files were descompressed"
 fi
 
-ln -s "amqp_client-$RABBITMQ_VERSION" amqp_client
+ln -s "amqp_client-$RABBITMQ_VERSION_DOT" amqp_client
 cd amqp_client/include
-ln -s "../../rabbit_common-$RABBITMQ_VERSION" rabbit_common
+ln -s "../../rabbit_common-$RABBITMQ_VERSION_DOT" rabbit_common
 
 if [[ $? != 0 ]]; then
 	echo "Error during the linkage!"

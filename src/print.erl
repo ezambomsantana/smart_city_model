@@ -155,18 +155,23 @@ formatAndPublish( Uuid, NodeId, Tick ) ->
 
 	RoutingKey = string:concat( Uuid, ".current_location.simulated" ),
 
-    [ { _, Channel } ] = ets:lookup( options, rabbitmq_channel ),
+    case ets:lookup( options, rabbitmq_channel ) of
+        [ { _, Channel } ] ->
+            % RabbitMQ channel is available, proceed with publishing
+            Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ),
+                                        type = <<"topic">> },
+            #'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
 
-	Exchange = #'exchange.declare'{ exchange = list_to_binary( Topic ),
-									type = <<"topic">> },
-	#'exchange.declare_ok'{} = amqp_channel:call( Channel, Exchange ),
+            Publish = #'basic.publish'{ exchange = list_to_binary( Topic ),
+                                    routing_key = list_to_binary( RoutingKey ) },
 
-	Publish = #'basic.publish'{ exchange = list_to_binary( Topic ),
-								routing_key = list_to_binary( RoutingKey ) },
-
-	amqp_channel:cast( Channel,
-					   Publish,
-					   #amqp_msg{ payload = list_to_binary( Message ) }).
+            amqp_channel:cast( Channel,
+                               Publish,
+                               #amqp_msg{ payload = list_to_binary( Message ) });
+        [] ->
+            % RabbitMQ channel is not available, just log a warning
+            io:format("Warning: RabbitMQ channel not available, message not published: ~s~n", [Message])
+    end.
 
 % Receive a message from an agent and saves it in the log file.
 %-spec publish_data( wooper:state() , parameter() , pid() ) -> wooper:state().

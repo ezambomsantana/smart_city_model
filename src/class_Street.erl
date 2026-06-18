@@ -5,17 +5,17 @@
 -define( wooper_superclasses, [ class_Actor ] ).
 
 % parameters taken by the constructor ('construct').
--define( wooper_construct_parameters, ActorSettings , StreetName , ListEdges , LogName , Paths ).
+-define( wooper_construct_parameters, ActorSettings , StreetName , ListEdges , LogName , Paths , OutputFormat ).
 
 % Declaring all variations of WOOPER-defined standard life-cycle operations:
 % (template pasted, just two replacements performed to update arities)
--define( wooper_construct_export, new/5, new_link/5,
-		 synchronous_new/5, synchronous_new_link/5,
-		 synchronous_timed_new/5, synchronous_timed_new_link/5,
-		 remote_new/6, remote_new_link/6, remote_synchronous_new/6,
-		 remote_synchronous_new_link/6, remote_synchronisable_new_link/6,
-		 remote_synchronous_timed_new/6, remote_synchronous_timed_new_link/6,
-		 construct/6, destruct/1 ).
+-define( wooper_construct_export, new/6, new_link/6,
+         synchronous_new/6, synchronous_new_link/6,
+         synchronous_timed_new/6, synchronous_timed_new_link/6,
+         remote_new/7, remote_new_link/7, remote_synchronous_new/7,
+         remote_synchronous_new_link/7, remote_synchronisable_new_link/7,
+         remote_synchronous_timed_new/7, remote_synchronous_timed_new_link/7,
+         construct/7, destruct/1 ).
 
 % Method declarations.
 -define( wooper_method_export, actSpontaneous/1, onFirstDiasca/2 ).
@@ -31,7 +31,7 @@
 % Creates a new city graph
 %
 -spec construct( wooper:state(), class_Actor:actor_settings(),
-				class_Actor:name() , sensor_type() , parameter() , parameter() ) -> wooper:state().
+				class_Actor:name() , sensor_type() , parameter() , parameter() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
 
 	case ets:info(list_streets) of
@@ -46,11 +46,11 @@ construct( State, ?wooper_construct_parameters ) ->
 
 	iterate_list( ListEdges ),
 
-	create_option_table( LogName , Paths ),
+	create_option_table( LogName , Paths , OutputFormat ),
 
 	class_Actor:construct( State, ActorSettings, StreetName ).
 
-create_option_table( LogName , Paths ) ->
+create_option_table( LogName , Paths , OutputFormat ) ->
 
 	filelib:ensure_dir( LogName ),
 	InitFile = file_utils:open( LogName , _Opts=[ write , delayed_write ] ),
@@ -61,6 +61,13 @@ create_option_table( LogName , Paths ) ->
         end,
 
 	ets:insert(options, {log_file, InitFile }),
+
+	ets:insert(options, {output_format, OutputFormat }),
+	
+	case OutputFormat of
+		xml -> file_utils:write( InitFile, "<events>\n" );
+		_ -> ok
+	end,
 
         code:add_pathsa( Paths ).
 
@@ -111,9 +118,15 @@ destruct( State ) ->
 
 	%ok = amqp_channel:close(Channel),
 	%ok = amqp_connection:close(Connection),
+	
+	OutputFormat = ets:lookup_element(options, output_format, 2 ),
+	OutputFile = ets:lookup_element(options, log_file, 2 ),
 
-%	file_utils:write( InitFile, "</events>" ),
-	file_utils:close( ets:lookup_element(options, log_file, 2 ) ),
+	case OutputFormat of
+		xml -> file_utils:write( OutputFile, "</events>" );
+		_ -> ok
+	end,
+	file_utils:close( OutputFile ),
 
 	State.
 

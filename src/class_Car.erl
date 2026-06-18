@@ -91,7 +91,10 @@ verify_next_action( State , _Trips , _Path , _Wait  ) ->
 	Mode = getAttribute( State , mode ), 
 
 	CurrentTickOffset = class_Actor:get_current_tick_offset( State ), 
-	print:write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , Mode , csv ),
+
+	OutputFormat = ets:lookup_element(options, output_format, 2),
+	print:write_final_message( Type , TotalLength , StartTime , CarId , CurrentTickOffset , LastPosition , Mode , OutputFormat ),
+
 	PathFinish = setAttribute( State , path , finish ),
 
 	executeOneway( PathFinish , scheduleNextSpontaneousTick ).
@@ -161,7 +164,7 @@ get_next_vertex( State , [ Current | Path ] , Mode ) when Mode == walk ->
 	TotalLength = getAttribute( State , distance ) + Distance,
 	FinalState = setAttributes( State , [ { distance , TotalLength } , { car_position , Id } , { path , Path } ] ), 
 
-%	print_movement( State ),
+	% TODO: print walk movement @maysaclaudino
 
 	executeOneway( FinalState , addSpontaneousTick , class_Actor:get_current_tick_offset( FinalState ) + Time );
 
@@ -171,17 +174,39 @@ get_next_vertex( State , Path , _Mode ) ->
 	Vertices = list_to_atom( lists:concat( [ Origin  , lists:nth( 2 , Path ) ] )),
 
 	ModifiedPath = case ets:info(events) of
-			       undefined ->
-				       Path;
-			       _ ->
-				       case ets:lookup( events, Vertices ) of
-					       [{ _ , _ }] ->
-						       [ { _, Graph } ] = ets:lookup( graph, mygraph ),
-						       [ Destination ] = lists:nthtail(length(Path)-1, Path),
-						       digraph:get_short_path( Graph , Origin , Destination );
-					       _ -> Path
-				       end
-		       end,
+		undefined -> ok;
+		_ ->
+			case ets:lookup( events, Vertices ) of
+				[{ _ , _ , _ }] ->
+					[ { _, Graph } ] = ets:lookup( graph, mygraph ),
+					[ Destination ] = lists:nthtail(length(Path)-1, Path),
+
+					[ { _, V1 } ] = ets:lookup( graph, atom_to_list( Origin ) ), 
+					[ { _, V2 } ] = ets:lookup( graph, atom_to_list( Destination ) ), 
+
+					% Tentar calcular o caminho, tratando erro quando não há caminho
+					ShortPath = try
+						digraph:get_short_path( Graph , V1 , V2 )
+					catch
+						error:{badmatch, false} ->
+							% Quando não há caminho, digraph pode lançar badmatch
+							false;
+						_:_ ->
+							% Outros erros também são tratados como "sem caminho"
+							false
+					end,
+					
+					case ShortPath of
+						false -> false;
+						_ -> lists:map(
+							fun(Vertex) -> 
+								{_, {Id}} = digraph:vertex(Graph, Vertex),
+								list_to_atom(Id)
+							end, ShortPath)
+					end;
+				_ -> ok
+			end
+		end,
 
 	CurrentTick = class_Actor:get_current_tick_offset( State ),
 	
@@ -199,12 +224,17 @@ get_next_vertex( State , Path , _Mode ) ->
 			ok
 
 	end,
+	
+	NewPath = case ModifiedPath of
+		ok -> lists:nthtail( 1 , Path );
+		_ -> ModifiedPath
+	end,
 
 	case NumCars >= MaxCar of
 
 		true ->
 
-			FinalState = setAttributes( State , [ { wait, true }, { path, ModifiedPath } ] ),
+			FinalState = setAttributes( State , [ { wait, true }, { path, NewPath } ] ),
 			executeOneway( FinalState , addSpontaneousTick , CurrentTick + 1 );
 
 		false ->
@@ -219,25 +249,22 @@ get_next_vertex( State , Path , _Mode ) ->
 
 			ets:update_counter( list_streets , Vertices , { 6 , 1 }),
 
-			NewPath = case ModifiedPath of
-					  [_] -> lists:nthtail( 1 , ModifiedPath );
-					  _   -> []
-				  end,
 		
 			ets:update_counter( list_streets , Vertices , { 9 , 1 }),
 
 			{ Id , Time , Distance } = traffic_models:get_speed_car( Data ),
 
+			LastPosition = getAttribute( State , car_position ),
 			TotalLength = getAttribute( State , distance ) + Distance,
 			FinalState = setAttributes( State , [{ wait , false } , {distance , TotalLength} , {car_position , Id} , {last_vertex_pid , Vertices} , {path , NewPath},  { coordFrom , From } ] ), 
 
 			%	send data to rabbitMQ, including the From lat/long
 
-			Uuid = getAttribute( FinalState, uuid ),
+			% Uuid = getAttribute( FinalState, uuid ),
 
 			%io:format("SPAWN PROCESS TO UPDATE ~p~n", [ Uuid ] ),
-			spawn( print, formatAndPublish, [ Uuid, atom_to_list(Id), CurrentTick ] ),
-
+			% spawn( print, formatAndPublish, [ Uuid, atom_to_list(Id), CurrentTick ] ),
+			print_movement( FinalState, LastPosition ),
 			executeOneway( FinalState , addSpontaneousTick , CurrentTick + Time )
 
 	end.
@@ -269,26 +296,20 @@ onFirstDiasca( State, _SendingActorPid ) ->
 	NewState = setAttribute( State , start_time , FirstActionTime ),
 	executeOneway( NewState , addSpontaneousTick , FirstActionTime ).
 
-%print_movement( State ) ->
+print_movement( State, LastPosition ) ->
+	{ Trips , CurrentTickOffset , CarId , Type , NewPosition }
+            = { getAttribute( State , trips ), class_Actor:get_current_tick_offset( State ) , 
+                getAttribute( State , car_name ) , getAttribute( State , type ) , getAttribute( State , car_position ) },
+	CurrentTrip =  lists:nth( 1 , Trips ),
 
-%	LastPosition = getAttribute( State , car_position ),
-
-%	{ Trips , CurrentTickOffset , CarId , Type , NewPosition }
- %            = { getAttribute( LengthState , trips ), class_Actor:get_current_tick_offset( State ) , 
-  %               getAttribute( State , car_name ) , getAttribute( State , type ) , getAttribute( LengthState , car_position ) },
-%	CurrentTrip =  lists:nth( 1 , Trips ),
-
-%	FinalState = case LastPosition == -1 of
-
-%		false ->
-			
-%			print:write_movement_car_message( LengthState , CarId , LastPosition , Type , ets:lookup_element(options, log_pid, 2 ) , CurrentTickOffset , NewPosition , csv  );
+	OutputFormat = ets:lookup_element(options, output_format, 2),
+	
+	case LastPosition == -1 of
+		false ->
+			print:write_movement_car_message( CarId , LastPosition , Type , CurrentTickOffset , NewPosition , OutputFormat  );
  
-
-%		true -> 
-
-%			LinkOrigin = element( 3 , CurrentTrip ), 
-
-%			print:write_initial_message( LengthState , ets:lookup_element(options, log_pid, 2 ) , CarId , Type , CurrentTickOffset , LinkOrigin , LastPosition , csv )
+		true -> 
+			LinkOrigin = element( 3 , CurrentTrip ), 
+			print:write_initial_message( CarId , Type , CurrentTickOffset , LinkOrigin , NewPosition , OutputFormat )
 	   
-%	end.
+	end.

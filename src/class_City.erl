@@ -45,7 +45,9 @@ construct( State, ?wooper_construct_parameters ) ->
 	ets:insert(options, { city_graph , CityGraph }),
 	
     Hostname = os:getenv( "RABBITMQ_HOST", "localhost" ),
-	{ok, Connection} = amqp_connection:start(#amqp_params_network{host=Hostname}),
+    Username = list_to_binary(os:getenv( "RABBITMQ_USER", "admin" )),
+    Password = list_to_binary(os:getenv( "RABBITMQ_PASS", "admin123" )),
+	{ok, Connection} = amqp_connection:start(#amqp_params_network{host=Hostname, username=Username, password=Password}),
 	{ ok, Channel } = amqp_connection:open_channel( Connection ),
 	ets:insert(options, { rabbitmq_channel, Channel }),
 

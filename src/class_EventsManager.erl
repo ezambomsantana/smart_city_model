@@ -28,18 +28,34 @@
 -include("wooper.hrl").
 
 
-% Creates a list with the parking spots in the city
+% Creates a list with the road closure events in the city
 %
 -spec construct( wooper:state(), class_Actor:actor_settings(),
 				class_Actor:name() , parameter() ) -> wooper:state().
 construct( State, ?wooper_construct_parameters ) ->
     
-	Events = dict:from_list( ListOfEvents ),
+	% Create a dictionary with the events, does not overwrite events with the same time
+	% Key: Time, Value: List of events
+    Events = lists:foldl(
+        fun({Time, Event}, AccDict) ->
+            dict:append(Time, Event, AccDict)
+        end,
+        dict:new(),
+        ListOfEvents
+    ),
 
 	ActorState = class_Actor:construct( State, ActorSettings , EventsName ),
 
 	case ets:info(events) of
 		undefined -> ets:new(events, [public, set, named_table]);
+		_ -> ok
+	end,
+
+	case ets:info(traffic_factors) of
+		undefined -> 
+			ets:new(traffic_factors, [public, set, named_table]),
+			ets:insert(traffic_factors, { capacity_reduction, 1.0 }),
+			ets:insert(traffic_factors, { speed_reduction, 1.0 });
 		_ -> ok
 	end,
 
@@ -69,7 +85,7 @@ iterate_events( State, [] ) ->
 iterate_events( State, [ Event | Events ] ) ->
 	NewState = case element( 1, Event ) of
 			   "open_street" ->
-				   io:format("OPEN STREET~n"),
+				%    io:format("OPEN STREET~n"),
 
 				   V1 = element( 2, Event ),
 				   V2 = element( 3, Event ),
@@ -84,25 +100,43 @@ iterate_events( State, [ Event | Events ] ) ->
 				   State;
 
 			   "close_street" ->
-				   io:format("CLOSE STREET~n"),
+				%    io:format("CLOSE STREET~n"),
 
 				   V1 = element( 2, Event ),
 				   V2 = element( 3, Event ),
 				   Duration = element( 4, Event ),
 
-				   [ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
-
-				   GraphManagerPid ! { delete_edge, V1, V2 },
-
-				   EdgeID = list_to_atom( string:concat(atom_to_list(V1), atom_to_list(V2)) ),
-				   ets:insert( events, { EdgeID , remove }),
-
 				   OpenStreetEvent = { "open_street", V1, V2 },
 				   CurrentTickOffset = class_Actor:get_current_tick_offset( State ),
-				   EventsDict = getAttribute( State, events ),
-				   NewEvents = dict:append( CurrentTickOffset + Duration, OpenStreetEvent, EventsDict ),
-				   setAttribute( State, events, NewEvents );
+				   OpeningTick = CurrentTickOffset + Duration,
+				   
+				   EdgeID = list_to_atom( string:concat(atom_to_list(V1), atom_to_list(V2)) ),
+				   case ets:lookup( events, EdgeID ) of
+					   [{ _, remove, OldOpeningTick }] ->
+						   % if the street is already closed
+						   EventsDict = getAttribute( State, events ),
 
+						   % update the open streetevent with the new opening tick
+						   NewEventsDict = dict:update(
+							   OldOpeningTick,
+							   fun(EventsList) ->
+								   lists:filter(fun(E) -> E =/= OpenStreetEvent end, EventsList)
+							   end,
+							   EventsDict
+						   ),
+
+						   NewEvents = dict:append( OpeningTick, OpenStreetEvent, NewEventsDict ),
+						   setAttribute( State, events, NewEvents );
+
+					   _ ->
+						   % if the street is not closed
+						   [ { _, GraphManagerPid } ] = ets:lookup( graph, mypid ),
+						   GraphManagerPid ! { delete_edge, V1, V2 },
+						   ets:insert( events, { EdgeID , remove, OpeningTick }),
+						   EventsDict = getAttribute( State, events ),
+						   NewEvents = dict:append( OpeningTick, OpenStreetEvent, EventsDict ),
+						   setAttribute( State, events, NewEvents )
+				   end;
 
 			   "restore_capacity" ->
 				   EdgeID = element( 2, Event ),
@@ -132,7 +166,26 @@ iterate_events( State, [ Event | Events ] ) ->
 				   CurrentTickOffset = class_Actor:get_current_tick_offset( State ),
 				   EventsDict = getAttribute( State, events ),
 				   NewEvents = dict:append( CurrentTickOffset + Duration, RestoreCapacityEvent, EventsDict ),
-				   setAttribute( State, events, NewEvents )
+				   setAttribute( State, events, NewEvents );
+				
+				"reduce_traffic" ->
+					io:format("REDUCE TRAFFIC~n"),
+					% Reduce capacity all streets by a certain percentage and reduce all vehicles velocity by a certain percentage
+					CapacityFactor = element( 2, Event ),
+					VelocityFactor = element( 3, Event ),
+					
+					ets:insert(traffic_factors, { capacity_reduction, CapacityFactor / 100.0 }),
+					ets:insert(traffic_factors, { speed_reduction, VelocityFactor / 100.0 }),
+					State
+
+				% "restore_traffic" ->
+				% 	io:format("RESTORE TRAFFIC~n"),
+				% 	% Restore capacity all streets to the original value and restore all vehicles velocity to the original value
+					
+				% 	ets:insert(traffic_factors, { capacity_reduction, 1.0 }),
+				% 	ets:insert(traffic_factors, { speed_reduction, 1.0 }),
+
+				% 	State
 
 		   end,
 	iterate_events( NewState, Events ).

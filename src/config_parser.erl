@@ -69,7 +69,9 @@ extract_node(Node) ->
 			ParkFile = children( Attributes , park_file ),
 			EventsFile = children( Attributes , events_file ),
 			GenerateGraph = children( Attributes , generate_graph ),
-			{ OutputFile , SimulationTime , MapFile , TripFile , MetroFile , BusFile , ParkFile , GenerateGraph, EventsFile };
+			RainfallFile = children( Attributes , rainfall_file ),
+			FloodFile = children( Attributes , flood_file ),
+			{ OutputFile , SimulationTime , MapFile , TripFile , MetroFile , BusFile , ParkFile , GenerateGraph, EventsFile, RainfallFile, FloodFile };
 
 		_ ->
 			ok

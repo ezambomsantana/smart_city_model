@@ -1,6 +1,8 @@
 # InterSCSimulator #
 This is the official repository of InterSCSimulator, a large-scale smart city simulator. InterSCSimulator is based on Sim-Diasca, a general purpose simulator implemented in Erlang.
 
+**Note:** This version of InterSCSimulator is compatible with Sim-Diasca version 2.2.11-rc4.
+
 ## Running InterSCSimulator with Docker ##
 Download and extract Sim-Diasca. Place this repository under Sim-Diasca's `mock-simulators` directory:
 ```
@@ -14,21 +16,19 @@ cd smart_city_model
 echo "../simple_scenario/config.xml" > interscsimulator.conf
 ```
 
-Go back to Sim-Diasca root directory and build the image:
+Run with Docker Compose:
 ```
-cd ../..
-docker build -f mock-simulators/smart_city_model/Dockerfile -t interscitysimulator .  
-```
-
-Create a Docker network:
-```
-docker network create interscity
+docker compose up --build
 ```
 
-Run the simulator container mouting a volume from the desired scenario directory:
+This will build the InterSCSimulator image and start both the simulator and RabbitMQ services automatically.
+
+To stop the services and clean up:
 ```
-docker run -it --network interscity --hostname interscity.local -v $(pwd)/mock-simulators/smart_city_model/simple_scenario/:/interscsimulator/mock-simulators/smart_city_model/simple_scenario interscitysimulator
+docker compose down
 ```
+
+This will stop and remove the containers, networks, and volumes created by the compose file.
 
 ## Running InterSCSimulator on Linux ##
 ### Prerequisites ### 

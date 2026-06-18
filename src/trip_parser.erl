@@ -1,43 +1,71 @@
 -module(trip_parser).
+-include_lib("xmerl/include/xmerl.hrl").
 
 % usage:
 %
-% l(osm_parser).
-% osm_parser:show("map.osm").
+% l(trip_parser).
+% trip_parser:show("trips.xml").
 
 -export([
          show/1
         ]).
 
 show( FileName ) ->
-	case file:read_file(FileName) of
-		{ok, Data} ->
-			List = binary:split(Data, [<<"\n">>], [global]),
-			read_line(1 , List);
-		_ ->
-			ok
-	end.
+    {Doc, _Misc} = xmerl_scan:file(FileName),
+    init(Doc).
 
-read_line( _Count, [] ) -> [];
-read_line( Count , [ Data | ListRest ] ) ->
-	String = binary_to_list(Data),
+% read the XML and extract all trip elements
+init(Node) ->
+    case Node of
+        #xmlElement{name=Name, content=Content} ->
+            case Name of
+                scsimulator_matrix -> 
+                    List = extract_trips(Content, []),
+                    List;
+                _ -> 
+                    []
+            end;
+        _ -> 
+            []
+    end.
 
-	case String of
-		[] -> [];
-		_ ->
-			Text = string:chomp(String),
-			TextSplit = string:split( Text ,  ";" , all ),
-			Name = lists:nth( 1 , TextSplit ),
-			Origin = lists:nth( 2 , TextSplit ),
-			Destination = lists:nth( 3 , TextSplit ),
-			LinkOrigin = lists:nth( 4 , TextSplit ),
-			CarCount = lists:nth( 5 , TextSplit ),
-			Start = lists:nth( 6 , TextSplit ),
-			Type = ok,
-			Mode = lists:nth( 7 , TextSplit ),
-			Park = ok,
-			Uuid = lists:nth( 8 , TextSplit ),
-			Element = { Origin, Destination, CarCount, Start, LinkOrigin, Type, Mode, Name, Park, Uuid },
-			%Element = { Origin, Destination, CarCount, Start, LinkOrigin, Type, Mode, Name, Park },
-			[ Element | read_line( Count +1 , ListRest ) ]
-	end.
+extract_trips([], List) ->
+    List;
+extract_trips([Node | MoreNodes], List) ->
+    Element = extract_trip(Node),
+    case Element of
+        ok ->
+            extract_trips(MoreNodes, List);
+        _ ->
+            extract_trips(MoreNodes, [Element | List])
+    end.
+
+extract_trip(Node) ->
+    case Node of
+        #xmlElement{name=Name, attributes=Attributes} ->
+            case Name of
+                trip ->
+                    Name_attr = get_attribute(Attributes, name),
+                    Origin = get_attribute(Attributes, origin),
+                    Destination = get_attribute(Attributes, destination),
+                    LinkOrigin = get_attribute(Attributes, link_origin),
+                    CarCount = get_attribute(Attributes, count),
+                    Start = get_attribute(Attributes, start),
+                    Mode = get_attribute(Attributes, mode),
+                    Type = ok,
+                    Park = ok,
+                    Uuid = get_attribute(Attributes, uuid),
+                    {Origin, Destination, CarCount, Start, LinkOrigin, Type, Mode, Name_attr, Park, Uuid};
+                _ ->
+                    ok
+            end;
+        _ ->
+            ok
+    end.
+
+get_attribute([], _Name) ->
+    "";
+get_attribute([#xmlAttribute{name=Name, value=Value} | _Rest], Name) ->
+    Value;
+get_attribute([_ | Rest], Name) ->
+    get_attribute(Rest, Name).

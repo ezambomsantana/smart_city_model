@@ -7,8 +7,14 @@
 
 get_speed_car( LinkData ) ->
 
-	{ _ , Id , Length , Capacity , Freespeed , NumberCars , _ , _ , _ , _ , _ } = LinkData,
+	{ _ , Id , Length , RegularCapacity , RegularFreespeed , NumberCars , _ , _ , _ , _ , _ } = LinkData,
 
+	CapacityReductionFactor = ets:lookup_element(traffic_factors, capacity_reduction, 2),
+	Capacity = RegularCapacity * CapacityReductionFactor,
+
+	SpeedReductionFactor = ets:lookup_element(traffic_factors, speed_reduction, 2),
+	Freespeed = RegularFreespeed * SpeedReductionFactor,
+	
 	MinimumDensity = (Capacity * 0.3),
 	Speed = case NumberCars > MinimumDensity of
 
